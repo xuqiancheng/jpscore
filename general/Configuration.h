@@ -96,6 +96,9 @@ public:
           // -------- Interpolation GCFM - right side
           _distEffMaxPed = 2;
           _distEffMaxWall = 2;
+		  // --------  GCVM model ------
+		  _Ts = 0.5;
+		  _Td = 0.3;
           // ----------------
 
           _hostname = "localhost";
@@ -335,6 +338,14 @@ public:
 
     RandomNumberGenerator* GetRandomNumberGenerator() const {return &_rdGenerator;};
 
+	double GetTs() const { return _Ts; };
+
+	void SetTs(double Ts) { _Ts = Ts; };
+
+	double GetTd() const { return _Td; };
+
+	void SetTd(double Td) { _Td = Td; };
+
 #ifdef _JPS_AS_A_SERVICE
 
      const bool GetRunAsService() const { return _runAsService; };
@@ -399,7 +410,9 @@ private:
      bool _use_wall_avoidance;
      //gradientmodel
      double _slow_down_distance;
-
+	 //GCVMmodel
+	 double _Ts;
+	 double _Td;
      //ff router quickest
      double _recalc_interval;
 

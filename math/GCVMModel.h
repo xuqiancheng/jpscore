@@ -39,7 +39,8 @@
 typedef std::pair<double, double> my_pair;
 // sort with respect to first element (ascending).
 // In case of equality sort with respect to second element (descending)
-struct sort_pred
+
+struct sort_pred_gcvm
 {
 	bool operator () (const my_pair& left, const my_pair& right)
 	{
@@ -48,6 +49,7 @@ struct sort_pred
 			(left.first < right.first);
 	}
 };
+
 
 
 //forward declaration
@@ -65,7 +67,8 @@ private:
 	double _aWall;
 	double _DWall;
 
-	double _Tau;
+	double _Ts;
+	double _Td;
 	
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
@@ -124,7 +127,7 @@ private:
 public:
 
 	GCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall);
+		double awall, double Dwall, double Ts, double Td);
 	virtual ~GCVMModel(void);
 
 

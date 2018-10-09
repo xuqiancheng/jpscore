@@ -39,6 +39,7 @@
 #include "../math/GompertzModel.h"
 #include "../math/GradientModel.h"
 #include "../math/VelocityModel.h"
+#include "../math/GCVMMODEL.h"
 #include "../routing/global_shortest/GlobalRouter.h"
 #include "../routing/quickest/QuickestPathRouter.h"
 #include "../routing/smoke_router/SmokeRouter.h"
@@ -370,10 +371,21 @@ bool IniFileParser::Parse(std::string iniFile)
                //only parsing one model
                break;
           }
+		  if ((_model == MODEL_GCVM) && (model_id == MODEL_GCVM)) {
+			  if (modelName != "gcvm") {
+				  Log->Write("ERROR: \t mismatch model ID and description. Did you mean gcvm?");
+				  return false;
+			  }
+			  if (!ParseGCVMModel(xModel, xMainNode))
+				  return false;
+			  parsingModelSuccessful = true;
+			  //only parsing one model
+			  break;
+		  }
      }
 
      if (!parsingModelSuccessful) {
-          Log->Write("ERROR: \tWrong model id [%d]. Choose 1 (GCFM), 2 (Gompertz),  3 (Tordeux2015) or 5 (Krausz)", _model);
+          Log->Write("ERROR: \tWrong model id [%d]. Choose 1 (GCFM), 2 (Gompertz),  3 (Tordeux2015),  5 (Krausz) or 6 (GCVM)", _model);
           Log->Write("ERROR: \tPlease make sure that all models are specified in the operational_models section");
           Log->Write("ERROR: \tand make sure to use the same ID in the agent section");
           return false;
@@ -1077,6 +1089,12 @@ void IniFileParser::ParseAgentParameters(TiXmlElement* operativModel, TiXmlNode*
                {
                     agentParameters->EnableStretch(false);
                }
+
+			   if (_model == 6) { // GCVM
+				   double max_Eb = 2 * agentParameters->GetBmax();
+				   _config->SetDistEffMaxPed(max_Eb + _config->GetTs()*agentParameters->GetV0());
+				   _config->SetDistEffMaxWall(_config->GetDistEffMaxPed());
+			   }
           }
      }
 }
@@ -1619,4 +1637,113 @@ bool IniFileParser::ParseFfOpts(const TiXmlNode &strategyNode) {
              Log->Write("INFO: \tUseWAD:\t no");
      }
      return true;
+}
+
+bool IniFileParser::ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
+{
+	//parsing the model parameters
+	Log->Write("\nINFO:\tUsing GCVM model");
+	Log->Write("INFO:\tParsing the model parameters");
+
+	TiXmlNode* xModelPara = xGCVM->FirstChild("model_parameters");
+
+	if (!xModelPara) {
+		Log->Write("ERROR: \t !!!! Changes in the operational model section !!!");
+		Log->Write("ERROR: \t !!!! The new version is in inputfiles/ship_msw/ini_ship3.xml !!!");
+		return false;
+	}
+
+	// For convenience. This moved to the header as it is not model specific
+	if (xModelPara->FirstChild("tmax")) {
+		Log->Write("ERROR: \tthe maximal simulation time section moved to the header!!!");
+		Log->Write("ERROR: \t\t <max_sim_time> </max_sim_time>\n");
+		return false;
+	}
+
+	//solver
+	if (!ParseNodeToSolver(*xModelPara))
+		return false;
+
+	//stepsize
+	if (!ParseStepSize(*xModelPara))
+		return false;
+
+	//exit crossing strategy
+	if (!ParseStrategyNodeToObject(*xModelPara))
+		return false;
+
+	//linked-cells
+	if (!ParseLinkedCells(*xModelPara))
+		return false;
+
+	//periodic
+	if (!ParsePeriodic(*xModelPara))
+		return false;
+
+	//force_ped
+	if (xModelPara->FirstChild("force_ped")) {
+
+		if (!xModelPara->FirstChildElement("force_ped")->Attribute("a"))
+			_config->SetaPed(3.0); // default value
+		else {
+			string a = xModelPara->FirstChildElement("force_ped")->Attribute("a");
+			_config->SetaPed(atof(a.c_str()));
+		}
+
+		if (!xModelPara->FirstChildElement("force_ped")->Attribute("D"))
+			_config->SetDPed(0.1); // default value in [m]
+		else {
+			string D = xModelPara->FirstChildElement("force_ped")->Attribute("D");
+			_config->SetDPed(atof(D.c_str()));
+		}
+		Log->Write("INFO: \tfrep_ped a=%0.2f, D=%0.2f", _config->GetaPed(), _config->GetDPed());
+
+	}
+	//force_wall
+	if (xModelPara->FirstChild("force_wall")) {
+
+		if (!xModelPara->FirstChildElement("force_wall")->Attribute("a"))
+			_config->SetaWall(6.0); // default value
+		else {
+			string a = xModelPara->FirstChildElement("force_wall")->Attribute("a");
+			_config->SetaWall(atof(a.c_str()));
+		}
+
+		if (!xModelPara->FirstChildElement("force_wall")->Attribute("D"))
+			_config->SetDWall(0.05); // default value in [m]
+		else {
+			string D = xModelPara->FirstChildElement("force_wall")->Attribute("D");
+			_config->SetDWall(atof(D.c_str()));
+		}
+		Log->Write("INFO: \tfrep_wall a=%0.2f, D=%0.2f", _config->GetaWall(), _config->GetDWall());
+	}
+
+	//time parameters
+	if (xModelPara->FirstChild("time_parameters")) {
+
+		if (!xModelPara->FirstChildElement("time_parameters")->Attribute("Ts"))
+			_config->SetTs(0.5); // default value
+		else {
+			string Ts = xModelPara->FirstChildElement("time_parameters")->Attribute("Ts");
+			_config->SetTs(atof(Ts.c_str()));
+		}
+
+		if (!xModelPara->FirstChildElement("time_parameters")->Attribute("Td"))
+			_config->SetTd(0.3); // default value in [m]
+		else {
+			string Td = xModelPara->FirstChildElement("time_parameters")->Attribute("Td");
+			_config->SetTd(atof(Td.c_str()));
+		}
+		Log->Write("INFO: \ttime_parameters Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
+
+	
+	}
+	//Parsing the agent parameters
+	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
+	ParseAgentParameters(xGCVM, xAgentDistri);
+	_config->SetModel(std::shared_ptr<OperationalModel>(new GCVMModel(_exit_strategy, _config->GetaPed(),
+		_config->GetDPed(), _config->GetaWall(),
+		_config->GetDWall(), _config->GetTs(), _config->GetTd())));
+
+	return true;
 }

@@ -43,9 +43,9 @@
 #define omp_get_max_threads()  1
 #endif
 
-double xRight = 26.0;
-double xLeft = 0.0;
-double cutoff = 2.0;
+double xRight_gcvm = 26.0;
+double xLeft_gcvm = 0.0;
+double cutoff_gcvm = 2.0;
 
 //--------------------------------
 int Vision_area = 1;//Vision_Area=1:open,Vision_Area=0:close,Vision_Area=2:ei_half,Vision=3:e0_half
@@ -62,7 +62,7 @@ using std::vector;
 using std::string;
 
 GCVMModel::GCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-	double awall, double Dwall)
+	double awall, double Dwall, double Ts, double Td)
 {
 	_direction = dir;
 	// Force_rep_PED Parameter
@@ -71,6 +71,8 @@ GCVMModel::GCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double
 	// Force_rep_WALL Parameter
 	_aWall = awall;
 	_DWall = Dwall;
+	_Ts = Ts;
+	_Td = Td;
 }
 
 
@@ -118,7 +120,7 @@ bool GCVMModel::Init(Building* building)
 		//a destination could not be found for that pedestrian
 		if (ped->FindRoute() == -1) {
 			Log->Write(
-				"ERROR:\tVelocityModel::Init() cannot initialise route. ped %d is deleted in Room %d %d.\n", ped->GetID(), ped->GetRoomID(), ped->GetSubRoomID());
+				"ERROR:\tGCVMModel::Init() cannot initialise route. ped %d is deleted in Room %d %d.\n", ped->GetID(), ped->GetRoomID(), ped->GetSubRoomID());
 			building->DeletePedestrian(ped);
 			p--;
 			peds_size--;
@@ -196,7 +198,7 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			vector<Pedestrian*> neighbours;
 			building->GetGrid()->GetNeighbourhood(ped, neighbours);
 			Point inid_direction = e0(ped, room);
-			double alpha = 1;
+			double alpha = 1;//may be useful in the future
 
 			//using a new method calculate the influence of pedestrian (the value of influence id decided by distance and the direction is vertical with desired direction) 
 			Point inf_direction;// left side of pedestrian
@@ -314,7 +316,7 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			Point a_direction;
 			a_direction._x = ped->GetEllipse().GetCosPhi();
 			a_direction._y = ped->GetEllipse().GetSinPhi();
-			double angle_tau = ped->GetTau();
+			double angle_tau = _Td;
 			//Two ways to calculate new direction (vector and angle)
 			/*
 			//case 1 (vector)
@@ -380,7 +382,7 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			 //------------------------------------------------------------------------------------------------------------------------------------
 
 			 // Calculate min spacing, and save all spacing=0 to vector relation--------------------------------------------------------------------
-			std::sort(spacings.begin(), spacings.end(), sort_pred());
+			std::sort(spacings.begin(), spacings.end(), sort_pred_gcvm());
 			double spacing = spacings.size() == 0 ? 100 : spacings[0].first;
 			double first_ID = spacings.size() == 0 ? -1 : spacings[0].second;
 			double sec_spacing = spacings.size() <= 1 ? 100 : spacings[1].first;
@@ -525,8 +527,8 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			ped->SetV(v_neu);
 			ped->SetPos(pos_neu);
 			if (periodic) {
-				if (ped->GetPos()._x >= xRight) {
-					ped->SetPos(Point(ped->GetPos()._x - (xRight - xLeft), ped->GetPos()._y));
+				if (ped->GetPos()._x >= xRight_gcvm) {
+					ped->SetPos(Point(ped->GetPos()._x - (xRight_gcvm - xLeft_gcvm), ped->GetPos()._y));
 					//ped->SetID( ped->GetID() + 1);
 				}
 			}
@@ -578,7 +580,7 @@ Point GCVMModel::e0(Pedestrian* ped, Room* room) const
 double GCVMModel::OptimalSpeed(Pedestrian* ped, double spacing) const
 {
 	double v0 = ped->GetV0Norm();
-	double T = ped->GetT();
+	double T = _Ts;
 	//spacing is approximate here
 	double speed = (spacing) / T;
 	speed = (speed>0) ? speed : 0;
@@ -604,8 +606,8 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, doub
 	double y2 = ped2->GetPos()._y;
 
 	if (periodic) {
-		if ((xRight - x1) + (x2_real - xLeft) <= cutoff) {
-			double x2_periodic = x2_real + xRight - xLeft;
+		if ((xRight_gcvm - x1) + (x2_real - xLeft_gcvm) <= cutoff_gcvm) {
+			double x2_periodic = x2_real + xRight_gcvm - xLeft_gcvm;
 			ped2->SetPos(Point(x2_periodic, y2));
 		}
 	}
@@ -805,8 +807,8 @@ Point GCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int p
 
 	if (periodic) {
 		double x = ped1->GetPos()._x;
-		if ((xRight - x) + (x_j - xLeft) <= cutoff) {
-			double x2_periodic = x_j + xRight - xLeft;
+		if ((xRight_gcvm - x) + (x_j - xLeft_gcvm) <= cutoff_gcvm) {
+			double x2_periodic = x_j + xRight_gcvm - xLeft_gcvm;
 			ped2->SetPos(Point(x2_periodic, y_j));
 		}
 	}

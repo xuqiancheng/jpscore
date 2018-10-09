@@ -61,6 +61,8 @@ private:
      bool ParseFfRouterOps(TiXmlNode* routingNode, RoutingStrategy s);
 
      bool ParseCogMapOpts(TiXmlNode* routingNode);
+
+	 bool ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMain);
 #ifdef AIROUTER
      bool ParseAIOpts(TiXmlNode* routingNode);
 #endif
