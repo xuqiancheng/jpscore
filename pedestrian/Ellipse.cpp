@@ -360,7 +360,8 @@ double JEllipse::EffectiveDistanceToLine(const Line& l) const
 {
      Point C = this->GetCenter();
      Point P = l.ShortestPoint(C);
-     Point R = this->PointOnEllipse(P);
+	 Point PinE = P.TransformToEllipseCoordinates(C, this->GetCosPhi(), this->GetSinPhi());
+	 Point R = this->PointOnEllipse(PinE);
      return (P-R).Norm();
 // when ellipse intersect with line, the effective distance should be minus
 	 if ((P - R).ScalarProduct(P - C) > 0)
