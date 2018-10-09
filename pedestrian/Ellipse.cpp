@@ -362,6 +362,15 @@ double JEllipse::EffectiveDistanceToLine(const Line& l) const
      Point P = l.ShortestPoint(C);
      Point R = this->PointOnEllipse(P);
      return (P-R).Norm();
+// when ellipse intersect with line, the effective distance should be minus
+	 if ((P - R).ScalarProduct(P - C) > 0)
+	 {
+		 return (P - R).Norm();
+	 }
+	 else
+	 {
+		 return (P - R).Norm()*-1;
+	 }
 }
 
 // thanks to Sean Curtis. see manuals/Ellipsen/ellipseLineSean.pdf
