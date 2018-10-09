@@ -52,9 +52,9 @@ int Vision_area = 1;//Vision_Area=1:open,Vision_Area=0:close,Vision_Area=2:ei_ha
 int Direction_smooth = 1;//Direction_smooth=1:using tau,Direction_smooth=0:not using tau
 int Vertical_influence = 1;//Vertical_influence=1:vertical influence,Vertical_influence=0:original influence
 int Velocity_influence = 0;//Velocity-influence=1:velocity wll be considered when calculate influence direction
-int bf_use = 0;//bmin=1:use bmin,bmin=0:use b
-int bv_use = 1;
-int bmin_use = 1;
+int bf_use = 0;//when calculate direction 1:use b, 0:effective distance
+int bv_use = 1;//when calculate velocity 1: use b, 0: effecitve distance
+int bmin_use = 1;//width of area in front 1: bmin, 0: b
 int real_distance = 0;//when calculate spacing between two pedestrian
 					  //-------------------------------
 
