@@ -327,7 +327,7 @@ math/GompertzModel.cpp
 math/GradientModel.cpp
 math/VelocityModel.cpp
 math/OperationalModel.cpp
-
+math/GCVMModel.cpp
 
 mpi/LCGrid.cpp
 
@@ -517,7 +517,7 @@ math/GompertzModel.h
 math/GradientModel.h
 math/VelocityModel.h
 math/OperationalModel.h
-
+math/GCVMModel.h
 
 
 poly2tri/poly2tri.h
