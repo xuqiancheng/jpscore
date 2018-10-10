@@ -22,7 +22,7 @@
 *
 * \section Description
 * Implementation of first-order model
-* Generalized collision-free velocity model: Qiancheng (3)
+* Generalized collision-free velocity model: Qiancheng (6)
 *
 *
 **/
@@ -87,15 +87,12 @@ private:
 	* @param ped1 Pointer to Pedestrian: First pedestrian
 	* @param ped2 Pointer to Pedestrian: Second pedestrian
 	* @param ei the direction of pedestrian.
-	* This direction is: \f$ e_0 + \sum_j{R(spacing_{ij})*e_{ij}}\f$
-	* and should be calculated *before* calling OptimalSpeed
+	*
 	* @return Point
 	*/
 	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, double k_deltaT, int periodic) const;
 	/**
-	* Repulsive force between two pedestrians ped1 and ped2 according to
-	* the Velocity model (to be published in TGF15)
-	*
+	* Repulsive force between two pedestrians ped1 and ped2 
 	* @param ped1 Pointer to Pedestrian: First pedestrian
 	* @param ped2 Pointer to Pedestrian: Second pedestrian
 	*

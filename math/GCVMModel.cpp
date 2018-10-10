@@ -22,7 +22,7 @@
 *
 * \section Description
 * Implementation of first-order model
-* Generalized collision-free velocity model: Qiancheng (3)
+* Generalized collision-free velocity model: Qiancheng (6)
 *
 *
 **/
