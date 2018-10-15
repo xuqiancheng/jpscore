@@ -39,7 +39,7 @@
 #include "../math/GompertzModel.h"
 #include "../math/GradientModel.h"
 #include "../math/VelocityModel.h"
-#include "../math/GCVMMODEL.h"
+#include "../math/GCVMModel.h"
 #include "../routing/global_shortest/GlobalRouter.h"
 #include "../routing/quickest/QuickestPathRouter.h"
 #include "../routing/smoke_router/SmokeRouter.h"
