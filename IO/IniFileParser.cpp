@@ -1049,6 +1049,20 @@ void IniFileParser::ParseAgentParameters(TiXmlElement* operativModel, TiXmlNode*
                     agentParameters->InitT(mu, sigma);
                     Log->Write("INFO: \tT mu=%f , sigma=%f", mu, sigma);
                }
+			   //dynamical circle or ellipse
+			   if (xAgentPara->FirstChild("shape")) {
+				   double shape = xmltof(xAgentPara->FirstChildElement("shape")->Attribute("circle"));
+				   if (shape > 0)
+				   {
+					   agentParameters->EnableStretch(false);
+					   Log->Write("INFO: \tUsing dynamical circle");
+				   }
+				   else
+				   {
+					   agentParameters->EnableStretch(true);
+					   Log->Write("INFO: \tUsing dynamical ellipse");
+				   }
+			   }
                // swaying parameters
                if (xAgentPara->FirstChild("sway")) {
                     double freqA = xmltof(xAgentPara->FirstChildElement("sway")->Attribute("freqA"));
