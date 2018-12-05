@@ -56,7 +56,7 @@
 
   <!-- Method D (Zhang2011a) Voronoi density and Vel -->
   <method_D enabled="true">
-    <measurement_area id="1" /> 
+    <measurement_area id="1" start_frame="100" stop_frame="800"/> 
     <one_dimensional enabled="true"/>
     <plot_time_series enabled="false"/>
     <cut_by_circle enabled="false" radius="1.0" edges="10"/>
