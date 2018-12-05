@@ -677,14 +677,15 @@ void TrajectoriesJPSV05::WriteFrame(int frameNr, Building* building)
           double a = ped->GetLargerAxis();
           double b = ped->GetSmallerAxis();
           double phi = atan2(ped->GetEllipse().GetSinPhi(), ped->GetEllipse().GetCosPhi());
+		  double ephi = atan2(ped->GetLastE0()._y, ped->GetLastE0()._x);
           sprintf(s, "<agent ID=\"%d\"\t"
                     "x=\"%.6f\"\ty=\"%.6f\"\t"
                     "z=\"%.6f\"\t"
                     "rA=\"%.2f\"\trB=\"%.2f\"\t"
-                    "eO=\"%.2f\" eC=\"%d\"/>\n",
+                    "eO=\"%.2f\" eC=\"%d\" ed=\"%.2f\"/>\n",
                     ped->GetID(), (ped->GetPos()._x) * FAKTOR,
                     (ped->GetPos()._y) * FAKTOR,(ped->GetElevation()) * FAKTOR ,a * FAKTOR, b * FAKTOR,
-                    phi * RAD2DEG, color);
+                    phi * RAD2DEG, color, ephi* RAD2DEG);
           data.append(s);
      }
      data.append("</frame>\n");
