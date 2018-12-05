@@ -5,6 +5,10 @@
 #ifndef LIBCNPY_H_
 #define LIBCNPY_H_
 
+#ifndef ZLIB_WINAPI
+#define ZLIB_WINAPI
+#endif
+
 #include<string>
 #include<stdexcept>
 #include<sstream>
