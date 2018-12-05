@@ -322,6 +322,7 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			//case 1 (vector)
 			Point angle_v = (d_direction.Normalized()-a_direction)/ angle_tau;
 			Point direction =a_direction+angle_v*deltaT ;
+
 			/*
 			//case 2 (angle)
 			double angle_dd = atan2(d_direction._y, d_direction._x);
@@ -685,13 +686,13 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, doub
 	
 	if (fabs(v._x) < J_EPS && fabs(v._y) < J_EPS) // v==0
 	{
-	const Point& pos = ped1->GetPos();
-	double distGoal = ped1->GetExitLine()->DistToSquare(pos);
-	if (distGoal < 0.2)
-	{
-	b1 = 0.1;
-	//b1 = ped1->GetEllipse().GetBmin();
-	}
+		const Point& pos = ped1->GetPos();
+		double distGoal = ped1->GetExitLine()->DistToSquare(pos);
+		if (distGoal < 0.2)
+		{
+			b1 = 0.1;
+			//b1 = ped1->GetEllipse().GetBmin();
+		}
 	}
 	
 	//-----------------------------------------------------------------------------------

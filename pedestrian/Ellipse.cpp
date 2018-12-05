@@ -49,7 +49,7 @@ JEllipse::JEllipse()
      _Xp = 0; //x Ellipse-coord of the centre (Center in (xc,yc) )
      _Amin = 0.18; // Semi-axis in direction of motion:  pAmin + V * pAv
      _Av = 0.53;
-     _Bmin = 0.15; // Semi-axis in direction of shoulders: pBmax - V *[(pBmax - pBmin) / V0]
+     _Bmin = 0.20; // Semi-axis in direction of shoulders: pBmax - V *[(pBmax - pBmin) / V0]
      _Bmax = 0.25;
      _do_stretch = true;
      _vel0 = 0; // desired speed
@@ -230,7 +230,6 @@ double JEllipse::GetEB() const
           /*
 	      double x = (_vel0 <= 0.001) ? 0 : (_Bmax - _Bmin) / _vel0;
 		  return _Bmax - _vel.Norm() * x;
-		  //return _Bmin + (_vel.Norm() - _vel0 / 2)*(_vel.Norm() - _vel0 / 2) * 4 * x / _vel0;
 		  */
 		  /*
 		  if (_vel.Norm() <= 0.10)
@@ -255,7 +254,7 @@ double JEllipse::GetEB() const
 		  }
 		  return 0.35;
 		  */
-		  
+		  // new function for b
 		  double vmid = 0.10;
 		  double n = 50;
 		  return _Bmin + (_Bmax - _Bmin) / (1 + exp(n*(_vel.Norm() - vmid)));
