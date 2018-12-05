@@ -53,7 +53,7 @@ int Direction_smooth = 1;//Direction_smooth=1:using tau,Direction_smooth=0:not u
 int Vertical_influence = 1;//Vertical_influence=1:vertical influence,Vertical_influence=0:original influence
 int Velocity_influence = 0;//Velocity-influence=1:velocity wll be considered when calculate influence direction
 int bf_use = 0;//when calculate direction 1:use b, 0:effective distance
-int bv_use = 1;//when calculate velocity 1: use b, 0: effecitve distance
+int bv_use = 0;//when calculate velocity 1: use b, 0: effecitve distance
 int bmin_use = 1;//width of area in front 1: bmin, 0: b
 int real_distance = 0;//when calculate spacing between two pedestrian
 					  //-------------------------------
@@ -225,10 +225,10 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 				//Deciding the influence direction--------------------------------------------------------------------
 				double result1 = inid_direction.CrossProduct(ep12);
 				Point zero = Point(0, 0);
-				if (bool equal = almostEqual(result1, 0, 0.001))//if neighbour is in front or behind pedestrian
+				if (bool equal = almostEqual(result1, 0, 0.00001))//if neighbour is in front or behind pedestrian
 				{
-					int random = rand() % 100;//choose one direciton bu random
-					if (random > 200)//when random is larger than 50, influence's direction is right, otherwise is left
+					int random = rand() % 1000;//choose one direciton bu random
+					if (random < 500)//when random is larger than 50, influence's direction is right, otherwise is left
 					{
 						inf_direction = zero - inf_direction;
 					}
@@ -318,11 +318,11 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			a_direction._y = ped->GetEllipse().GetSinPhi();
 			double angle_tau = _Td;
 			//Two ways to calculate new direction (vector and angle)
-			/*
+			
 			//case 1 (vector)
 			Point angle_v = (d_direction.Normalized()-a_direction)/ angle_tau;
 			Point direction =a_direction+angle_v*deltaT ;
-			*/
+			/*
 			//case 2 (angle)
 			double angle_dd = atan2(d_direction._y, d_direction._x);
 			double angle_ad = atan2(a_direction._y, a_direction._x);
@@ -338,7 +338,7 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			Point direction;
 			direction._x = cos(angle_d);
 			direction._y = sin(angle_d);
-
+			*/
 			/*
 			//Todo:when v=0, peddestrian change direction directly.
 			if (ped->GetV().Norm() < 0.01)
@@ -400,6 +400,14 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			}
 			// add this part to avoid pedestrian cross the wall directly
 			spacing = spacing > GetSpacingRoom(ped, subroom, direction) ? GetSpacingRoom(ped, subroom, direction) : spacing;
+			/*
+			//test code
+			if (ped->GetID() == 33)
+			{
+			fprintf(stderr, "\n pedID=%d,postion=(%f,%f)\n",ped->GetID(),ped->GetPos()._x,ped->GetPos()._y);
+			fprintf(stderr, "spacing=%f\n", spacing);
+			}
+			*/
 			relations.push_back(relation);
 			relation.clear();
 			Point speed;
@@ -674,19 +682,18 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, doub
 		b1 = ped1->GetEllipse().GetBmin();
 	}
 	//Avoid block (drill,small tricks)-----------------------------------------------------
-	/*
+	
 	if (fabs(v._x) < J_EPS && fabs(v._y) < J_EPS) // v==0
 	{
 	const Point& pos = ped1->GetPos();
 	double distGoal = ped1->GetExitLine()->DistToSquare(pos);
-	if (distGoal < 0.5)
+	if (distGoal < 0.2)
 	{
 	b1 = 0.1;
 	//b1 = ped1->GetEllipse().GetBmin();
-
 	}
 	}
-	*/
+	
 	//-----------------------------------------------------------------------------------
 
 	double a2 = ped2->GetLargerAxis();
@@ -1067,12 +1074,12 @@ Point GCVMModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& centr
 	inf_direction = inf_direction.Normalized();
 	double result1 = e0.CrossProduct(e_iw);
 	double result2 = e0.CrossProduct(inf_direction);
-	if (bool equal = almostEqual(result1, 0, 0.001))//Is there any possible that desired direction towards the wall?
+	if (bool equal = almostEqual(result1, 0, 0.00001))//Is there any possible that desired direction towards the wall?
 	{
 		//double alpha = ped->GetAlpha();
 		Point zero = Point(0.0, 0.0);
-		int random = rand() % 100;//choose one direciton bu random
-		if (random > 200)//when random is larger than 50, influence's direction is right, otherwise is left
+		int random = rand() % 1000;//choose one direciton by random
+		if (random > 500)//when random is larger than 50, influence's direction is right, otherwise is left
 		{
 			inf_direction = zero - inf_direction;
 		}
