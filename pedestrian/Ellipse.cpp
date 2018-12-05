@@ -49,7 +49,7 @@ JEllipse::JEllipse()
      _Xp = 0; //x Ellipse-coord of the centre (Center in (xc,yc) )
      _Amin = 0.18; // Semi-axis in direction of motion:  pAmin + V * pAv
      _Av = 0.53;
-     _Bmin = 0.20; // Semi-axis in direction of shoulders: pBmax - V *[(pBmax - pBmin) / V0]
+     _Bmin = 0.15; // Semi-axis in direction of shoulders: pBmax - V *[(pBmax - pBmin) / V0]
      _Bmax = 0.25;
      _do_stretch = true;
      _vel0 = 0; // desired speed
@@ -171,7 +171,12 @@ double JEllipse::GetAv() const
 
 double JEllipse::GetBmin() const
 {
-     return _Bmin;
+	if (_do_stretch)
+	{
+		return _Bmin;
+	}
+	else
+		return _Amin;
 }
 
 double JEllipse::GetBmax() const
@@ -181,7 +186,7 @@ double JEllipse::GetBmax() const
           return _Bmax;
      }
      else
-          return _Bmin;
+          return _Amin + _vel0 * _Av;
 }
 
 double JEllipse::GetV0() const
@@ -222,10 +227,41 @@ double JEllipse::GetEB() const
      //return (v<v_min)? 0.5*b_shoulder: 0.5*(b_shoulder + a * exp(b*v));
      if (_do_stretch)
      {
-          double x = (_vel0 <= 0.001) ? 0 : (_Bmax - _Bmin) / _vel0;
-          return _Bmax - _vel.Norm() * x;
+          /*
+	      double x = (_vel0 <= 0.001) ? 0 : (_Bmax - _Bmin) / _vel0;
+		  return _Bmax - _vel.Norm() * x;
+		  //return _Bmin + (_vel.Norm() - _vel0 / 2)*(_vel.Norm() - _vel0 / 2) * 4 * x / _vel0;
+		  */
+		  /*
+		  if (_vel.Norm() <= 0.10)
+		  {
+			  return 0.23;
+		  }
+		  if (_vel.Norm() <= 0.25)
+		  {
+			  return 0.17;
+		  }
+		  if (_vel.Norm() <= 0.3)
+		  {
+			  return 0.16;
+		  }
+		  if (_vel.Norm() <= 0.8)
+		  {
+			  return 0.15;
+		  }
+		  if (_vel.Norm() <= 1.0)
+		  {
+			  return 0.23;
+		  }
+		  return 0.35;
+		  */
+		  
+		  double vmid = 0.10;
+		  double n = 50;
+		  return _Bmin + (_Bmax - _Bmin) / (1 + exp(n*(_vel.Norm() - vmid)));
+		  
      } else {
-          return _Bmin;
+          return _Amin + _vel.Norm() * _Av;
      }
      // double b_shoulder = _Bmin; /// width of shoulder. todo: find out empricial value
      // double v_min = 0.001;
@@ -362,7 +398,6 @@ double JEllipse::EffectiveDistanceToLine(const Line& l) const
      Point P = l.ShortestPoint(C);
 	 Point PinE = P.TransformToEllipseCoordinates(C, this->GetCosPhi(), this->GetSinPhi());
 	 Point R = this->PointOnEllipse(PinE);
-     return (P-R).Norm();
 // when ellipse intersect with line, the effective distance should be minus
 	 if ((P - R).ScalarProduct(P - C) > 0)
 	 {
