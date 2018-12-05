@@ -91,8 +91,8 @@ class JPSRunTestDriver(object):
                 logging.critical("jpsreport_ini <%s> does not exist", self.jpsreport_ini)
                 exit(self.FAILURE)
 
-            jpsreport = os.path.join(self.jpsreportdir, "bin", "jpsreport")
-            jpsreport_exe = self.__find_executable(jpsreport)
+            jpsreport = os.path.join(self.jpsreportdir, "bin", "Release")
+            jpsreport_exe = "%s/jpsreport.exe" % jpsreport
             # if self.testno == 100: # fix for 1dfd, since jpsreport can not be used in 1D
             #     fd_script = os.path.join(self.DIR, "fd.py")
             #     print(fd_script)
