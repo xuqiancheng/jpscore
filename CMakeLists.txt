@@ -308,6 +308,7 @@ math/GradientModel.cpp
 math/VelocityModel.cpp
 math/OperationalModel.cpp
 math/GCVMModel.cpp
+math/SimplestModel.cpp
 
 mpi/LCGrid.cpp
 
@@ -521,6 +522,7 @@ math/GradientModel.h
 math/VelocityModel.h
 math/OperationalModel.h
 math/GCVMModel.h
+math/SimplestModel.h
 
 events/EventManager.h
 events/Event.h

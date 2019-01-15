@@ -63,6 +63,8 @@ private:
      bool ParseCogMapOpts(TiXmlNode* routingNode);
 
 	 bool ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMain);
+
+	 bool ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xMain);
 #ifdef AIROUTER
      bool ParseAIOpts(TiXmlNode* routingNode);
 #endif

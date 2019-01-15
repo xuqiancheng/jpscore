@@ -35,6 +35,7 @@
 #include "math/GompertzModel.h"
 #include "math/GradientModel.h"
 #include "math/GCVMModel.h"
+#include "math/SimplestModel.h"
 #include "pedestrian/AgentsQueue.h"
 #include "pedestrian/AgentsSourcesManager.h"
 #ifdef _OPENMP
