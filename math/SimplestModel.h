@@ -37,6 +37,7 @@
 #include "OperationalModel.h"
 
 typedef std::pair<double, double> my_pair;
+typedef std::pair<int, int> ID_pair;
 // sort with respect to first element (ascending).
 // In case of equality sort with respect to second element (descending)
 

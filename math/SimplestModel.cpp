@@ -46,7 +46,7 @@
 double xRight_simplest = 26.0;
 double xLeft_simplest = 0.0;
 double cutoff_simplest = 2.0;
-
+int clogging_times = 0;
 //--------------------------------
 /*
 int Vision_area = 1;//Vision_Area=1:open,Vision_Area=0:close,Vision_Area=2:ei_half,Vision=3:e0_half
@@ -168,10 +168,10 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	result_dir.reserve(nSize);
 	vector< my_pair > spacings = vector<my_pair >();
 	spacings.reserve(nSize); // larger than needed
-	vector< vector<int> > relations = vector< vector<int> >();
-	relations.reserve(nSize);
 	vector<Point> f_pos = vector<Point>();
 	f_pos.reserve(nSize);
+	vector< ID_pair > relations = vector<ID_pair>();
+	relations.reserve(nSize);
 
 	int start = 0;
 	int end = nSize - 1;
@@ -282,6 +282,8 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		std::sort(spacings.begin(), spacings.end(), sort_pred_Simplest());
 		double spacing = spacings.size() == 0 ? 100 : spacings[0].first;
 		double first_ID = spacings.size() == 0 ? -1 : spacings[0].second;
+		my_pair relation = my_pair(ped->GetID(), first_ID);
+		relations.push_back(relation);
 		// add this part to avoid pedestrian cross the wall directly
 		spacing = spacing > GetSpacingRoom(ped, subroom, direction) ? GetSpacingRoom(ped, subroom, direction) : spacing;
 		Point speed;
@@ -292,11 +294,16 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 							  //-----------------------------------------------------------------------------------------------------------------------------------------
 
 	}
-		  
+	vector<int> stoppings = vector<int>();
+	stoppings.reserve(nSize);
+	
 		 // update
 	for (int p = start; p <= end; ++p) {
 		Pedestrian* ped = allPeds[p];
 		Point v_neu = result_acc[p - start];
+		if (v_neu.Norm() < 0.01) {
+			stoppings.push_back(ped->GetID());
+		}
 		Point dir_neu = result_dir[p - start];
 		Point pos_neu = ped->GetPos() + v_neu * deltaT;
 		//calculate ellipse orientation
@@ -316,6 +323,37 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		}
 	}
 
+	for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter) {
+		int first_ID = iter->first;
+		vector<int>::iterator stopping = std::find(stoppings.begin(), stoppings.end(), first_ID);
+		if (stopping == stoppings.end()) {
+			continue;
+		}
+		int second_ID = iter->second;
+		stopping = std::find(stoppings.begin(), stoppings.end(), second_ID);
+		if (stopping == stoppings.end()) {
+			continue;
+		}
+		vector<ID_pair>::iterator converse = std::find(relations.begin(), relations.end(), ID_pair(second_ID, first_ID));
+		if (converse == relations.end()) {
+			continue;
+		}
+		*converse = ID_pair(first_ID, second_ID);
+		for (int p = start; p <= end; ++p) {
+			Pedestrian* ped = allPeds[p];
+			if (ped->GetID() == first_ID) {
+				pedsToRemove.push_back(ped);
+				clogging_times++;
+				std::ofstream ofile;
+				ofile.open("clogging_times.txt", std::ofstream::app);
+				ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted to slove clogging, clogging times: " << clogging_times << " !\n";
+				ofile.close();
+				Log->Write("\tDELETE: \tPed (ID %d) is deleted to slove clogging !", ped->GetID());
+				Log->Write("Clogging times = %d", clogging_times);
+				break;
+			}
+		}
+	}
 
 	// remove the pedestrians that have left the building
 	for (unsigned int p = 0; p < pedsToRemove.size(); p++) {
@@ -401,7 +439,7 @@ my_pair SimplestModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, 
 	else {
 		Log->Write("WARNING: \tin SimplestModel::GetSPacing() ep12 can not be calculated!!!\n");
 		Log->Write("\t\t Pedestrians are too near to each other (%f).", Distance);
-		exit(EXIT_FAILURE);
+		//exit(EXIT_FAILURE);
 	}
 
 	double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
@@ -445,7 +483,7 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 		Log->Write("\t\t Maybe the value of <a> in force_ped should be increased. Going to exit.\n");
 		printf("ped1 %d  ped2 %d\n", ped1->GetID(), ped2->GetID());
 		printf("ped1 at (%f, %f), ped2 at (%f, %f)\n", ped1->GetPos()._x, ped1->GetPos()._y, ped2->GetPos()._x, ped2->GetPos()._y);
-		exit(EXIT_FAILURE);
+		//exit(EXIT_FAILURE);
 	}
 	Point ei;
 	JEllipse Eped1 = ped1->GetEllipse();
