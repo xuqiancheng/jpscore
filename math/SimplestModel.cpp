@@ -34,7 +34,6 @@
 #include "../geometry/Wall.h"
 #include "../geometry/SubRoom.h"
 
-
 #include "SimplestModel.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -342,15 +341,28 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		for (int p = start; p <= end; ++p) {
 			Pedestrian* ped = allPeds[p];
 			if (ped->GetID() == first_ID) {
-				pedsToRemove.push_back(ped);
-				clogging_times++;
-				std::ofstream ofile;
-				ofile.open("clogging_times.txt", std::ofstream::app);
-				ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted to slove clogging, clogging times: " << clogging_times << " !\n";
-				ofile.close();
-				Log->Write("\tDELETE: \tPed (ID %d) is deleted to slove clogging !", ped->GetID());
-				Log->Write("Clogging times = %d", clogging_times);
-				break;
+				double InCloggingTime = ped->GetInCloggingTime()+deltaT;
+				//setting waiting time before delete
+				if (InCloggingTime < 1) {
+					ped->SetInCloggingTime(InCloggingTime);
+				}
+				else {
+					ped->SetInCloggingTime(0);
+					pedsToRemove.push_back(ped);
+					clogging_times++;
+					std::ofstream ofile;
+					if (clogging_times == 1) {
+						ofile.open(building->GetProjectRootDir() + "CloggingLog.txt", std::ofstream::trunc);
+					}
+					else {
+						ofile.open(building->GetProjectRootDir() + "CloggingLog.txt", std::ofstream::app);
+					}
+					ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
+					ofile.close();
+					//Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), clogging_times);
+					break;
+
+				}
 			}
 		}
 	}

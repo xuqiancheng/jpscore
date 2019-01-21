@@ -1247,3 +1247,11 @@ bool Pedestrian::Relocate(std::function<void(const Pedestrian&)> flowupdater) {
      }
      return status;
 }
+
+void Pedestrian::SetInCloggingTime(double t) {
+	_InCloggingTime = t;
+}
+
+double Pedestrian::GetInCloggingTime() const {
+	return _InCloggingTime;
+}

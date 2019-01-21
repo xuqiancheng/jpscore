@@ -152,6 +152,7 @@ private:
      std::shared_ptr<WalkingSpeed> _WalkingSpeed = nullptr;
      std::shared_ptr<ToxicityAnalysis> _ToxicityAnalysis = nullptr;
 
+	 double _InCloggingTime = 0;
 
 public:
      // public member
@@ -496,6 +497,10 @@ public:
      double GetSwayAmpB() const;
 
      const std::shared_ptr<ToxicityAnalysis> &getToxicityAnalysis();
+
+	 void SetInCloggingTime(double t);
+
+	 double GetInCloggingTime() const;
 };
 
 #endif  /* _PEDESTRIAN_H */
