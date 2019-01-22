@@ -351,13 +351,20 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					pedsToRemove.push_back(ped);
 					clogging_times++;
 					std::ofstream ofile;
+					string ProjectFileName = building->GetProjectFilename();
+					int start= ProjectFileName.find_last_of("\\");
+					int end = ProjectFileName.find(".");
+					string InifileName = ProjectFileName.substr(start+1,end-start-1);
 					if (clogging_times == 1) {
-						ofile.open(building->GetProjectRootDir() + "CloggingLog.txt", std::ofstream::trunc);
+						ofile.open(building->GetProjectRootDir() + "CloggingLog_"+InifileName+".txt", std::ofstream::trunc);
+						ofile <<"inifile: "<< building->GetProjectFilename()<<"\n";
+						ofile<<"ID\ttime(s)\tamount\n";
 					}
 					else {
-						ofile.open(building->GetProjectRootDir() + "CloggingLog.txt", std::ofstream::app);
+						ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName+".txt", std::ofstream::app);
 					}
-					ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
+					//ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
+					ofile  << ped->GetID() << "\t" << current << "\t" << clogging_times << "\n";
 					ofile.close();
 					//Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), clogging_times);
 					break;
