@@ -1888,12 +1888,28 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
 
 
 	}
+
+	if (xModelPara->FirstChild("update_method")) {
+
+		if (!xModelPara->FirstChildElement("update_method")->Attribute("parallel"))
+			_config->SetUpdate(1); // default value
+		else {
+			string Parallel = xModelPara->FirstChildElement("update_method")->Attribute("parallel");
+			_config->SetUpdate(atoi(Parallel.c_str()));
+		}
+		_config->GetUpdate()==1?
+			Log->Write("INFO: \tupdate_method: parallel"):
+			Log->Write("INFO: \tupdate_method: unparallel ") ;
+
+
+
+	}
 	//Parsing the agent parameters
 	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
 	ParseAgentParameters(xSimplest, xAgentDistri);
 	_config->SetModel(std::shared_ptr<OperationalModel>(new SimplestModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
-		_config->GetDWall(), _config->GetTs(), _config->GetTd())));
+		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetUpdate())));
 
 	return true;
 }

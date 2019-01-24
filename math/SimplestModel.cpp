@@ -61,7 +61,7 @@ using std::vector;
 using std::string;
 
 SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-	double awall, double Dwall, double Ts, double Td)
+	double awall, double Dwall, double Ts, double Td, int Parallel)
 {
 	_direction = dir;
 	// Force_rep_PED Parameter
@@ -72,6 +72,7 @@ SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped
 	_DWall = Dwall;
 	_Ts = Ts;
 	_Td = Td;
+	_Parallel = Parallel;
 }
 
 
@@ -171,7 +172,8 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	f_pos.reserve(nSize);
 	vector< ID_pair > relations = vector<ID_pair>();
 	relations.reserve(nSize);
-
+	vector<int> stoppings = vector<int>();
+	stoppings.reserve(nSize);
 	int start = 0;
 	int end = nSize - 1;
 	for (int p = start; p <= end; ++p) {
@@ -290,37 +292,58 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		speed = direction.NormalizedMolified() *OptimalSpeed(ped, spacing);
 		result_acc.push_back(speed);
 		spacings.clear(); //clear for ped p
-							  //-----------------------------------------------------------------------------------------------------------------------------------------
+		//unparallel update
+		if (_Parallel != 1) {
+			if (speed.Norm() < 0.01) {
+				stoppings.push_back(ped->GetID());
+			}
+			Point pos_neu = ped->GetPos() + speed * deltaT;
+			//calculate ellipse orientation
+			double normdir = direction.Norm();
+			double cosPhi = direction._x / normdir;
+			double sinPhi = direction._y / normdir;
+			JEllipse e = ped->GetEllipse();
+			e.SetCosPhi(cosPhi);
+			e.SetSinPhi(sinPhi);
+			ped->SetEllipse(e);
+			ped->SetV(speed);
+			ped->SetPos(pos_neu);
+			if (periodic) {
+				if (ped->GetPos()._x >= xRight_simplest) {
+					ped->SetPos(Point(ped->GetPos()._x - (xRight_simplest - xLeft_simplest), ped->GetPos()._y));
+				}
+			}
+		}
 
 	}
-	vector<int> stoppings = vector<int>();
-	stoppings.reserve(nSize);
-	
-		 // update
-	for (int p = start; p <= end; ++p) {
-		Pedestrian* ped = allPeds[p];
-		Point v_neu = result_acc[p - start];
-		if (v_neu.Norm() < 0.01) {
-			stoppings.push_back(ped->GetID());
-		}
-		Point dir_neu = result_dir[p - start];
-		Point pos_neu = ped->GetPos() + v_neu * deltaT;
-		//calculate ellipse orientation
-		double normdir = dir_neu.Norm();
-		double cosPhi = dir_neu._x / normdir;
-		double sinPhi = dir_neu._y / normdir;
-		JEllipse e = ped->GetEllipse();
-		e.SetCosPhi(cosPhi);
-		e.SetSinPhi(sinPhi);
-		ped->SetEllipse(e);
-		ped->SetV(v_neu);
-		ped->SetPos(pos_neu);
-		if (periodic) {
-			if (ped->GetPos()._x >= xRight_simplest) {
-				ped->SetPos(Point(ped->GetPos()._x - (xRight_simplest - xLeft_simplest), ped->GetPos()._y));
+	// parallel update
+	if (_Parallel == 1) {
+		for (int p = start; p <= end; ++p) {
+			Pedestrian* ped = allPeds[p];
+			Point v_neu = result_acc[p - start];
+			if (v_neu.Norm() < 0.01) {
+				stoppings.push_back(ped->GetID());
+			}
+			Point dir_neu = result_dir[p - start];
+			Point pos_neu = ped->GetPos() + v_neu * deltaT;
+			//calculate ellipse orientation
+			double normdir = dir_neu.Norm();
+			double cosPhi = dir_neu._x / normdir;
+			double sinPhi = dir_neu._y / normdir;
+			JEllipse e = ped->GetEllipse();
+			e.SetCosPhi(cosPhi);
+			e.SetSinPhi(sinPhi);
+			ped->SetEllipse(e);
+			ped->SetV(v_neu);
+			ped->SetPos(pos_neu);
+			if (periodic) {
+				if (ped->GetPos()._x >= xRight_simplest) {
+					ped->SetPos(Point(ped->GetPos()._x - (xRight_simplest - xLeft_simplest), ped->GetPos()._y));
+				}
 			}
 		}
 	}
+	
 
 	for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter) {
 		int first_ID = iter->first;
@@ -343,7 +366,8 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			if (ped->GetID() == first_ID) {
 				double InCloggingTime = ped->GetInCloggingTime()+deltaT;
 				//setting waiting time before delete
-				if (InCloggingTime < 1) {
+				double WaitingTime = 1;
+				if (InCloggingTime < WaitingTime) {
 					ped->SetInCloggingTime(InCloggingTime);
 				}
 				else {
@@ -866,4 +890,9 @@ double SimplestModel::GetaWall() const
 double SimplestModel::GetDWall() const
 {
 	return _DWall;
+}
+
+int SimplestModel::GetUpdate() const
+{
+	return _Parallel;
 }

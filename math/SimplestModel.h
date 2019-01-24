@@ -71,6 +71,8 @@ private:
 	double _Ts;
 	double _Td;
 
+	int _Parallel;
+
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
 	/**
@@ -125,7 +127,7 @@ private:
 public:
 
 	SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td);
+		double awall, double Dwall, double Ts, double Td, int Parallel);
 	virtual ~SimplestModel(void);
 
 
@@ -180,6 +182,8 @@ public:
 	* @param periodic: used in some utests for periodic scenarios (very specific)
 	*/
 	virtual void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic);
+
+	int GetUpdate() const;
 };
 
 

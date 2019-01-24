@@ -99,6 +99,8 @@ public:
 		  // --------  GCVM model ------
 		  _Ts = 0.5;
 		  _Td = 0.3;
+		  // --------  Simplest model ------
+		  _Parallel = 1;
           // ----------------
 
           _hostname = "localhost";
@@ -346,6 +348,10 @@ public:
 
 	void SetTd(double Td) { _Td = Td; };
 
+	void SetUpdate(int parallel) { _Parallel = parallel; };
+
+	int GetUpdate() const { return _Parallel; };
+
 #ifdef _JPS_AS_A_SERVICE
 
      const bool GetRunAsService() const { return _runAsService; };
@@ -413,6 +419,8 @@ private:
 	 //GCVMmodel
 	 double _Ts;
 	 double _Td;
+	 //Simplestmodel
+	 int _Parallel;
      //ff router quickest
      double _recalc_interval;
 
