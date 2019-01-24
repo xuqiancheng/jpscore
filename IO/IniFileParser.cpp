@@ -1885,8 +1885,6 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
 			_config->SetTd(atof(Td.c_str()));
 		}
 		Log->Write("INFO: \ttime_parameters Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
-
-
 	}
 
 	if (xModelPara->FirstChild("update_method")) {
@@ -1900,16 +1898,26 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
 		_config->GetUpdate()==1?
 			Log->Write("INFO: \tupdate_method: parallel"):
 			Log->Write("INFO: \tupdate_method: unparallel ") ;
-
-
-
 	}
+
+	if (xModelPara->FirstChild("waiting_time")) {
+
+		if (!xModelPara->FirstChildElement("waiting_time")->Attribute("Tw"))
+			_config->SetWaitingTime(0); // default value
+		else {
+			string WaitingTime = xModelPara->FirstChildElement("waiting_time")->Attribute("Tw");
+			_config->SetWaitingTime(atof(WaitingTime.c_str()));
+		}
+		Log->Write("INFO: \twaiting_time Tw=%0.2f",_config->GetWaitingTime());
+	}
+
+
 	//Parsing the agent parameters
 	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
 	ParseAgentParameters(xSimplest, xAgentDistri);
 	_config->SetModel(std::shared_ptr<OperationalModel>(new SimplestModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
-		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetUpdate())));
+		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetUpdate(), _config->GetWaitingTime())));
 
 	return true;
 }

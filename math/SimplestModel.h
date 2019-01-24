@@ -72,6 +72,7 @@ private:
 	double _Td;
 
 	int _Parallel;
+	double _WaitingTime;
 
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
@@ -127,7 +128,7 @@ private:
 public:
 
 	SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td, int Parallel);
+		double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime);
 	virtual ~SimplestModel(void);
 
 
@@ -184,6 +185,8 @@ public:
 	virtual void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic);
 
 	int GetUpdate() const;
+
+	double GetWaitingTime() const;
 };
 
 

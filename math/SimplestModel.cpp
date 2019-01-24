@@ -61,7 +61,7 @@ using std::vector;
 using std::string;
 
 SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-	double awall, double Dwall, double Ts, double Td, int Parallel)
+	double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime)
 {
 	_direction = dir;
 	// Force_rep_PED Parameter
@@ -73,6 +73,7 @@ SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped
 	_Ts = Ts;
 	_Td = Td;
 	_Parallel = Parallel;
+	_WaitingTime = waitingTime;
 }
 
 
@@ -366,8 +367,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			if (ped->GetID() == first_ID) {
 				double InCloggingTime = ped->GetInCloggingTime()+deltaT;
 				//setting waiting time before delete
-				double WaitingTime = 1;
-				if (InCloggingTime < WaitingTime) {
+				if (InCloggingTime <= _WaitingTime) {
 					ped->SetInCloggingTime(InCloggingTime);
 				}
 				else {
@@ -895,4 +895,9 @@ double SimplestModel::GetDWall() const
 int SimplestModel::GetUpdate() const
 {
 	return _Parallel;
+}
+
+double SimplestModel::GetWaitingTime() const
+{
+	return _WaitingTime;
 }

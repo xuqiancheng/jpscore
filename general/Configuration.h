@@ -101,6 +101,7 @@ public:
 		  _Td = 0.3;
 		  // --------  Simplest model ------
 		  _Parallel = 1;
+		  _WaitingTime = 0;
           // ----------------
 
           _hostname = "localhost";
@@ -352,6 +353,10 @@ public:
 
 	int GetUpdate() const { return _Parallel; };
 
+	void SetWaitingTime(double waitingtime) { _WaitingTime = waitingtime; };
+
+	double GetWaitingTime() const { return _WaitingTime; };
+
 #ifdef _JPS_AS_A_SERVICE
 
      const bool GetRunAsService() const { return _runAsService; };
@@ -421,6 +426,7 @@ private:
 	 double _Td;
 	 //Simplestmodel
 	 int _Parallel;
+	 double _WaitingTime;
      //ff router quickest
      double _recalc_interval;
 
