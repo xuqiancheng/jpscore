@@ -382,9 +382,9 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					if (clogging_times == 1) {
 						ofile.open(building->GetProjectRootDir() + "CloggingLog_"+InifileName+".txt", std::ofstream::trunc);
 						ofile <<"#inifile: "<< building->GetProjectFilename()<<"\n";
-						ofile << "#Timestep: " << deltaT << "(s)\n";
-						ofile << "#Waiting time: " << _WaitingTime << "(s)\n";
-						ofile << "#Parallel: " << _Parallel << "(1:parallel,0:unparallel)\n";
+						ofile << "#Timestep: " << deltaT << " (s)\n";
+						ofile << "#Waiting time: " << _WaitingTime << " (s)\n";
+						ofile << "#Parallel: " << _Parallel << " (1:parallel,0:unparallel)\n";
 						ofile << "#ID\ttime(s)\tamount\n";
 					}
 					else {
