@@ -74,6 +74,9 @@ private:
 	int _Parallel;
 	double _WaitingTime;
 
+	int _SubmodelDirection;
+	int _SubmodelSpeed;
+
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
 	/**
@@ -128,7 +131,7 @@ private:
 public:
 
 	SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime);
+		double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, int sDirection, int sSpeed);
 	virtual ~SimplestModel(void);
 
 
@@ -187,6 +190,10 @@ public:
 	int GetUpdate() const;
 
 	double GetWaitingTime() const;
+
+	int GetSDirection() const;
+
+	int GetSSpeed() const;
 };
 
 

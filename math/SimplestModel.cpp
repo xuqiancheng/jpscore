@@ -61,7 +61,7 @@ using std::vector;
 using std::string;
 
 SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-	double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime)
+	double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, int sDirection, int sSpeed)
 {
 	_direction = dir;
 	// Force_rep_PED Parameter
@@ -74,6 +74,8 @@ SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped
 	_Td = Td;
 	_Parallel = Parallel;
 	_WaitingTime = waitingTime;
+	_SubmodelDirection = sDirection;
+	_SubmodelSpeed = sSpeed;
 }
 
 
@@ -260,7 +262,12 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		direction = d_direction;//original method
 		*/
 		//update direction
+		int UDirection = GetSDirection();
 		Point direction = inid_direction;
+		if (UDirection == 1)
+		{
+			direction = d_direction.Normalized();
+		}
 		result_dir.push_back(direction);
 		//------------------------------------------------------------------------------------------------------------------------------------
 		//Calculating spacing in front -------------------------------------------------------------------------------------------------------
@@ -446,17 +453,23 @@ Point SimplestModel::e0(Pedestrian* ped, Room* room) const
 double SimplestModel::OptimalSpeed(Pedestrian* ped, double spacing) const
 {
 	double v0 = ped->GetV0Norm();
-	/*
-	//optimal speed function
-	double T = _Ts;
-	//spacing is approximate here
-	double speed = (spacing) / T;
-	speed = (speed > 0) ? speed : 0;
-	speed = (speed < v0) ? speed : v0;
-	*/
-	//simplest speed function
-	double speed = spacing > 0 ? v0 : 0;
-	//speed = spacing < v0 ? spacing : v0;
+	int USpeed = GetSSpeed();
+	double speed = 0;
+	if (USpeed == 1)
+	{
+		//optimal speed function
+		double T = _Ts;
+		//spacing is approximate here
+		speed = (spacing) / T;
+		speed = (speed > 0) ? speed : 0;
+		speed = (speed < v0) ? speed : v0;
+	}
+	else
+	{
+		//simplest speed function
+		speed = spacing > 0 ? v0 : 0;
+		//speed = spacing < v0 ? spacing : v0;
+	}
 	return speed;
 }
 
@@ -539,6 +552,7 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 	//Vision area-----------------------------------
 	double condition1 = e0.ScalarProduct(ep12); // < e_i , e_ij > should be positive
 	double condition2 = ei.ScalarProduct(ep12);
+	condition1 = 1;
 	//-----------------------------------------------
 	//rule:pedestrian's direction only influenced by pedestrian in version area
 	if (condition1 > 0 || condition2 > 0)
@@ -691,6 +705,7 @@ Point SimplestModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& c
 	JEllipse Eped1 = ped->GetEllipse();
 	ei._x = Eped1.GetCosPhi();
 	ei._y = Eped1.GetSinPhi();
+	/*
 	//version area----------------------------------
 	double result_e01 = e0.ScalarProduct(e_iw1);
 	double result_e02 = e0.ScalarProduct(e_iw2);
@@ -701,7 +716,7 @@ Point SimplestModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& c
 	{
 		return F_wrep;
 	}
-
+	*/
 	//rules end------------------------------------------------------------------------------
 
 	//------------------------------------------------------
@@ -903,4 +918,14 @@ int SimplestModel::GetUpdate() const
 double SimplestModel::GetWaitingTime() const
 {
 	return _WaitingTime;
+}
+
+int SimplestModel::GetSDirection() const
+{
+	return _SubmodelDirection;
+}
+
+int SimplestModel::GetSSpeed() const
+{
+	return _SubmodelSpeed;
 }

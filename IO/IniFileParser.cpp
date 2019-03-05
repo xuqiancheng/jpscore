@@ -1900,6 +1900,28 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
 			Log->Write("INFO: \tupdate_method: unparallel ") ;
 	}
 
+	if (xModelPara->FirstChild("model_submodel")) {
+		if (!xModelPara->FirstChildElement("model_submodel")->Attribute("direction"))
+			_config->SetSubmodelDirection(0);
+		else {
+			string SubmodelDirection = xModelPara->FirstChildElement("model_submodel")->Attribute("direction");
+			_config->SetSubmodelDirection(atoi(SubmodelDirection.c_str()));
+		}
+
+		if (!xModelPara->FirstChildElement("model_submodel")->Attribute("speed"))
+			_config->SetSubmodelSpeed(0);
+		else {
+			string SubmodelSpeed = xModelPara->FirstChildElement("model_submodel")->Attribute("speed");
+			_config->SetSubmodelSpeed(atoi(SubmodelSpeed.c_str()));
+		}
+		_config->GetSubmodelDirection() == 1 ?
+			Log->Write("INFO: \tUsing direction submodel") :
+			Log->Write("INFO: \tNot using direction submodel");
+		_config->GetSubmodelSpeed()==1?
+			Log->Write("INFO: \tUsing Speed submodel") :
+			Log->Write("INFO: \tNot using Speed submodel");
+	}
+
 	if (xModelPara->FirstChild("waiting_time")) {
 
 		if (!xModelPara->FirstChildElement("waiting_time")->Attribute("Tw"))
@@ -1917,7 +1939,7 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
 	ParseAgentParameters(xSimplest, xAgentDistri);
 	_config->SetModel(std::shared_ptr<OperationalModel>(new SimplestModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
-		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetUpdate(), _config->GetWaitingTime())));
+		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetUpdate(), _config->GetWaitingTime(), _config->GetSubmodelDirection(), _config->GetSubmodelSpeed())));
 
 	return true;
 }

@@ -102,6 +102,8 @@ public:
 		  // --------  Simplest model ------
 		  _Parallel = 1;
 		  _WaitingTime = 0;
+		  _SubmodelDirection = 0;
+		  _SubmodelSpeed = 0;
           // ----------------
 
           _hostname = "localhost";
@@ -357,6 +359,14 @@ public:
 
 	double GetWaitingTime() const { return _WaitingTime; };
 
+	void SetSubmodelDirection(int sd) { _SubmodelDirection = sd; };
+
+	int GetSubmodelDirection() const { return _SubmodelDirection; };
+
+	void SetSubmodelSpeed(int ss) { _SubmodelSpeed = ss; };
+
+	int GetSubmodelSpeed() const { return _SubmodelSpeed; };
+
 #ifdef _JPS_AS_A_SERVICE
 
      const bool GetRunAsService() const { return _runAsService; };
@@ -427,6 +437,8 @@ private:
 	 //Simplestmodel
 	 int _Parallel;
 	 double _WaitingTime;
+	 int _SubmodelDirection;
+	 int _SubmodelSpeed;
      //ff router quickest
      double _recalc_interval;
 
