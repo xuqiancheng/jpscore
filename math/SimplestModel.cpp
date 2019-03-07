@@ -417,6 +417,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					std::ofstream ofile;
 					string ProjectFileName = building->GetProjectFilename();
 					int start= ProjectFileName.find_last_of("\\");
+					start = start == -1 ? ProjectFileName.find_last_of("/") : start;
 					int end = ProjectFileName.find(".");
 					string InifileName = ProjectFileName.substr(start+1,end-start-1);
 					if (clogging_times == 1) {
