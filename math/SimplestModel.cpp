@@ -61,7 +61,7 @@ using std::vector;
 using std::string;
 
 SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-	double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, int sDirection, int sSpeed)
+	double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, int sDirection, int sSpeed, int GCVMU)
 {
 	_direction = dir;
 	// Force_rep_PED Parameter
@@ -76,6 +76,7 @@ SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped
 	_WaitingTime = waitingTime;
 	_SubmodelDirection = sDirection;
 	_SubmodelSpeed = sSpeed;
+	_GCVMUsing = GCVMU;
 }
 
 
@@ -928,4 +929,9 @@ int SimplestModel::GetSDirection() const
 int SimplestModel::GetSSpeed() const
 {
 	return _SubmodelSpeed;
+}
+
+int SimplestModel::GetGCVMU() const
+{
+	return _GCVMUsing;
 }

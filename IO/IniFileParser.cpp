@@ -1922,6 +1922,17 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
 			Log->Write("INFO: \tNot using Speed submodel");
 	}
 
+	if (xModelPara->FirstChild("GCVM")) {
+		if (!xModelPara->FirstChildElement("GCVM")->Attribute("using"))
+			_config->SetGCVMUsing(0);
+		else {
+			string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
+			_config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
+		}
+		_config->GetGCVMUsing() == 1 ?
+			Log->Write("INFO:\tUsing GCVM model instead of Simplest model") :
+			Log->Write("INFO:\tStill using Simplest model");
+	}
 	if (xModelPara->FirstChild("waiting_time")) {
 
 		if (!xModelPara->FirstChildElement("waiting_time")->Attribute("Tw"))
@@ -1939,7 +1950,7 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
 	ParseAgentParameters(xSimplest, xAgentDistri);
 	_config->SetModel(std::shared_ptr<OperationalModel>(new SimplestModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
-		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetUpdate(), _config->GetWaitingTime(), _config->GetSubmodelDirection(), _config->GetSubmodelSpeed())));
+		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetUpdate(), _config->GetWaitingTime(), _config->GetSubmodelDirection(), _config->GetSubmodelSpeed(), _config->GetGCVMUsing())));
 
 	return true;
 }

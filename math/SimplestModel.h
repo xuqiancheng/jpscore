@@ -77,6 +77,8 @@ private:
 	int _SubmodelDirection;
 	int _SubmodelSpeed;
 
+	int _GCVMUsing;
+
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
 	/**
@@ -131,7 +133,7 @@ private:
 public:
 
 	SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, int sDirection, int sSpeed);
+		double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, int sDirection, int sSpeed, int GCVMU);
 	virtual ~SimplestModel(void);
 
 
@@ -194,6 +196,8 @@ public:
 	int GetSDirection() const;
 
 	int GetSSpeed() const;
+
+	int GetGCVMU() const;
 };
 
 

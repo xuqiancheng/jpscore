@@ -104,6 +104,7 @@ public:
 		  _WaitingTime = 0;
 		  _SubmodelDirection = 0;
 		  _SubmodelSpeed = 0;
+		  _GCVMUsing = 0;
           // ----------------
 
           _hostname = "localhost";
@@ -367,6 +368,10 @@ public:
 
 	int GetSubmodelSpeed() const { return _SubmodelSpeed; };
 
+	void SetGCVMUsing(int gu) { _GCVMUsing=gu; };
+
+	int GetGCVMUsing() const { return _GCVMUsing; }
+
 #ifdef _JPS_AS_A_SERVICE
 
      const bool GetRunAsService() const { return _runAsService; };
@@ -439,6 +444,7 @@ private:
 	 double _WaitingTime;
 	 int _SubmodelDirection;
 	 int _SubmodelSpeed;
+	 int _GCVMUsing;
      //ff router quickest
      double _recalc_interval;
 
