@@ -423,9 +423,14 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					if (clogging_times == 1) {
 						ofile.open(building->GetProjectRootDir() + "CloggingLog_"+InifileName+".txt", std::ofstream::trunc);
 						ofile <<"#inifile: "<< building->GetProjectFilename()<<"\n";
+						ofile << "#Commit date: " << GIT_COMMIT_DATE << "\n";
+						ofile << "#Branch: " << GIT_BRANCH << "\n";
 						ofile << "#Timestep: " << deltaT << " (s)\n";
 						ofile << "#Waiting time: " << _WaitingTime << " (s)\n";
 						ofile << "#Parallel: " << _Parallel << " (1:parallel,0:unparallel)\n";
+						ofile << "#Direction: " << _SubmodelDirection << " (1:Using direction submodel,0:Not using direction submodel)\n";
+						ofile << "#Speed: " << _SubmodelSpeed << " (1:Using speed submodel,0:Not using speed submodel)\n";
+						ofile << "#GCVM: " << _GCVMUsing << " (1:Using GCVM instead of simplest model,0:Using simplest model)\n";
 						ofile << "#ID\ttime(s)\tamount\n";
 					}
 					else {
