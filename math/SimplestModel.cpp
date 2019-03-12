@@ -319,7 +319,14 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		my_pair relation = my_pair(ped->GetID(), first_ID);
 		relations.push_back(relation);
 		// add this part to avoid pedestrian cross the wall directly
-		spacing = spacing > GetSpacingRoom(ped, subroom, direction) ? GetSpacingRoom(ped, subroom, direction) : spacing;
+		// some pedestrian are blocked by wall
+		double spacing_wall = GetSpacingRoom(ped, subroom, direction);
+		if (spacing == FLT_MAX && spacing_wall < 0.01)
+		{
+			my_pair relation_wall = my_pair(ped->GetID(), -100);
+			relations.push_back(relation_wall);
+		}
+		spacing = spacing > spacing_wall ? spacing_wall : spacing;
 		Point speed;
 		//optimap speed function
 		speed = direction.NormalizedMolified() *OptimalSpeed(ped, spacing);
@@ -398,10 +405,15 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			continue;
 		}
 		vector<ID_pair>::iterator converse = std::find(relations.begin(), relations.end(), ID_pair(second_ID, first_ID));
-		if (converse == relations.end()) {
+		vector<ID_pair>::iterator converse_wall = std::find(relations.begin(), relations.end(), ID_pair(second_ID, -100));
+		if (converse == relations.end() && converse_wall == relations.end())
+		{
 			continue;
 		}
-		*converse = ID_pair(first_ID, second_ID);
+		if (converse != relations.end())
+		{
+			*converse = ID_pair(first_ID, second_ID);
+		}
 		for (int p = start; p <= end; ++p) {
 			Pedestrian* ped = allPeds[p];
 			if (ped->GetID() == first_ID) {
