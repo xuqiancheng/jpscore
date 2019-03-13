@@ -2,7 +2,7 @@
 * \file        GCVM.h
 * \date        Oct 8, 2018
 * \version     v0.8
-* \copyright   <2009-2015> Forschungszentrum J¨¹lich GmbH. All rights reserved.
+* \copyright   <2009-2015> Forschungszentrum JÃ¼lich GmbH. All rights reserved.
 *
 * \section License
 * This file is part of JuPedSim.
