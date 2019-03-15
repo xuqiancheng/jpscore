@@ -476,8 +476,8 @@ const vector<Point>  PedDistributor::GetPositionsFromFile(std::string filename, 
 
 vector<Point>  PedDistributor::PossiblePositions(const SubRoom &r) {
     double uni = 0.7; // wenn ein Raum in x oder y -Richtung schmaler ist als 0.7 wird in der Mitte verteilt
-    double bufx = 0.15;
-    double bufy = 0.15;
+    double bufx = 0.12;
+    double bufy = 0.12;
 
     double amin = 0.18; // = GetAmin()->GetMean();
     double bmax = 0.25; // = GetBmax()->GetMean();
