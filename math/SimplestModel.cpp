@@ -430,7 +430,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					string ProjectFileName = building->GetProjectFilename();
 					int start= ProjectFileName.find_last_of("\\");
 					start = start == -1 ? ProjectFileName.find_last_of("/") : start;
-					int end = ProjectFileName.find(".");
+					int end = ProjectFileName.find(".xml");
 					string InifileName = ProjectFileName.substr(start+1,end-start-1);
 					if (clogging_times == 1) {
 						ofile.open(building->GetProjectRootDir() + "CloggingLog_"+InifileName+".txt", std::ofstream::trunc);
