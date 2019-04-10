@@ -443,13 +443,13 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 						ofile << "#Direction: " << _SubmodelDirection << " (1:Using direction submodel,0:Not using direction submodel)\n";
 						ofile << "#Speed: " << _SubmodelSpeed << " (1:Using speed submodel,0:Not using speed submodel)\n";
 						ofile << "#GCVM: " << _GCVMUsing << " (1:Using GCVM instead of simplest model,0:Using simplest model)\n";
-						ofile << "#ID\ttime(s)\tamount\n";
+						ofile << "#ID\ttime(s)\tamount\tposition_x\tpostion_y\n";
 					}
 					else {
 						ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName+".txt", std::ofstream::app);
 					}
 					//ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
-					ofile  << ped->GetID() << "\t" << current << "\t" << clogging_times << "\n";
+					ofile  << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
 					ofile.close();
 					//Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), clogging_times);
 					break;
