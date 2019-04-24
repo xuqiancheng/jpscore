@@ -317,14 +317,23 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		double spacing = spacings.size() == 0 ? 100 : spacings[0].first;
 		double first_ID = spacings.size() == 0 ? -1 : spacings[0].second;
 		my_pair relation = my_pair(ped->GetID(), first_ID);
-		relations.push_back(relation);
+		const Point& pos = ped->GetPos();
+		double distGoal = ped->GetExitLine()->DistTo(pos);
+		double DRange=0.6;
+		if (UDirection==0||distGoal<DRange)
+		{
+			relations.push_back(relation);
+		}
 		// add this part to avoid pedestrian cross the wall directly
 		// some pedestrian are blocked by wall
 		double spacing_wall = GetSpacingRoom(ped, subroom, direction);
 		if (spacing == FLT_MAX && spacing_wall < 0.01)
 		{
 			my_pair relation_wall = my_pair(ped->GetID(), -100);
-			relations.push_back(relation_wall);
+			if (UDirection==0||distGoal<DRange)
+			{
+				relations.push_back(relation_wall);
+			}
 		}
 		spacing = spacing > spacing_wall ? spacing_wall : spacing;
 		Point speed;
