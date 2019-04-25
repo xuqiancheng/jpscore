@@ -270,7 +270,14 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 
 			// Calculating influence of walls-------------------------------------------------------------------------
 			//todo:reform the ForceReoRoom function	
-			Point repWall = ForceRepRoom(allPeds[p], subroom, inid_direction);
+			
+			Point repWall = ForceRepRoom(ped, subroom, inid_direction);
+			if (ped->GetExitLine()->DistTo(ped->GetPos())<0.2)
+			{
+				std::vector<SubRoom*> Nsubrooms= subroom->GetNeighbors();
+				for (int i=0;i<Nsubrooms.size();i++)
+				repWall+=ForceRepRoom(ped,Nsubrooms[i],inid_direction);
+			}
 			//-----------------------------------------------------------------------------------------------------------
 
 			//Caluculating desired direcition----------------------------------------------------------------------------------------------
@@ -319,7 +326,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		my_pair relation = my_pair(ped->GetID(), first_ID);
 		const Point& pos = ped->GetPos();
 		double distGoal = ped->GetExitLine()->DistTo(pos);
-		double DRange=0.6;
+		double DRange=1;
 		if (UDirection==0||distGoal<DRange)
 		{
 			relations.push_back(relation);
