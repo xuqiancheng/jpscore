@@ -48,15 +48,15 @@ double xLeft_gcvm = 0.0;
 double cutoff_gcvm = 2.0;
 
 //--------------------------------
-int Vision_area = 1;//Vision_Area=1:open,Vision_Area=0:close,Vision_Area=2:ei_half,Vision=3:e0_half
-int Direction_smooth = 1;//Direction_smooth=1:using tau,Direction_smooth=0:not using tau
-int Vertical_influence = 1;//Vertical_influence=1:vertical influence,Vertical_influence=0:original influence
+int Vision_area = 0;//Vision_Area=1:open,Vision_Area=0:close,Vision_Area=2:ei_half,Vision=3:e0_half
+int Direction_smooth = 0;//Direction_smooth=1:using tau,Direction_smooth=0:not using tau
+int Vertical_influence = 0;//Vertical_influence=1:vertical influence,Vertical_influence=0:original influence
 int Velocity_influence = 0;//Velocity-influence=1:velocity wll be considered when calculate influence direction
+
 int bf_use = 0;//when calculate direction 1:use b, 0:effective distance
 int bv_use = 0;//when calculate velocity 1: use b, 0: effecitve distance
-int bmin_use = 1;//width of area in front 1: bmin, 0: b
-int real_distance = 0;//when calculate spacing between two pedestrian
-					  //-------------------------------
+int bmin_use = 0;//width of area in front 1: bmin, 0: b
+int real_distance = 0;//when calculate spacing between two pedestrians
 
 using std::vector;
 using std::string;
@@ -321,7 +321,12 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			
 			//case 1 (vector)
 			Point angle_v = (d_direction.Normalized()-a_direction)/ angle_tau;
-			Point direction =a_direction+angle_v*deltaT ;
+			Point direction = a_direction + angle_v * deltaT;
+
+			//When the angle between desired mocing direction and actual direction is bigger than 90 degree. turning to the desired moving direction directly.
+			if (d_direction.ScalarProduct(a_direction) < 0) {
+				direction = d_direction;
+			}
 
 			/*
 			//case 2 (angle)
@@ -534,12 +539,20 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			ped->SetEllipse(e);
 
 			ped->SetV(v_neu);
-			ped->SetPos(pos_neu);
 			if (periodic) {
-				if (ped->GetPos()._x >= xRight_gcvm) {
-					ped->SetPos(Point(ped->GetPos()._x - (xRight_gcvm - xLeft_gcvm), ped->GetPos()._y));
+				if ((ped->GetPos()._x < xRight_gcvm)&&(pos_neu._x>=xRight_gcvm)) {
+					ped->SetPos(Point(pos_neu._x - (xRight_gcvm - xLeft_gcvm), pos_neu._y));
 					//ped->SetID( ped->GetID() + 1);
 				}
+				else if ((ped->GetPos()._x > xLeft_gcvm) && (pos_neu._x <= xLeft_gcvm)) {
+					ped->SetPos(Point(pos_neu._x + (xRight_gcvm - xLeft_gcvm), pos_neu._y));
+				}
+				else {
+					ped->SetPos(pos_neu);
+				}
+			}
+			else {
+				ped->SetPos(pos_neu);
 			}
 		}
 	}//end parallel
@@ -613,14 +626,18 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, doub
 	double x1 = ped1->GetPos()._x;
 	double x2_real = ped2->GetPos()._x;
 	double y2 = ped2->GetPos()._y;
-
+	
 	if (periodic) {
 		if ((xRight_gcvm - x1) + (x2_real - xLeft_gcvm) <= cutoff_gcvm) {
 			double x2_periodic = x2_real + xRight_gcvm - xLeft_gcvm;
 			ped2->SetPos(Point(x2_periodic, y2));
 		}
+		if ((x1 - xLeft_gcvm) + (xRight_gcvm - x2_real) <= cutoff_gcvm) {
+			double x2_periodic = xLeft_gcvm - xRight_gcvm + x2_real;
+			ped2->SetPos(Point(x2_periodic, y2));
+		}
 	}
-
+	
 	Point distp12 = ped2->GetPos() - ped1->GetPos(); // inversed sign
 	double Distance = distp12.Norm();
 	Point ep12;
@@ -691,7 +708,7 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, doub
 		if (distGoal < 0.2)
 		{
 			b1 = 0.1;
-			//b1 = ped1->GetEllipse().GetBmin();
+			b1 = ped1->GetEllipse().GetBmin();
 		}
 	}
 	
@@ -812,15 +829,19 @@ Point GCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int p
 
 	double x_j = ped2->GetPos()._x;
 	double y_j = ped2->GetPos()._y;
-
+	
 	if (periodic) {
 		double x = ped1->GetPos()._x;
 		if ((xRight_gcvm - x) + (x_j - xLeft_gcvm) <= cutoff_gcvm) {
 			double x2_periodic = x_j + xRight_gcvm - xLeft_gcvm;
 			ped2->SetPos(Point(x2_periodic, y_j));
 		}
+		if ((x - xLeft_gcvm) + (xRight_gcvm - x_j) <= cutoff_gcvm) {
+			double x2_periodic = xLeft_gcvm - xRight_gcvm + x_j;
+			ped2->SetPos(Point(x2_periodic, y_j));
+		}
 	}
-
+	
 	Point distp12 = ped2->GetPos() - ped1->GetPos();
 	double Distance = distp12.Norm();
 	Point ep12; // x- and y-coordinate of the normalized vector between p1 and p2
