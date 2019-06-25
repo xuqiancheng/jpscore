@@ -44,8 +44,7 @@
 //This class provides a data container for all configuration parameters.
 
 class AgentsParameters;
-class DirectionSubLocalFloorfield;
-class DirectionLocalFloorfield;
+class DirectionStrategy;
 
 #ifdef _JPS_AS_A_SERVICE
 
@@ -132,11 +131,13 @@ public:
           _write_VTK_files = false;
           _exit_strat = 9;
           _write_VTK_files_direction = false;
-          _dirSubLocal = nullptr;
-          _dirLocal = nullptr;
-
+//          _dirSubLocal = nullptr;
+//          _dirLocal = nullptr;
+          _dirStrategy = nullptr;
 	  //for random numbers
           _rdGenerator=RandomNumberGenerator();
+
+
      }
      std::shared_ptr<WalkingSpeed> GetWalkingSpeed () {return _walkingSpeed; };
      void SetWalkingSpeed(std::shared_ptr<WalkingSpeed> & w) {_walkingSpeed = w; };
@@ -295,13 +296,23 @@ public:
 
      int get_exit_strat() const {return _exit_strat;}
 
-     void set_dirSubLocal(DirectionSubLocalFloorfield* dir) {_dirSubLocal = dir;}
-     void set_dirLocal(DirectionLocalFloorfield* dir) {_dirLocal = dir;}
+     void set_dirStrategy(DirectionStrategy* dir){_dirStrategy = dir;}
+     DirectionStrategy* get_dirStrategy(){return _dirStrategy;}
+//     void set_dirSubLocal(DirectionSubLocalFloorfield* dir) {_dirSubLocal = dir;}
+//
+//    void set_dirLocal(DirectionLocalFloorfield* dir) {_dirLocal = dir;}
+//
+//    void set_dirSubLocalTrips(DirectionSubLocalFloorfieldTrips* dir) {_dirSubLocalTrips = dir;}
+//
+//    void set_dirSubLocalTripsVoronoi(DirectionSubLocalFloorfieldTripsVoronoi* dir) {_dirSubLocalTripsVoronoi = dir;}
 
-     DirectionSubLocalFloorfield* get_dirSubLocal() const {return _dirSubLocal;}
-     DirectionLocalFloorfield* get_dirLocal() const {return _dirLocal;}
+//    DirectionSubLocalFloorfield* get_dirSubLocal() const {return _dirSubLocal;}
+//     DirectionLocalFloorfield* get_dirLocal() const {return _dirLocal;}
+//
+//    DirectionSubLocalFloorfieldTrips* get_dirSubLocalTrips() const {return _dirSubLocalTrips;}
+//    DirectionSubLocalFloorfieldTripsVoronoi* get_dirSubLocalTripsVoronoi() const {return _dirSubLocalTripsVoronoi;}
 
-     const std::string& GetHostname() const { return _hostname; };
+    const std::string& GetHostname() const { return _hostname; };
 
     void set_write_VTK_files_direction(bool write_VTK_files_direction) {_write_VTK_files_direction = write_VTK_files_direction;}
 
@@ -455,8 +466,13 @@ private:
      bool _write_VTK_files_direction;
 
      int _exit_strat;
-     DirectionSubLocalFloorfield* _dirSubLocal;
-     DirectionLocalFloorfield* _dirLocal;
+
+//     DirectionSubLocalFloorfield* _dirSubLocal;
+//     DirectionLocalFloorfield* _dirLocal;
+//     DirectionSubLocalFloorfieldTrips* _dirSubLocalTrips;
+//     DirectionSubLocalFloorfieldTripsVoronoi* _dirSubLocalTripsVoronoi;
+
+     DirectionStrategy* _dirStrategy;
 
      std::string _hostname;
      std::string _trajectoriesFile;

@@ -81,7 +81,8 @@ UnivFFviaFM::UnivFFviaFM(Room* roomArg, Configuration* const confArg, double hx,
           bool isOpen = false;
           for (auto& cross : tmpCross) {
                uidNotConst = cross->GetUniqueID();
-               isOpen = cross->IsOpen();
+               //TODO isOpen = cross->IsOpen();
+               isOpen = !cross->IsClose();
                if (!isOpen) {
                     //will be added twice! is it a problem?
                     lines.emplace_back((Line)*cross);
@@ -94,7 +95,8 @@ UnivFFviaFM::UnivFFviaFM(Room* roomArg, Configuration* const confArg, double hx,
           }
           for (auto& trans : tmpTrans) {
                uidNotConst = trans->GetUniqueID();
-               isOpen = trans->IsOpen();
+               //TODO isOpen = trans->IsOpen();
+               isOpen = !trans->IsClose();
                if (!isOpen) {
                     //will be added twice! is it a problem?
                     lines.emplace_back((Line)*trans);
@@ -167,7 +169,8 @@ UnivFFviaFM::UnivFFviaFM(SubRoom* subRoomArg, Configuration* const confArg, doub
      bool isOpen = false;
      for (auto& cross : tmpCross) {
           uidNotConst = cross->GetUniqueID();
-          isOpen = cross->IsOpen();
+          //TODO isOpen = cross->IsOpen();
+          isOpen = !cross->IsClose();
           if (!isOpen) {
                lines.emplace_back((Line)*cross);
           } else {
@@ -176,7 +179,8 @@ UnivFFviaFM::UnivFFviaFM(SubRoom* subRoomArg, Configuration* const confArg, doub
      }
      for (auto& trans : tmpTrans) {
           uidNotConst = trans->GetUniqueID();
-          isOpen = trans->IsOpen();
+          //TODO  isOpen = trans->IsOpen();
+          isOpen = !trans->IsClose();
           if (!isOpen) {
                lines.emplace_back((Line)*trans);
           } else {
@@ -919,9 +923,9 @@ void UnivFFviaFM::drawLinesOnWall(Line& line, T* const target, const T value) { 
 } //drawLinesOnWall
 
 void UnivFFviaFM::calcFF(double* costOutput, Point* directionOutput, const double *const speed) {
-     //CompareCost comp = CompareCost(costOutput);
-     std::priority_queue<long int, std::vector<long int>, CompareCost> trialfield(costOutput); //pass the argument for the constr of CompareCost
-     //std::priority_queue<long int, std::vector<long int>, CompareCost> trialfield2(comp);      //pass the CompareCost object directly
+     //CompareCostTrips comp = CompareCostTrips(costOutput);
+     std::priority_queue<long int, std::vector<long int>, CompareCostTrips> trialfield(costOutput); //pass the argument for the constr of CompareCostTrips
+     //std::priority_queue<long int, std::vector<long int>, CompareCostTrips> trialfield2(comp);      //pass the CompareCostTrips object directly
 
      directNeighbor local_neighbor = _grid->getNeighbors(0);
      long int aux = 0;
@@ -1111,9 +1115,9 @@ void UnivFFviaFM::calcCost(const long int key, double* cost, Point* dir, const d
 }
 
 void UnivFFviaFM::calcDF(double* costOutput, Point* directionOutput, const double *const speed) {
-     //CompareCost comp = CompareCost(costOutput);
-     std::priority_queue<long int, std::vector<long int>, CompareCost> trialfield(costOutput); //pass the argument for the constr of CompareCost
-     //std::priority_queue<long int, std::vector<long int>, CompareCost> trialfield2(comp);      //pass the CompareCost object directly
+     //CompareCostTrips comp = CompareCostTrips(costOutput);
+     std::priority_queue<long int, std::vector<long int>, CompareCostTrips> trialfield(costOutput); //pass the argument for the constr of CompareCostTrips
+     //std::priority_queue<long int, std::vector<long int>, CompareCostTrips> trialfield2(comp);      //pass the CompareCostTrips object directly
 
      directNeighbor local_neighbor = _grid->getNeighbors(0);
      long int aux = 0;
@@ -1647,7 +1651,7 @@ double UnivFFviaFM::getCostToDestination(const int destID, const Point& position
         } else if ((key < _grid->GetnPoints()-_grid->GetiMax()) && (_gridCode[key+_grid->GetiMax()] != OUTSIDE) && (_gridCode[key+_grid->GetiMax()] != WALL)) {
             key = key + _grid->GetiMax();
         } else {
-            Log->Write("ERROR:\t In getCostToDestination(3 args)");
+             // Log->Write("ERROR:\t In getCostToDestination(3 args)");
         }
     }
      if (_costFieldWithKey.count(destID)==1 && _costFieldWithKey[destID]) {
@@ -1685,7 +1689,7 @@ double UnivFFviaFM::getCostToDestination(const int destID, const Point& position
         } else if ((key < _grid->GetnPoints()-_grid->GetiMax()) && (_gridCode[key+_grid->GetiMax()] != OUTSIDE) && (_gridCode[key+_grid->GetiMax()] != WALL)) {
             key = key + _grid->GetiMax();
         } else {
-            Log->Write("ERROR:\t In getCostToDestination(2 args)");
+            // Log->Write("ERROR:\t In getCostToDestination(2 args)");
         }
     }
      if (_costFieldWithKey.count(destID)==1 && _costFieldWithKey[destID]) {
@@ -1813,7 +1817,7 @@ void UnivFFviaFM::getDirectionToUID(int destID, long int key, Point& direction){
         } else if ((key < _grid->GetnPoints()-_grid->GetiMax()) && (_gridCode[key+_grid->GetiMax()] != OUTSIDE) && (_gridCode[key+_grid->GetiMax()] != WALL)) {
             key = key + _grid->GetiMax();
         } else {
-            Log->Write("ERROR:\t In getDirectionToUID (3 args)");
+            // Log->Write("ERROR:\t In getDirectionToUID (3 args)");
         }
     }
      if (_directionFieldWithKey.count(destID)==1 && _directionFieldWithKey[destID]) {

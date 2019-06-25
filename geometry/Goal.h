@@ -32,21 +32,39 @@
 #include <string>
 #include <vector>
 
+#include "Point.h"
+#include "Crossing.h"
+#include <boost/polygon/polygon.hpp>
+#include <boost/geometry.hpp>
 
 //forward declarations
 class Wall;
 class Point;
+//class Pedestrian;
 
+namespace bg = boost::geometry;
+typedef bg::model::polygon<Point, false, false> polygon_type;
 
 class Goal {
 
-private:
+protected:
      int _isFinalGoal;
      int _id;
-     Point _centroid;
-     std::string _caption;
-     std::vector<Wall> _walls;
-     std::vector<Point> _poly;
+     int _roomID;
+     int _subRoomID;
+
+    Point _centroid;
+    std::string _caption;
+    std::vector<Wall> _walls;
+    std::vector<Point> _poly;
+    Crossing* _crossing;
+
+    polygon_type _boostPoly;
+    bool _inside;
+
+public:
+
+
 
 public:
      Goal();
@@ -111,7 +129,7 @@ public:
       * @return the centroid of the subroom
       * @see http://en.wikipedia.org/wiki/Centroid
       */
-     void ComputeControid() ;
+     void ComputeCentroid() ;
 
      /**
       * @return the centroid of the goal
@@ -124,8 +142,25 @@ public:
       */
      std::string Write();
 
+     Crossing* GetCentreCrossing();
+
+//     bool IsInsideGoal(Pedestrian* ped) const;
+
+     bool IsInsideGoal(const Point& point) const;
+
+    int GetRoomID() const;
+
+    void SetRoomID(int _roomID);
+
+    int GetSubRoomID() const;
+
+    void SetSubRoomID(int _subRoomID);
+
 private:
-     int WhichQuad(const Point& vertex, const Point& hitPos) const;
+    bool IsClockwise();
+    bool CreateBoostPoly();
+
+    int WhichQuad(const Point& vertex, const Point& hitPos) const;
 
      // x-Koordinate der Linie von einer Eccke zur nächsten
      double Xintercept(const Point& point1, const Point& point2,

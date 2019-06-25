@@ -25,6 +25,8 @@
 #include "../general/Configuration.h"
 #include "../geometry/Building.h"
 #include "../geometry/GeometryReader.h"
+#include "../geometry/Trips.h"
+#include "../tinyxml/tinyxml.h"
 
 //TODO: the class name GeoFileParser is misleading as the ``geometry'' file contains among others also relations (transitions)
 //TODO: between geometries/rooms. Probably, EnvironmentFileParser would be better, still parts of the environment are
@@ -38,6 +40,15 @@ public:
      virtual void LoadBuilding(Building* building) override;
 
      virtual bool LoadTrafficInfo(Building* building) override;
+     bool parseDoorNode(TiXmlElement * xDoor, int id, Building* building);
+     Goal* parseGoalNode(TiXmlElement * e);
+     Transition* parseTransitionNode(TiXmlElement * xTrans, Building * building);
+     Goal* parseWaitingAreaNode(TiXmlElement * e);
+     bool LoadTrainInfo(Building* building);
+     bool LoadTrainTimetable(Building* building, TiXmlElement * xRootNode);
+     bool LoadTrainType(Building* building, TiXmlElement * xRootNode);
+     std::shared_ptr<TrainType> parseTrainTypeNode(TiXmlElement * e);
+     std::shared_ptr<TrainTimeTable> parseTrainTimeTableNode(TiXmlElement * e);
 
 private:
      Configuration* _configuration;
@@ -45,6 +56,10 @@ private:
      bool LoadGeometry(Building* building);
 
      bool LoadRoutingInfo(Building* filename);
+
+     bool ReadGoal();
+
+     bool ReadWaitingArea();
 };
 
 #endif //JPSCORE_GEOFILEPARSER_H

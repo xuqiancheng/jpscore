@@ -152,7 +152,10 @@ private:
      std::shared_ptr<WalkingSpeed> _WalkingSpeed = nullptr;
      std::shared_ptr<ToxicityAnalysis> _ToxicityAnalysis = nullptr;
 
+     int _lastGoalID = -1;
+     bool _insideGoal =false;
 	 double _InCloggingTime = 0;
+
 
 public:
      // public member
@@ -497,6 +500,15 @@ public:
      double GetSwayAmpB() const;
 
      const std::shared_ptr<ToxicityAnalysis> &getToxicityAnalysis();
+
+     void EnterGoal();
+
+     void LeaveGoal();
+
+     int GetLastGoalID() const;
+
+     bool IsInsideGoal() const;
+
 
 	 void SetInCloggingTime(double t);
 

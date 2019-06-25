@@ -61,11 +61,11 @@ const vector<Trajectories*>& IODispatcher::GetIOHandlers()
      return _outputHandlers;
 }
 
-void IODispatcher::WriteHeader(long nPeds, double fps, Building* building, int seed)
+void IODispatcher::WriteHeader(long nPeds, double fps, Building* building, int seed, int count)
 {
      for (auto const & it : _outputHandlers)
      {
-          it->WriteHeader(nPeds, fps, building, seed);
+          it->WriteHeader(nPeds, fps, building, seed, count);
      }
 }
 void IODispatcher::WriteGeometry(Building* building)
@@ -118,7 +118,7 @@ string TrajectoriesJPSV04::WritePed(Pedestrian* ped)
      return string(tmp);
 }
 
-void TrajectoriesJPSV04::WriteHeader(long nPeds, double fps, Building* building, int seed)
+void TrajectoriesJPSV04::WriteHeader(long nPeds, double fps, Building* building, int seed, int count)
 {
      building->GetCaption();
      string tmp;
@@ -329,20 +329,188 @@ TrajectoriesFLAT::TrajectoriesFLAT() : Trajectories()
 {
 }
 
-void TrajectoriesFLAT::WriteHeader(long nPeds, double fps, Building* building, int seed)
+std::string getSourceFileName(const std::string & GetProjectFile)
 {
+     std::string ret="";
+
+     TiXmlDocument doc(GetProjectFile);
+     if (!doc.LoadFile()) {
+          Log->Write("ERROR: \t%s", doc.ErrorDesc());
+          Log->Write("ERROR: \tGetSourceFileName could not parse the project file");
+          return ret;
+     }
+     TiXmlNode* xRootNode = doc.RootElement()->FirstChild("agents");
+     if (!xRootNode) {
+          Log->Write("ERROR:\tGetSourceFileName could not load persons attributes");
+          return ret;
+     }
+
+    TiXmlNode* xSources = xRootNode->FirstChild("agents_sources");
+    if (xSources) {
+        TiXmlNode* xFileNode = xSources->FirstChild("file");
+        //------- parse sources from external file
+        if(xFileNode)
+        {
+             ret = xFileNode->FirstChild()->ValueStr();
+        }
+        return ret;
+    }
+}
+
+std::string getEventFileName(const std::string & GetProjectFile)
+{
+     std::string ret="";
+
+     TiXmlDocument doc(GetProjectFile);
+     if (!doc.LoadFile()) {
+          Log->Write("ERROR: \t%s", doc.ErrorDesc());
+          Log->Write("ERROR: \tGetEventFileName could not parse the project file");
+          return ret;
+     }
+     TiXmlNode* xMainNode = doc.RootElement();
+     string eventfile = "";
+     if (xMainNode->FirstChild("events_file")) {
+          ret = xMainNode->FirstChild("events_file")->FirstChild()->ValueStr();
+          Log->Write("INFO: \tevents <" + ret + ">");
+     } else {
+          Log->Write("INFO: \tNo events found");
+          return ret;
+     }
+     return ret;
+}
+ // <train_constraints>
+ //   <train_time_table>ttt.xml</train_time_table>
+ //   <train_types>train_types.xml</train_types>
+ // </train_constraints>
+
+
+std::string getTrainTimeTableFileName(const std::string & GetProjectFile)
+{
+     std::string ret="";
+
+     TiXmlDocument doc(GetProjectFile);
+     if (!doc.LoadFile()) {
+          Log->Write("ERROR: \t%s", doc.ErrorDesc());
+          Log->Write("ERROR: \tGetTrainTimeTable could not parse the project file");
+          return ret;
+     }
+     TiXmlNode* xMainNode = doc.RootElement();
+     string tttfile = "";
+     if (xMainNode->FirstChild("train_constraints")) {
+          TiXmlNode * xFileNode = xMainNode->FirstChild("train_constraints")->FirstChild("train_time_table");
+
+          if(xFileNode)
+               ret = xFileNode->FirstChild()->ValueStr();
+          Log->Write("INFO: \ttrain_time_table <" + ret + ">");
+     } else {
+          Log->Write("INFO: \tNo events no ttt file found");
+          return ret;
+     }
+     return ret;
+}
+
+
+std::string getTrainTypeFileName(const std::string & GetProjectFile)
+{
+     std::string ret="";
+
+     TiXmlDocument doc(GetProjectFile);
+     if (!doc.LoadFile()) {
+          Log->Write("ERROR: \t%s", doc.ErrorDesc());
+          Log->Write("ERROR: \tGetTrainType could not parse the project file");
+          return ret;
+     }
+     TiXmlNode* xMainNode = doc.RootElement();
+     string tttfile = "";
+     if (xMainNode->FirstChild("train_constraints")) {
+          auto xFileNode = xMainNode->FirstChild("train_constraints")->FirstChild("train_types");
+          if(xFileNode)
+               ret = xFileNode->FirstChild()->ValueStr();
+          Log->Write("INFO: \ttrain_types <" + ret + ">");
+     } else {
+          Log->Write("INFO: \tNo events no train types file found");
+          return ret;
+     }
+     return ret;
+}
+std::string getGoalFileName(const std::string & GetProjectFile)
+{
+     std::string ret="";
+
+     TiXmlDocument doc(GetProjectFile);
+     if (!doc.LoadFile()) {
+          Log->Write("ERROR: \t%s", doc.ErrorDesc());
+          Log->Write("ERROR: \tGetSourceFileName could not parse the project file");
+          return ret;
+     }
+     TiXmlNode* xRootNode = doc.RootElement();
+     if (!xRootNode->FirstChild("routing")) {
+          return ret;
+     }
+     //load goals and routes
+     TiXmlNode* xGoalsNode = xRootNode->FirstChild("routing")->FirstChild("goals");
+     TiXmlNode* xGoalsNodeFile = xGoalsNode->FirstChild("file");
+     if(xGoalsNodeFile)
+     {
+          ret = xGoalsNodeFile->FirstChild()->ValueStr();
+          Log->Write("INFO:\tGoal file <%s> will be parsed", ret.c_str());
+     }
+     return ret;
+}
+
+
+void TrajectoriesFLAT::WriteHeader(long nPeds, double fps, Building* building, int seed, int count)
+{
+     std::string sourceFileName = getSourceFileName(building->GetProjectFilename());
+     std::string goalFileName = getGoalFileName(building->GetProjectFilename());
+     std::string eventFileName = getEventFileName(building->GetProjectFilename());
+     std::string trainTimeTableFileName = getTrainTimeTableFileName(building->GetProjectFilename());
+     std::string trainTypeFileName = getTrainTypeFileName(building->GetProjectFilename());
      (void) seed; (void) nPeds;
-     char tmp[CLENGTH] = "";
-     Write("#description: my super simulation");
+     char tmp[100] = "";
+     sprintf(tmp, "#description: jpscore (%s)", JPSCORE_VERSION);
+     Write(tmp);
+     sprintf(tmp, "#count: %d", count);
+     Write(tmp);
      sprintf(tmp, "#framerate: %0.2f",fps);
      Write(tmp);
      sprintf(tmp,"#geometry: %s",building->GetGeometryFilename().c_str());
      Write(tmp);
+     if(sourceFileName != "")
+     {
+          sprintf(tmp,"#sources: %s", sourceFileName.c_str());
+          Write(tmp);
+     }
+     if(goalFileName != "")
+     {
+          sprintf(tmp,"#goals: %s", goalFileName.c_str());
+          Write(tmp);
+     }
+     if( eventFileName != "")
+     {
+          sprintf(tmp,"#events: %s", eventFileName.c_str());
+          Write(tmp);
+     }
+     if( trainTimeTableFileName  != "")
+     {
+          sprintf(tmp,"#trainTimeTable: %s", trainTimeTableFileName.c_str());
+          Write(tmp);
+     }
+     if( trainTypeFileName  != "")
+     {
+          sprintf(tmp,"#trainType: %s", trainTypeFileName.c_str());
+          Write(tmp);
+     }
      Write("#ID: the agent ID");
      Write("#FR: the current frame");
      Write("#X,Y,Z: the agents coordinates (in metres)");
+     Write("#A, B: semi-axes of the ellipse");
+     Write("#ANGLE: orientation of the ellipse");
+     Write("#COLOR: color of the ellipse");
+
      Write("\n");
-     Write("#ID\tFR\tX\tY\tZ");
+     //Write("#ID\tFR\tX\tY\tZ");// @todo: maybe use two different formats
+     Write("#ID\tFR\tX\tY\tZ\tA\tB\tANGLE\tCOLOR");// a b angle color
 }
 
 void TrajectoriesFLAT::WriteGeometry(Building* building)
@@ -353,17 +521,22 @@ void TrajectoriesFLAT::WriteGeometry(Building* building)
 void TrajectoriesFLAT::WriteFrame(int frameNr, Building* building)
 {
      char tmp[CLENGTH] = "";
-
      const vector< Pedestrian* >& allPeds = building->GetAllPedestrians();
      for(unsigned int p=0;p<allPeds.size();p++){
           Pedestrian* ped = allPeds[p];
           double x = ped->GetPos()._x;
           double y = ped->GetPos()._y;
           double z = ped->GetElevation();
-          sprintf(tmp, "%d\t%d\t%0.2f\t%0.2f\t%0.2f", ped->GetID(), frameNr, x, y,z);
+          int color=ped->GetColor();
+          double a = ped->GetLargerAxis();
+          double b = ped->GetSmallerAxis();
+          double phi = atan2(ped->GetEllipse().GetSinPhi(), ped->GetEllipse().GetCosPhi());
+          double RAD2DEG = 180.0 / M_PI;
+          // @todo: maybe two different formats
+          //sprintf(tmp, "%d\t%d\t%0.2f\t%0.2f\t%0.2f", ped->GetID(), frameNr, x, y, z);
+          sprintf(tmp, "%d\t%d\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%d", ped->GetID(), frameNr, x, y, z, a, b, phi * RAD2DEG, color);
           Write(tmp);
      }
-
 }
 
 void TrajectoriesFLAT::WriteFooter()
@@ -396,10 +569,11 @@ TrajectoriesVTK::TrajectoriesVTK()
 {
 }
 
-void TrajectoriesVTK::WriteHeader(long nPeds, double fps, Building* building, int seed)
+void TrajectoriesVTK::WriteHeader(long nPeds, double fps, Building* building, int seed, int count)
 {
      //suppress unused warnings
-     (void) nPeds; (void) fps ; (void) seed;
+     (void) nPeds; (void) fps ; (void) seed; (void) count;
+
      Write("# vtk DataFile Version 4.0");
      Write(building->GetCaption());
      Write("ASCII");
@@ -465,7 +639,7 @@ void TrajectoriesVTK::WriteFooter()
 }
 
 
-void TrajectoriesJPSV06::WriteHeader(long nPeds, double fps, Building* building, int seed)
+void TrajectoriesJPSV06::WriteHeader(long nPeds, double fps, Building* building, int seed, int count)
 {
      building->GetCaption();
      string tmp;
@@ -621,7 +795,7 @@ void TrajectoriesXML_MESH::WriteGeometry(Building* building)
 }
 
 
-void TrajectoriesJPSV05::WriteHeader(long nPeds, double fps, Building* building, int seed)
+void TrajectoriesJPSV05::WriteHeader(long nPeds, double fps, Building* building, int seed, int count)
 {
      building->GetCaption();
      string tmp;

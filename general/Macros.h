@@ -128,10 +128,12 @@ enum RoutingStrategy {
      ROUTING_FROM_FILE,
      ROUTING_SMOKE,
      ROUTING_AI,
+     ROUTING_AI_TRIPS,
      ROUTING_FLOORFIELD,
      ROUTING_FF_GLOBAL_SHORTEST,
      ROUTING_FF_LOCAL_SHORTEST,
      ROUTING_FF_QUICKEST,
+     ROUTING_TRIPS,
      ROUTING_UNDEFINED =-1
 };
 
@@ -207,6 +209,43 @@ enum MagicNumbers{
      UNKNOWN_COST,
      WALL_ON_COSTARRAY,
      TARGET_REGION
+};
+
+enum SPEEDFIELD {        //this enum is used as index in _speedFieldSelector
+    INITIAL_SPEED=0,    //homogen speed in walkable area, nealy zero in walls
+    REDU_WALL_SPEED=1,   //reduced wall speed
+    PED_SPEED=2         //standing agents reduce speed, so that jams will be considered in ff
+};
+
+enum TARGETMODE {
+    LINESEGMENT=0,
+    CENTERPOINT
+};
+
+enum USERMODE {
+    DISTANCE_MEASUREMENTS_ONLY,
+    DISTANCE_AND_DIRECTIONS_USED
+};
+
+// Describes the door
+enum class DoorState { OPEN, CLOSE, TEMP_CLOSE, Error };
+
+inline DoorState StringToDoorState(std::string name){
+     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+     if (name.compare("open") == 0){
+          return DoorState::OPEN;
+     }
+
+     if (name.compare("temp_close") == 0){
+          return DoorState::TEMP_CLOSE;
+     }
+
+     if (name.compare("close") == 0){
+          return DoorState::CLOSE;
+     }
+
+     return DoorState::Error;
 };
 
 constexpr double magicnum(int i) {

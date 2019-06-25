@@ -56,6 +56,7 @@ class Crossing;
 class Line;
 class Point;
 class Wall;
+class WaitingArea;
 
 #ifdef _SIMULATOR
 class Pedestrian;
@@ -101,6 +102,8 @@ protected:
 
      polygon_type _boostPoly;
      std::vector<polygon_type> _boostPolyObstacles;
+     std::vector<polygon_type> _boostPolyWall;
+
      std::vector<double> _poly_help_constatnt; //for the function IsInsidePolygon, a.brkic
      std::vector<double> _poly_help_multiple; //for the function IsInsidePolygon, a.brkic
      std::vector<Obstacle*> _obstacles;
@@ -301,6 +304,7 @@ public:
      //navigation
      bool AddCrossing(Crossing* line);
      bool AddTransition(Transition* line);
+     bool RemoveTransition(Transition * t);
      bool AddHline(Hline* line);
      void AddNeighbor(SubRoom* sub);
 
@@ -392,6 +396,9 @@ public:
      ///check whether the pedestrians is still in the subroom
      virtual bool IsInSubRoom(const Point& ped) const = 0;
 
+     std::vector<WaitingArea*> GetAllWaitingAreas();
+
+     bool HasGoal(int id);
 #ifdef _SIMULATOR
 
      virtual bool IsInSubRoom(Pedestrian* ped) const;

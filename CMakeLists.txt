@@ -15,6 +15,9 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 IF (POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
 ENDIF (POLICY CMP0054)
+IF (POLICY CMP0077)
+    cmake_policy(SET CMP0077 OLD)
+ENDIF (POLICY CMP0077)
 
 project(JPScore LANGUAGES CXX)
 
@@ -30,6 +33,8 @@ if(NOT JPSFIRE)
 else()
     set(JPSFIRE true)
 endif()
+
+message(STATUS "BUILD_TESTING01: " ${BUILD_TESTING})
 
 set(CMAKE_COLOR_MAKEFILE ON)
 set(JPSCORE_MAJOR_VERSION 0)
@@ -53,6 +58,8 @@ elseif ()
 endif ()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${warnings}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${warnings}")
+
+message(STATUS "BUILD_TESTING02: " ${BUILD_TESTING})
 
 if (NOT BUILD_TESTING)
     set(BUILD_TESTING OFF) # test units & python tests are not generated.
@@ -89,6 +96,8 @@ if(NOT EXECUTABLE_OUTPUT_PATH)
 endif()
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib/${CMAKE_BUILD_TYPE})
 set(CMAKE_TEST_DIR ${CMAKE_SOURCE_DIR}/Utest)
+message(STATUS "BUILD_TESTING03: " ${BUILD_TESTING})
+
 # Debug messages
 message(STATUS "CMAKE_BINARY_DIR: " ${CMAKE_BINARY_DIR})
 message(STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR})
@@ -154,9 +163,8 @@ if (GIT_SCM AND GITDIR)
 else()
     message(STATUS "Not in a git repo")
   endif()
-  string(REGEX REPLACE "\#"
-       "" GIT_COMMIT_SUBJECT
-       ${GIT_COMMIT_SUBJECT})
+
+# string(REGEX REPLACE "\#" "" GIT_COMMIT_SUBJECT ${GIT_COMMIT_SUBJECT})
 
 # even if not in a git repository we need to define these
 add_definitions("-DGIT_COMMIT_HASH=\"${GIT_SHA1}\"")
@@ -241,6 +249,8 @@ else()
    find_package(Boost COMPONENTS  REQUIRED)
 
 endif()
+
+message(STATUS "BUILD_TESTING0: " ${BUILD_TESTING})
 if(AIROUTER)
     #CGAL
     find_package(CGAL REQUIRED) # for AI router
@@ -291,6 +301,7 @@ geometry/NavLine.cpp
 geometry/Room.cpp
 geometry/Wall.cpp
 geometry/Goal.cpp
+geometry/WaitingArea.cpp
 
 IO/GeoFileParser.cpp
 IO/IniFileParser.cpp
@@ -334,7 +345,12 @@ routing/ff_router/FloorfieldViaFM.cpp
 #routing/ff_router/FFKit.cpp
 routing/ff_router/UnivFFviaFM.cpp
 
-#global_shortest
+#floorfield
+routing/ff_router_trips/ffRouterTrips.cpp
+routing/ff_router_trips/FloorfieldViaFMTrips.cpp
+routing/ff_router_trips/UnivFFviaFMTrips.cpp
+
+        #global_shortest
 routing/global_shortest/AccessPoint.cpp
 routing/global_shortest/GlobalRouter.cpp
 routing/global_shortest/DTriangulation.cpp
@@ -377,8 +393,11 @@ routing/smoke_router/cognitiveMap/internnavigationnetwork.cpp
 events/EventManager.cpp
 events/Event.cpp
 
+geometry/Trips.cpp
+routing/trips_router/TripsRouter.cpp
+
 forms/jpscore.rc
-math/KrauszModel.cpp)
+math/KrauszModel.cpp geometry/GoalManager.cpp geometry/GoalManager.h)
 
 set(THIRD_PARTY_SRC
   tinyxml/tinystr.cpp
@@ -428,6 +447,13 @@ routing/ff_router/Trial.h
 routing/ff_router/FloorfieldViaFM.h
 #routing/ff_router/FFKit.h
 routing/ff_router/UnivFFviaFM.h
+
+#floorfield
+routing/ff_router_trips/ffRouterTrips.h
+routing/ff_router_trips/RectGrid.h
+routing/ff_router_trips/Trial.h
+routing/ff_router_trips/FloorfieldViaFMTrips.h
+routing/ff_router_trips/UnivFFviaFMTrips.h
 
 #general
 routing/DirectionStrategy.h
@@ -505,6 +531,7 @@ geometry/Hline.h
 geometry/Obstacle.h
 geometry/SubRoom.h
 geometry/Goal.h
+geometry/WaitingArea.h
 
 IO/GeoFileParser.h
 IO/IniFileParser.h
@@ -526,7 +553,11 @@ math/SimplestModel.h
 
 events/EventManager.h
 events/Event.h
-)
+
+        geometry/Trips.h
+        routing/trips_router/TripsRouter.h
+
+        )
 
 set(JPSFIRE_HDR
 JPSfire/generic/FDSMesh.h
@@ -554,7 +585,24 @@ routing/ai_router/perception/visibleenvironment.cpp
 routing/ai_router/perception/cgalgeometry.cpp
 routing/ai_router/perception/sign.cpp
 routing/ai_router/Cortex.cpp
+
+#AI router trips
+#routing/ai_router_trips/AIRouterTrips.cpp
+#routing/ai_router_trips/BrainStorage.cpp
+#routing/ai_router_trips/cognitiveMap/associations.cpp
+#routing/ai_router_trips/cognitiveMap/connection.cpp
+#routing/ai_router_trips/cognitiveMap/cognitivemap.cpp
+#routing/ai_router_trips/cognitiveMap/landmark.cpp
+#routing/ai_router_trips/cognitiveMap/region.cpp
+#routing/ai_router_trips/cognitiveMap/landmarknetwork.cpp
+#routing/ai_router_trips/cognitiveMap/internnavigationnetwork.cpp
+#routing/ai_router_trips/perception/visualsystem.cpp
+#routing/ai_router_trips/perception/visibleenvironment.cpp
+#routing/ai_router_trips/perception/cgalgeometry.cpp
+#routing/ai_router_trips/perception/sign.cpp
+#routing/ai_router_trips/Cortex.cpp
 )
+
 SET(AIROUTER_HDR
 #AI router
 routing/ai_router/AIRouter.h
@@ -571,6 +619,22 @@ routing/ai_router/perception/visibleenvironment.h
 routing/ai_router/perception/cgalgeometry.h
 routing/ai_router/perception/sign.h
 routing/ai_router/Cortex.h
+
+#AI router trips
+routing/ai_router_trips/AIRouterTrips.h
+routing/ai_router_trips/BrainStorage.h
+routing/ai_router_trips/cognitiveMap/associations.h
+routing/ai_router_trips/cognitiveMap/connection.cpp
+routing/ai_router_trips/cognitiveMap/cognitivemap.h
+routing/ai_router_trips/cognitiveMap/landmark.h
+routing/ai_router_trips/cognitiveMap/region.h
+routing/ai_router_trips/cognitiveMap/landmarknetwork.h
+routing/ai_router_trips/cognitiveMap/internnavigationnetwork.h
+routing/ai_router_trips/perception/visualsystem.h
+routing/ai_router_trips/perception/visibleenvironment.h
+routing/ai_router_trips/perception/cgalgeometry.h
+routing/ai_router_trips/perception/sign.h
+routing/ai_router_trips/Cortex.h
 )
 
 message(STATUS "AIROUTER: ${AIROUTER}")
@@ -740,7 +804,7 @@ set(warning_flags "-Wall -Wextra")
 # Initialize CXXFLAGS.
 if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${warning_flags}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${warning_flags} -O0 -g -Wunused-variable -Wunused-parameter -Wunused-function -Wshadow -Wunused -DTRACE_LOGGING")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${warning_flags} -Wunused-variable -Wunused-parameter -Wunused-function -Wshadow -Wunused -DTRACE_LOGGING")
 #    set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
 endif ()
 
@@ -870,7 +934,9 @@ message(STATUS "Found Python: " ${PYTHON_EXECUTABLE})
 endif (BUILD_TESTING)
 
 
-install(TARGETS jpscore DESTINATION bin)
+install(TARGETS jpscore
+        DESTINATION bin
+        COMPONENT applications)
 if(WIN32)
     set(CT_DATA_FILE_DIR "demos")
     file(GLOB CT_FILES "${CMAKE_SOURCE_DIR}/${CT_DATA_FILE_DIR}/*/*")
@@ -937,7 +1003,7 @@ set(CPACK_COMPONENT_DATA_FILES_DESCRIPTION "demo files to get started")
 SET(CPACK_PACKAGE_DESCRIPTION "Simulation core of JuPedSim")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The simulation core of JuPedSim, a framework for simulation and analysis of pedestrian dynamics")
 SET(CPACK_PACKAGE_VENDOR "Forschungszentrum Juelich GmbH")
-SET(CPACK_PACKAGE_NAME "JuPedSim/JPScore")
+SET(CPACK_PACKAGE_NAME "jpscore")
 SET(CPACK_PACKAGE_CONTACT "m.chraibi@fz-juelich.de")
 SET(CPACK_PACKAGE_VERSION_MAJOR "${JPSCORE_MAJOR_VERSION}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${JPSCORE_MINOR_VERSION}")

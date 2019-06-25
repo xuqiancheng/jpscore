@@ -25,7 +25,6 @@
  *
  **/
 
-
 #include <string>
 #include <cstdlib>
 #include <iostream>
@@ -60,21 +59,12 @@ EventManager::EventManager(Building *_b, unsigned int seed)
      _updateFrequency =1 ;//seconds
      _updateRadius =2;//meters
 
-     _file = fopen("../events/events.txt", "r");
-     if (!_file) {
-          Log->Write("INFO:\tFiles 'events.txt' missing. "
-                    "Realtime interaction with the simulation not possible.");
-     } else {
-          Log->Write("INFO:\tFile 'events.txt' will be monitored for new events.");
-          _dynamic = true;
-     }
-
      //generate random number between 0 and 1 uniformly distributed
      _rdDistribution = std::uniform_real_distribution<double> (0,1);
      //std::random_device rd;
      //_rdGenerator=std::mt19937(rd());
      _rdGenerator=std::mt19937(seed);
-
+     _file = nullptr;
      //save the first graph
      CreateRoutingEngine(_b, true);
 
@@ -102,6 +92,23 @@ bool EventManager::ReadEventsXml()
      }
 
      TiXmlElement* xMainNode = doc.RootElement();
+
+     string realtimefile;
+     if (xMainNode->FirstChild("event_realtime")) {
+          realtimefile = _projectRootDir
+                    + xMainNode->FirstChild("event_realtime")->FirstChild()->Value();
+          _file = fopen(realtimefile.c_str(), "r");
+          if (!_file) {
+               Log->Write("INFO:\tFiles '"+ realtimefile+ "' missing. "
+                          "Realtime interaction with the simulation not possible.");
+          } else {
+               Log->Write("INFO:\tFile '"+ realtimefile+ "' will be monitored for new events.");
+               _dynamic = true;
+          }
+     } else {
+          Log->Write("INFO: \tNo realtime events found");
+     }
+
      string eventfile = "";
      if (xMainNode->FirstChild("events_file")) {
           eventfile = _projectRootDir
@@ -111,6 +118,7 @@ bool EventManager::ReadEventsXml()
           Log->Write("INFO: \tNo events found");
           return true;
      }
+
 
      Log->Write("INFO: \tParsing the event file");
      TiXmlDocument docEvent(eventfile);
@@ -173,8 +181,8 @@ void EventManager::ReadEventsTxt(double time)
      char cstring[256];
      int lines = 0;
      do {
-          if (fgets(cstring, 30, _file) == NULL) {
-               Log->Write("WARNING: \tCould not read the event file");
+          if (fgets(cstring, 30, _file) == nullptr) {
+//               Log->Write("WARNING: \tCould not read the event file");
                return;
           }
           if (cstring[0] != '#') {// skip comments
@@ -249,25 +257,26 @@ bool EventManager::DisseminateKnowledge(Building* _b)
      }
 
 
+     //TODO Was passiert hier?
      //update the routers based on the configurations
      //#pragma omp parallel
-     for(auto&& ped:_b->GetAllPedestrians())
-     {
-          if(UpdateRoute(ped)==false)
-          {
-               //Clear the memory and attempt to reroute
-               //this can happen if all doors are known to be closed
-               ped->ClearKnowledge();
-               Log->Write("ERROR: \t clearing ped knowledge");
-               //ped->Dump(ped->GetID());
-               if(UpdateRoute(ped)==false)
-               {
-                    Log->Write("ERROR: \t cannot reroute the pedestrian. unknown problem");
-                    //return false;
-                    exit(EXIT_FAILURE);
-               }
-          }
-     }
+//     for(auto&& ped:_b->GetAllPedestrians())
+//     {
+//          if(UpdateRoute(ped)==false)
+//          {
+//               //Clear the memory and attempt to reroute
+//               //this can happen if all doors are known to be closed
+//               ped->ClearKnowledge();
+//               Log->Write("ERROR: \t clearing ped knowledge");
+//               //ped->Dump(ped->GetID());
+//               if(UpdateRoute(ped)==false)
+//               {
+//                    Log->Write("ERROR: \t cannot reroute the pedestrian. unknown problem");
+//                    //return false;
+//                    exit(EXIT_FAILURE);
+//               }
+//          }
+//     }
      return true;
 }
 
@@ -276,8 +285,17 @@ bool EventManager::UpdateRoute(Pedestrian* ped)
      //create the key as string.
      //map are sorted by default
      string key= ped->GetKnowledgeAsString();
+//     std::cout << "key: <" << key << ">" << std::endl;
      //get the router engine corresponding to the actual configuration
      bool status=true;
+
+//     for (auto event : _eventEngineStorage){
+//          std::cout << "_eventEngineStorage " << event.first << ": " << std::endl;
+//          for (auto router : event.second->GetAvailableRouters()){
+//               std::cout << router->GetStrategy() << std::endl;
+//          }
+//     }
+
      if (_eventEngineStorage.count(key)>0)
      {
           RoutingEngine* engine=_eventEngineStorage[key];
@@ -299,9 +317,9 @@ bool EventManager::UpdateRoute(Pedestrian* ped)
      }
      else
      {
-          //Log->Write("WARNING: \t unknown configuration <%s>", key.c_str());
-          //Log->Write("WARNING: \t  [%d] router available", _eventEngineStorage.size());
-          //Log->Write("       : \t trying to create");
+//          Log->Write("WARNING: \t unknown configuration <%s>", key.c_str());
+//          Log->Write("WARNING: \t  [%d] router available", _eventEngineStorage.size());
+//          Log->Write("       : \t trying to create");
           //CreateRoutingEngine(_building);
           status= false;
      }
@@ -507,11 +525,18 @@ void EventManager::ProcessEvent()
           if (fabs(event.GetTime() - current_time_d) < J_EPS_EVENT) {
                //Event with current time stamp detected
                Log->Write("INFO:\tEvent: after %.2f sec: ", current_time_d);
-               if (event.GetState().compare("close") == 0) {
-                    CloseDoor(event.GetId());
-               } else {
+               switch (event.GetState()){
+               case DoorState::OPEN:
                     OpenDoor(event.GetId());
+                    break;
+               case DoorState::CLOSE:
+                    CloseDoor(event.GetId());
+                    break;
+               case DoorState::TEMP_CLOSE:
+                    TempCloseDoor(event.GetId());
+                    break;
                }
+               _building->GetRoutingEngine()->setNeedUpdate(true);
           }
 
      }
@@ -524,7 +549,8 @@ void EventManager::ProcessEvent()
 void EventManager::CloseDoor(int id)
 {
      Transition *t = _building->GetTransition(id);
-     if (t->IsOpen())
+
+     if (!t->IsClose())
      {
           t->Close();
           Log->Write("INFO:\tClosing door %d ", id);
@@ -538,6 +564,26 @@ void EventManager::CloseDoor(int id)
      }
 
 }
+
+void EventManager::TempCloseDoor(int id)
+{
+     Transition *t = _building->GetTransition(id);
+
+     if (!t->IsTempClose())
+     {
+          t->TempClose();
+          Log->Write("INFO:\tClosing door %d ", id);
+          //Create and save a graph corresponding to the actual state of the building.
+          if(CreateRoutingEngine(_building)==false)
+          {
+               Log->Write("ERROR: \tcannot create a routing engine with the new event");
+          }
+     } else {
+          Log->Write("WARNING: \tdoor %d is already close", id);
+     }
+
+}
+
 
 //open the door if it was open and relaunch the routing procedure
 void EventManager::OpenDoor(int id)
@@ -594,7 +640,7 @@ bool EventManager::CreateRoutingEngine(Building* _b, int first_engine)
 
      for(auto&& t:_b->GetAllTransitions())
      {
-          if(t.second->IsOpen()==false)
+          if(!t.second->IsClose())
                closed_doors.push_back(t.second->GetID());
      }
      std::sort(closed_doors.begin(), closed_doors.end());
@@ -746,5 +792,107 @@ void EventManager::CreateSomeEngines()
           printf("ID: %d  IsOpen: %d\n",t.second->GetID(),t.second->IsOpen());
      }
      exit(0);
+}
+
+bool EventManager::ReadSchedule()
+{
+     Log->Write("INFO: \tReading schedule");
+     //get the geometry filename from the project file
+     TiXmlDocument doc(_projectFilename);
+     if (!doc.LoadFile()) {
+          Log->Write("ERROR: \t%s", doc.ErrorDesc());
+          Log->Write("ERROR: \t could not parse the project file.");
+          return false;
+     }
+
+     TiXmlElement* xMainNode = doc.RootElement();
+
+     string scheduleFile = "";
+     if (xMainNode->FirstChild("schedule_file")) {
+          scheduleFile = _projectRootDir
+                    + xMainNode->FirstChild("schedule_file")->FirstChild()->Value();
+          Log->Write("INFO: \tevents <" + scheduleFile + ">");
+     } else {
+          Log->Write("INFO: \tNo events found");
+          return true;
+     }
+
+
+     Log->Write("INFO: \tParsing the schedule file");
+     TiXmlDocument docSchedule(scheduleFile);
+     if (!docSchedule.LoadFile()) {
+          Log->Write("ERROR: \t%s", docSchedule.ErrorDesc());
+          Log->Write("ERROR: \t could not parse the schedule file.");
+          return false;
+     }
+
+     TiXmlElement* xRootNode = docSchedule.RootElement();
+     if (!xRootNode) {
+          Log->Write("ERROR:\tRoot element does not exist.");
+          return false;
+     }
+
+     if (xRootNode->ValueStr() != "JPScore") {
+          Log->Write("ERROR:\tRoot element value is not 'JPScore'.");
+          return false;
+     }
+
+     // Read groups
+     TiXmlNode* xGroups = xRootNode->FirstChild("groups");
+     if (!xGroups) {
+          Log->Write("ERROR:\tNo groups found.");
+          return false;
+     }
+
+     for (TiXmlElement* e = xGroups->FirstChildElement("group"); e;
+          e = e->NextSiblingElement("group")){
+          int id = atoi(e->Attribute("id"));
+          std::vector<int> member;
+          for (TiXmlElement* xmember = e->FirstChildElement("member"); xmember;
+               xmember = xmember->NextSiblingElement("member")){
+               int tId = atoi(xmember->Attribute("t_id"));
+               member.push_back(tId);
+          }
+          groupDoor[id] = member;
+     }
+
+     // Read times
+     TiXmlNode* xTimes = xRootNode->FirstChild("times");
+     if (!xTimes) {
+          Log->Write("ERROR:\tNo times found.");
+          return false;
+     }
+
+     for (TiXmlElement* e = xTimes->FirstChildElement("time"); e;
+          e = e->NextSiblingElement("time")) {
+          int id = atoi(e->Attribute("group_id"));
+          int closing_time = atoi(e->Attribute("closing_time"));
+
+          std::vector<int> timeOpen;
+          std::vector<int> timeClose;
+
+          for (TiXmlElement* time = e->FirstChildElement("t"); time;
+               time = time->NextSiblingElement("t")) {
+               int t = atoi(time->Attribute("t"));
+               timeOpen.push_back(t);
+               timeClose.push_back(t+closing_time);
+          }
+
+          for (auto door : groupDoor[id]){
+               for (auto open : timeOpen){
+                    Event event(door, open, "door", "open");
+                    _events.push_back(event);
+               }
+
+               for (auto close : timeClose){
+                    Event event(door, close, "door", "temp_close");
+                    _events.push_back(event);
+               }
+          }
+     }
+
+     Log->Write("INFO: \tSchedule initialized");
+
+     return true;
 }
 

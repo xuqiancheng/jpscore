@@ -36,6 +36,7 @@
 
 class Pedestrian;
 
+class Trips;
 
 class RoutingEngine {
 public:
@@ -60,14 +61,14 @@ public:
       * Add a new trip to the system. Individual pedestrian can be assigned a particular trip.
       * @param trip
       */
-     void AddTrip(std::vector<std::string> trip);
+     void AddTrip(Trips trip);
 
-     /**
-      * Return a trip/route with the particular id
-      * @param id, the trip id
-      * @return the corresponding trip
-      */
-     const std::vector<std::string>& GetTrip(int id) const;
+//     /**
+//      * Return a trip/route with the particular id
+//      * @param id, the trip id
+//      * @return the corresponding trip
+//      */
+//     const std::vector<std::string>& GetTrip(int id) const;
 
      /**
       * @return all available routers
@@ -106,12 +107,29 @@ public:
       */
      bool Init(Building* building);
 
+     /**
+      * Returns if routers need to be updated
+      * @return routers need to be updated
+      */
+     bool NeedsUpdate() const;
+
+     /**
+      * Set if routers need to be updated
+      * @param needUpdate
+      */
+     void setNeedUpdate(bool needUpdate);
+
+     /**
+      * Updates all used routers
+      */
+     void UpdateRouter();
 
 private:
      /// collections of all routers used
      std::vector<Router*> _routersCollection;
      /// collection of all trips/routes
-     std::vector<std::vector<std::string> >_tripsCollection;
+     Trips _tripsCollection;
+     bool _needUpdate = false;
 };
 
 #endif /* ROUTINGENGINE_H_ */

@@ -39,8 +39,8 @@
 
 class Point {
 public:
-     double _x; //*<x-coordinate of a 2-d point*/
-     double _y; //*<y-coordinate of a 2-d point*/
+     double _x = 0.; //*<x-coordinate of a 2-d point*/
+     double _y = 0.; //*<y-coordinate of a 2-d point*/
 
 public:
 
@@ -121,11 +121,18 @@ public:
      /// nice formating of the point
      std::string toString() const;
 
+    bool operator<(const Point& rhs) const;
 
-     /**
-      * @param [in/out] ostream& : ostream to write the point as xml-format into
-      * @return the given ostream with point as xml-format written into
-      */
+    bool operator>(const Point& rhs) const;
+
+    bool operator<=(const Point& rhs) const;
+
+    bool operator>=(const Point& rhs) const;
+
+    /**
+     * @param [in/out] ostream& : ostream to write the point as xml-format into
+     * @return the given ostream with point as xml-format written into
+     */
      std::ostream& SaveToXml(std::ostream&) const;
 };
 

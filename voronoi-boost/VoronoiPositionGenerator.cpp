@@ -84,6 +84,11 @@ bool IsEnoughInSubroom( SubRoom* subroom, Point& pt, double radius )
      return true;
 }
 
+//Point ComputeBestPositionVoronoiBoost(Goal* goal, std::vector<Pedestrian*>& pedInside)
+//{
+//
+//}
+
 bool ComputeBestPositionVoronoiBoost(AgentsSource* src, std::vector<Pedestrian*>& peds,
                                      Building* building, std::vector<Pedestrian*>& peds_queue)
 {
@@ -425,6 +430,14 @@ void VoronoiBestVertexRandMax (AgentsSource* src, const std::vector<Point>& disc
      }
      // partial_sums: [d_0^2,  d_0^2 + d_1^2,  d_0^2 + d_1^2 + d_2^2, ..., \sum_i^{n-1} d_i^3]
      //now we have the vector of possible vertices and weights and we can choose one randomly
+
+     if(partial_sums.empty())
+     {
+          Log->Write("Warning: No possible vertices. Maybe BB too small for %d agents?", src->GetChunkAgents());
+ //         exit(EXIT_FAILURE); // maybe not exit, just ignore
+          // dis = 0;
+          return;
+     }
 
      double lower_bound = 0;
      double upper_bound = partial_sums[size-1];

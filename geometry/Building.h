@@ -45,6 +45,43 @@
 #include "Goal.h"
 #include "../general/Configuration.h"
 
+typedef std::pair<Point, Wall> PointWall;
+
+// train schedules: Trains get deleted and added.
+
+struct Platform
+{
+     int id;
+     int rid;
+     int sid;
+     std::map<int, std::vector<Wall> > tracks;
+};
+
+struct TrainTimeTable
+{
+     int id;
+     std::string type;
+     int rid; // room id
+     int sid; // subroom id
+     double tin; // arrival time
+     double tout; //leaving time
+     Point pstart; // track start
+     Point pend; // track end
+     Point tstart; // train start
+     Point tend; // train end
+     int pid; // Platform id
+     bool arrival;
+     bool departure;
+};
+struct TrainType
+{
+     std::string type;
+     int nmax; // agents_max
+     float len; //length
+     std::vector<Transition> doors;
+};
+
+
 class RoutingEngine;
 
 class Pedestrian;
@@ -59,6 +96,8 @@ class PedDistributor;
 
 class Configuration;
 
+class WaitingArea;
+
 class Building {
 private:
      Configuration* _configuration;
@@ -72,7 +111,9 @@ private:
      std::map<int, Transition*> _transitions;
      std::map<int, Hline*> _hLines;
      std::map<int, Goal*> _goals;
-
+     std::map<std::string, std::shared_ptr<TrainType> > _trainTypes;
+     std::map<int, std::shared_ptr<TrainTimeTable> > _trainTimeTables;
+     std::map<int, std::shared_ptr<Platform> > _platforms;
      /// pedestrians pathway
      bool _savePathway;
      std::ofstream _pathWayStream;
@@ -80,10 +121,13 @@ private:
 public:
      /// constructor
      Building();
+     std::map<int, std::vector<Wall> > TempAddedWalls; // map to trainTimeTable
+     std::map<int, std::vector<Wall> > TempRemovedWalls;
+     std::map<int, std::vector<Transition> > TempAddedDoors;
 
 //    Building(const std::string &, const std::string &, RoutingEngine &, PedDistributor &, double);
      Building(Configuration* config, PedDistributor& pedDistributor);
-
+     bool resetGeometry(std::shared_ptr<TrainTimeTable> tab);
      /// destructor
      virtual ~Building();
 
@@ -127,7 +171,7 @@ public:
       * @param ID of Crossing: int
       * @return Pointer of Crossing
       */
-     Crossing* GetCrossing(int ID);
+     Crossing* GetCrossing(int ID) const;
 
      /**
       * Not implemented
@@ -173,7 +217,7 @@ public:
       */
      Transition* GetTransitionByUID(int uid) const;
 
-	 Crossing* GetCrossingByUID(int uid) const;
+         Crossing* GetCrossingByUID(int uid) const;
 
      //TOD0: rename later to GetGoal
      Goal* GetFinalGoal(int id) const;
@@ -185,6 +229,7 @@ public:
 
      // convenience methods
      bool InitGeometry();
+
 
      void InitGrid();
 
@@ -204,14 +249,32 @@ public:
      const std::map<int, Hline*>& GetAllHlines() const;
 
      const std::map<int, Goal*>& GetAllGoals() const;
+     // --------------- Trains interface
+     const std::map<std::string, std::shared_ptr<TrainType> >& GetTrainTypes() const;
 
+     const std::map<int, std::shared_ptr<TrainTimeTable> >& GetTrainTimeTables() const;
+
+     const std::map<int, std::shared_ptr<Platform> >& GetPlatforms() const;
+
+     const std::vector<Wall> GetTrackWalls(Point TrackStart, Point TrackEnd, int & room_id, int & subroom_id) const;
+     const std::vector<std::pair<PointWall, PointWall > > GetIntersectionPoints(const std::vector<Transition> doors, const std::vector<Wall>) const;
+
+     // ------------------------------------
      bool AddCrossing(Crossing* line);
+
+     bool RemoveTransition(Transition * line);
 
      bool AddTransition(Transition* line);
 
      bool AddHline(Hline* line);
 
      bool AddGoal(Goal* goal);
+
+     bool AddTrainType(std::shared_ptr<TrainType> TT);
+
+     bool AddTrainTimeTable(std::shared_ptr<TrainTimeTable> TTT);
+
+     bool AddPlatform(std::shared_ptr<Platform> P);
 
      const std::string& GetProjectRootDir() const;
 
@@ -253,6 +316,9 @@ public:
      std::vector<Point> GetBoundaryVertices() const;
 
 private:
+
+     bool InitInsideGoals();
+     bool InitPlatforms();
      void StringExplode(std::string str, std::string separator, std::vector<std::string>* results);
      /** @defgroup auto-correct-geometry
       * functions used to auto-correct the geometry.
@@ -342,7 +408,7 @@ private:
       * @param subroom
       * @return bool
       */
-bool RemoveOverlappingDoors(
+     bool RemoveOverlappingDoors(
           const std::shared_ptr<SubRoom>& subroom) const;
      /** @} */ // end of group
 

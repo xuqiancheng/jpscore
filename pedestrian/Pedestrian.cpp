@@ -206,6 +206,9 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
 
 Pedestrian::~Pedestrian()
 {
+     if ((_id>72) && (_id<81)){
+          std::cout << "Ped destructor" << std::endl;
+     }
 }
 
 
@@ -1246,6 +1249,27 @@ bool Pedestrian::Relocate(std::function<void(const Pedestrian&)> flowupdater) {
           }
      }
      return status;
+}
+
+int Pedestrian::GetLastGoalID() const
+{
+     return _lastGoalID;
+}
+
+bool Pedestrian::IsInsideGoal() const
+{
+     return _insideGoal;
+}
+
+void Pedestrian::EnterGoal()
+{
+     _insideGoal = true;
+     _lastGoalID = _desiredFinalDestination;
+}
+
+void Pedestrian::LeaveGoal()
+{
+     _insideGoal = false;
 }
 
 void Pedestrian::SetInCloggingTime(double t) {
