@@ -231,29 +231,6 @@ double JEllipse::GetEB() const
 	      double x = (_vel0 <= 0.001) ? 0 : (_Bmax - _Bmin) / _vel0;
 		  return _Bmax - _vel.Norm() * x;
 		  */
-		  /*
-		  if (_vel.Norm() <= 0.10)
-		  {
-			  return 0.23;
-		  }
-		  if (_vel.Norm() <= 0.25)
-		  {
-			  return 0.17;
-		  }
-		  if (_vel.Norm() <= 0.3)
-		  {
-			  return 0.16;
-		  }
-		  if (_vel.Norm() <= 0.8)
-		  {
-			  return 0.15;
-		  }
-		  if (_vel.Norm() <= 1.0)
-		  {
-			  return 0.23;
-		  }
-		  return 0.35;
-		  */
 		  // new function for b
 		  double vmid = 0.10;
 		  double n = 50;

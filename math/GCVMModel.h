@@ -70,6 +70,8 @@ private:
 	double _Ts;
 	double _Td;
 	
+	int _GCVMUsing=1;
+
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
 	/**
@@ -90,7 +92,7 @@ private:
 	*
 	* @return Point
 	*/
-	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, double k_deltaT, int periodic) const;
+	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
 	/**
 	* Repulsive force between two pedestrians ped1 and ped2 
 	* @param ped1 Pointer to Pedestrian: First pedestrian
@@ -108,7 +110,7 @@ private:
 	*
 	* @return Point
 	*/
-	Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0, Point pdesire) const;
+	Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
 	/**
 	* Repulsive force between pedestrian <ped> and wall <l>
 	*
@@ -117,14 +119,14 @@ private:
 	*
 	* @return Point
 	*/
-	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0, Point pdesire) const;
+	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0) const;
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) const;
 	double GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const;
 
 public:
 
 	GCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td);
+		double awall, double Dwall, double Ts, double Td, int GCVM);
 	virtual ~GCVMModel(void);
 
 
@@ -179,6 +181,8 @@ public:
 	* @param periodic: used in some utests for periodic scenarios (very specific)
 	*/
 	virtual void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic);
+
+	int GetGCVMU() const;
 };
 
 

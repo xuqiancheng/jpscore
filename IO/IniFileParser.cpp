@@ -1997,7 +1997,19 @@ bool IniFileParser::ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
 			_config->SetTd(atof(Td.c_str()));
 		}
 		Log->Write("INFO: \ttime_parameters Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
-
+	
+	if (xModelPara->FirstChild("GCVM")) {
+		if (!xModelPara->FirstChildElement("GCVM")->Attribute("using"))
+			_config->SetGCVMUsing(0);
+		else {
+			string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
+			_config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
+		}
+		_config->GetGCVMUsing() == 1 ?
+			Log->Write("INFO:\tUsing GCVM model") :
+			Log->Write("INFO:\tUsing CVM model");
+	}
+	
 	
 	}
 	//Parsing the agent parameters
@@ -2005,7 +2017,7 @@ bool IniFileParser::ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
 	ParseAgentParameters(xGCVM, xAgentDistri);
 	_config->SetModel(std::shared_ptr<OperationalModel>(new GCVMModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
-		_config->GetDWall(), _config->GetTs(), _config->GetTd())));
+		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing())));
 
 	return true;
 }
