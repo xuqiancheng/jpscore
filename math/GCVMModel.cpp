@@ -417,6 +417,7 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	double x1 = ped1->GetPos()._x;
 	double x2_real = ped2->GetPos()._x;
 	double y2 = ped2->GetPos()._y;
+	Point ped2_current = ped2->GetPos();
 	
 	if (periodic) {
 		if ((xRight_gcvm - x1) + (x2_real - xLeft_gcvm) <= cutoff_gcvm) {
@@ -449,12 +450,14 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 
 	double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
 	if (condition1 < 0) {
+		ped2->SetPos(ped2_current);
 		return  my_pair(FLT_MAX, -1);
 	}
 	//When condition1==0,should no influence on velocity
 	bool parallel = almostEqual(condition1, 0.0, J_EPS);
 	if (parallel)
 	{
+		ped2->SetPos(ped2_current);
 		return  my_pair(FLT_MAX, -1);
 	}
 	//Judge conllision
@@ -491,6 +494,7 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	double d2 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) - b1;
 	if (d1*d2 <= 0) {
 		//if the center between two lines, collision
+		ped2->SetPos(ped2_current);
 		return  my_pair(eff_dist, ped2->GetID());
 	}
 	//If the center not between two lines, Judge if ped2 contact with two lines
@@ -552,6 +556,7 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	double Dis2 = Ne2.ScalarProduct(Re2) - Ne2.ScalarProduct(A2e);
 
 	//Judge if the line contact with ellipse2
+	ped2->SetPos(ped2_current);
 	if (Dis1 >= 0 && Dis2 >= 0)
 		return  my_pair(FLT_MAX, -1);
 	else
@@ -621,6 +626,7 @@ Point GCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int p
 		R_ij = -_aPed * exp((-dist) / _DPed);
 		F_rep = ep12 * R_ij;
 	}
+	ped2->SetPos(Point(x_j, y_j));
 	return F_rep;
 }//END Velocity:ForceRepPed()
 
