@@ -320,7 +320,7 @@ math/VelocityModel.cpp
 math/OperationalModel.cpp
 math/GCVMModel.cpp
 math/SimplestModel.cpp
-
+math/AGCVMModel.cpp
 mpi/LCGrid.cpp
 
 pedestrian/Ellipse.cpp
@@ -550,7 +550,7 @@ math/VelocityModel.h
 math/OperationalModel.h
 math/GCVMModel.h
 math/SimplestModel.h
-
+math/AGCVMModel.h
 events/EventManager.h
 events/Event.h
 

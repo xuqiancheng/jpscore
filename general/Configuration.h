@@ -104,6 +104,7 @@ public:
 		  _SubmodelDirection = 0;
 		  _SubmodelSpeed = 0;
 		  _GCVMUsing = 0;
+		  _AreaSize = 1;
           // ----------------
 
           _hostname = "localhost";
@@ -381,7 +382,11 @@ public:
 
 	void SetGCVMUsing(int gu) { _GCVMUsing=gu; };
 
-	int GetGCVMUsing() const { return _GCVMUsing; }
+	int GetGCVMUsing() const { return _GCVMUsing; };
+
+	void SetAreaSize(double as) { _AreaSize = as; };
+
+	double GetAreaSize() const { return _AreaSize; };
 
 #ifdef _JPS_AS_A_SERVICE
 
@@ -456,6 +461,7 @@ private:
 	 int _SubmodelDirection;
 	 int _SubmodelSpeed;
 	 int _GCVMUsing;
+	 double _AreaSize;
      //ff router quickest
      double _recalc_interval;
 

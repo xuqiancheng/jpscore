@@ -1,6 +1,6 @@
 /**
-* \file        SimplestModel.h
-* \date        Jan 9, 2019
+* \file        AGCVM.h
+* \date        Jun 26, 2019
 * \version     v0.8
 * \copyright   <2009-2015> Forschungszentrum Jülich GmbH. All rights reserved.
 *
@@ -22,14 +22,14 @@
 *
 * \section Description
 * Implementation of first-order model
-* SimplestModel: Qiancheng (7)
+* Anticipation generalized collision-free velocity model: Qiancheng (8)
 *
 *
 **/
 
 
-#ifndef SIMPLESTMODEL_H_
-#define SIMPLESTMODEL_H_
+#ifndef AGCVMMODEL_H_
+#define AGCVMMODEL_H_
 
 #include <vector>
 
@@ -37,11 +37,10 @@
 #include "OperationalModel.h"
 
 typedef std::pair<double, double> my_pair;
-typedef std::pair<int, int> ID_pair;
 // sort with respect to first element (ascending).
 // In case of equality sort with respect to second element (descending)
 
-struct sort_pred_Simplest
+struct sort_pred_agcvm
 {
 	bool operator () (const my_pair& left, const my_pair& right)
 	{
@@ -58,7 +57,7 @@ class Pedestrian;
 class DirectionStrategy;
 
 
-class SimplestModel : public OperationalModel {
+class AGCVMModel : public OperationalModel {
 private:
 
 	/// Modellparameter
@@ -70,15 +69,8 @@ private:
 
 	double _Ts;
 	double _Td;
-
-	int _Parallel;
-	double _WaitingTime;
-	double _AreaSize;
-
-	int _SubmodelDirection;
-	int _SubmodelSpeed;
-
-	int _GCVMUsing;
+	
+	int _GCVMUsing=1;// Keep it for incase
 
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
@@ -102,7 +94,7 @@ private:
 	*/
 	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
 	/**
-	* Repulsive force between two pedestrians ped1 and ped2
+	* Repulsive force between two pedestrians ped1 and ped2 
 	* @param ped1 Pointer to Pedestrian: First pedestrian
 	* @param ped2 Pointer to Pedestrian: Second pedestrian
 	*
@@ -133,9 +125,9 @@ private:
 
 public:
 
-	SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, double areasize, int sDirection, int sSpeed, int GCVMU);
-	virtual ~SimplestModel(void);
+	AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
+		double awall, double Dwall, double Ts, double Td, int GCVM);
+	virtual ~AGCVMModel(void);
 
 
 	std::shared_ptr<DirectionStrategy> GetDirection() const;
@@ -190,19 +182,8 @@ public:
 	*/
 	virtual void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic);
 
-	int GetUpdate() const;
-
-	double GetWaitingTime() const;
-
-	int GetSDirection() const;
-
-	int GetSSpeed() const;
-
 	int GetGCVMU() const;
-
-	double GetAreaSize() const;
 };
 
 
 #endif 
-

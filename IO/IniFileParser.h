@@ -65,6 +65,8 @@ private:
 	 bool ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMain);
 
 	 bool ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xMain);
+
+	 bool ParseAGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMain);
 #ifdef AIROUTER
      bool ParseAIOpts(TiXmlNode* routingNode);
 #endif

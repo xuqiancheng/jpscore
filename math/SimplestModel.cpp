@@ -61,7 +61,7 @@ using std::vector;
 using std::string;
 
 SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-	double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, int sDirection, int sSpeed, int GCVMU)
+	double awall, double Dwall, double Ts, double Td, int Parallel, double waitingTime, double areasize, int sDirection, int sSpeed, int GCVMU)
 {
 	_direction = dir;
 	// Force_rep_PED Parameter
@@ -77,6 +77,7 @@ SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped
 	_SubmodelDirection = sDirection;
 	_SubmodelSpeed = sSpeed;
 	_GCVMUsing = GCVMU;
+	_AreaSize = areasize;
 }
 
 
@@ -326,7 +327,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		my_pair relation = my_pair(ped->GetID(), first_ID);
 		const Point& pos = ped->GetPos();
 		double distGoal = ped->GetExitLine()->DistTo(pos);
-		double DRange=1;
+		double DRange=GetAreaSize();
 		if (UDirection==0||distGoal<DRange)
 		{
 			relations.push_back(relation);
@@ -1121,4 +1122,9 @@ int SimplestModel::GetSSpeed() const
 int SimplestModel::GetGCVMU() const
 {
 	return _GCVMUsing;
+}
+
+double SimplestModel::GetAreaSize() const
+{
+	return _AreaSize;
 }
