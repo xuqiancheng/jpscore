@@ -465,7 +465,7 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	double a1 = ped1->GetLargerAxis();
 	Point v = ped1->GetV();
 	double b1 = ped1->GetSmallerAxis();
-
+	b1 = ped1->GetEllipse().GetBmin();
 	//Avoid block B(drill,small tricks)-----------------------------------------------------
 	/*
 	if (fabs(v._x) < J_EPS && fabs(v._y) < J_EPS) // v==0
@@ -827,6 +827,7 @@ double GCVMModel::GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const
 	ei_vertical._x = -ei.Normalized()._y;
 	ei_vertical._y = ei.Normalized()._x;
 	double b = ped->GetSmallerAxis();
+	b = ped->GetEllipse().GetBmin();
 	Point A1 = pp + ei_vertical * b;
 	Point A2 = pp - ei_vertical * b;
 	Point p1_A1 = p1 - A1;
