@@ -563,7 +563,7 @@ bool IniFileParser::Parse(std::string iniFile)
 				  Log->Write("ERROR: \t mismatch model ID and description. Did you mean agcvm?");
 				  return false;
 			  }
-			  if (!ParseGCVMModel(xModel, xMainNode))
+			  if (!ParseAGCVMModel(xModel, xMainNode))
 				  return false;
 			  parsingModelSuccessful = true;
 			  //only parsing one model
@@ -2023,10 +2023,10 @@ bool IniFileParser::ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
 			string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
 			_config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
 		}
-		_config->GetGCVMUsing() == 1 ?
-			Log->Write("INFO:\tUsing GCVM model") :
-			Log->Write("INFO:\tUsing CVM model");
 	}
+	_config->GetGCVMUsing() == 1 ?
+		Log->Write("INFO:\tUsing Generalized part") :
+		Log->Write("INFO:\tOnly using CVM model");
 	
 	
 	}
@@ -2217,13 +2217,13 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
 	return true;
 }
 
-bool IniFileParser::ParseAGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
+bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNode)
 {
 	//parsing the model parameters
 	Log->Write("\nINFO:\tUsing AGCVM model");
 	Log->Write("INFO:\tParsing the model parameters");
 
-	TiXmlNode* xModelPara = xGCVM->FirstChild("model_parameters");
+	TiXmlNode* xModelPara = xAGCVM->FirstChild("model_parameters");
 
 	if (!xModelPara) {
 		Log->Write("ERROR: \t !!!! Changes in the operational model section !!!");
@@ -2321,17 +2321,17 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode
 				string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
 				_config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
 			}
-			_config->GetGCVMUsing() == 1 ?
-				Log->Write("INFO:\tUsing GCVM model") :
-				Log->Write("INFO:\tUsing CVM model");
 		}
+		_config->GetGCVMUsing() == 1 ?
+			Log->Write("INFO:\tUsing Generalized part") :
+			Log->Write("INFO:\tOnly using CVM model");
 
 
 	}
 	//Parsing the agent parameters
 	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
-	ParseAgentParameters(xGCVM, xAgentDistri);
-	_config->SetModel(std::shared_ptr<OperationalModel>(new GCVMModel(_exit_strategy, _config->GetaPed(),
+	ParseAgentParameters(xAGCVM, xAgentDistri);
+	_config->SetModel(std::shared_ptr<OperationalModel>(new AGCVMModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
 		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing())));
 
