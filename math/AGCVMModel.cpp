@@ -272,8 +272,8 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			Point angle_v = (d_direction.Normalized()-a_direction)/ angle_tau;
 			Point direction = a_direction + angle_v * deltaT;
 
-			//When the angle between desired mocing direction and actual direction is bigger than 90 degree. turning to the desired moving direction directly.
-			if (d_direction.ScalarProduct(a_direction) < 0) {
+			//When the angle between actual moving direction and initial desired moving direction is bigger than 90 degree. turning to the desired moving direction directly.
+			if (a_direction.ScalarProduct(inid_direction) < 0) {
 				direction = d_direction;
 			}
 
@@ -465,7 +465,7 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 	double a1 = ped1->GetLargerAxis();
 	Point v = ped1->GetV();
 	double b1 = ped1->GetSmallerAxis();
-
+	b1 = ped1->GetEllipse().GetBmin();
 	//Avoid block B(drill,small tricks)-----------------------------------------------------
 	/*
 	if (fabs(v._x) < J_EPS && fabs(v._y) < J_EPS) // v==0
@@ -567,6 +567,10 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int periodic) const
 {
 	Point F_rep(0.0, 0.0);
+	// Calculate the velocity difference between two pedestrians
+	Point vel_ped1 = ped1->GetV();
+	Point vel_ped2 = ped2->GetV();
+	double Anti_value = (vel_ped1 - vel_ped2).ScalarProduct(vel_ped1);
 	// x- and y-coordinate of the distance between p1 and p2
 
 	double x_j = ped2->GetPos()._x;
@@ -625,6 +629,10 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 		dist = dist > 0 ? dist : 0;
 		R_ij = -_aPed * exp((-dist) / _DPed);
 		F_rep = ep12 * R_ij;
+		if (Anti_value < 0)
+		{
+			F_rep = F_rep*-1;
+		}
 	}
 	ped2->SetPos(Point(x_j, y_j));
 	return F_rep;
@@ -827,6 +835,7 @@ double AGCVMModel::GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) cons
 	ei_vertical._x = -ei.Normalized()._y;
 	ei_vertical._y = ei.Normalized()._x;
 	double b = ped->GetSmallerAxis();
+	b = ped->GetEllipse().GetBmin();
 	Point A1 = pp + ei_vertical * b;
 	Point A2 = pp - ei_vertical * b;
 	Point p1_A1 = p1 - A1;

@@ -272,11 +272,11 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			Point angle_v = (d_direction.Normalized()-a_direction)/ angle_tau;
 			Point direction = a_direction + angle_v * deltaT;
 
-			//When the angle between desired mocing direction and actual direction is bigger than 90 degree. turning to the desired moving direction directly.
-			if (d_direction.ScalarProduct(a_direction) < 0) {
+			//When the angle between actual moving direction and initial desired moving direction is bigger than 90 degree. turning to the desired moving direction directly.
+			if (a_direction.ScalarProduct(inid_direction) < 0) {
 				direction = d_direction;
 			}
-
+			
 			if (GetGCVMU() == 0) {
 				direction = d_direction;//original method
 			}
