@@ -60,7 +60,7 @@ RUN mkdir -p /home/jupedsim/workspace \
 
 
 RUN cd /home/jupedsim/workspace \
-    && git clone --depth=5 https://gitlab.version.fz-juelich.de/jupedsim/jpscore.git \
+    && git clone --depth=5 https://github.com/jupedsim/jpscore.git \
     && cd jpscore \
     && mkdir -p build \
     && cd build \
