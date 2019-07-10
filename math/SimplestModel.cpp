@@ -368,11 +368,20 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			e.SetSinPhi(sinPhi);
 			ped->SetEllipse(e);
 			ped->SetV(speed);
-			ped->SetPos(pos_neu);
+			
 			if (periodic) {
-				if (ped->GetPos()._x >= xRight_simplest) {
-					ped->SetPos(Point(ped->GetPos()._x - (xRight_simplest - xLeft_simplest), ped->GetPos()._y));
+				if ((ped->GetPos()._x < xRight_simplest)&&(pos_neu._x>=xRight_simplest)) {
+					ped->SetPos(Point(pos_neu._x - (xRight_simplest - xLeft_simplest), pos_neu._y));
 				}
+				else if ((ped->GetPos()._x > xLeft_simplest) && (pos_neu._x <= xLeft_simplest)) {
+					ped->SetPos(Point(pos_neu._x + (xRight_simplest - xLeft_simplest), pos_neu._y));
+				}
+				else {
+					ped->SetPos(pos_neu);
+				}
+			}
+			else {
+				ped->SetPos(pos_neu);
 			}
 		}
 
@@ -400,11 +409,20 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			e.SetSinPhi(sinPhi);
 			ped->SetEllipse(e);
 			ped->SetV(v_neu);
-			ped->SetPos(pos_neu);
+
 			if (periodic) {
-				if (ped->GetPos()._x >= xRight_simplest) {
-					ped->SetPos(Point(ped->GetPos()._x - (xRight_simplest - xLeft_simplest), ped->GetPos()._y));
+				if ((ped->GetPos()._x < xRight_simplest)&&(pos_neu._x>=xRight_simplest)) {
+					ped->SetPos(Point(pos_neu._x - (xRight_simplest - xLeft_simplest), pos_neu._y));
 				}
+				else if ((ped->GetPos()._x > xLeft_simplest) && (pos_neu._x <= xLeft_simplest)) {
+					ped->SetPos(Point(pos_neu._x + (xRight_simplest - xLeft_simplest), pos_neu._y));
+				}
+				else {
+					ped->SetPos(pos_neu);
+				}
+			}
+			else {
+				ped->SetPos(pos_neu);
 			}
 		}
 	}
@@ -429,7 +447,8 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		}
 		if (converse != relations.end())
 		{
-			*converse = ID_pair(first_ID, second_ID);
+			//using this when delete pedestrian
+			//*converse = ID_pair(first_ID, second_ID);
 		}
 		for (int p = start; p <= end; ++p) {
 			Pedestrian* ped = allPeds[p];
@@ -441,7 +460,39 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				}
 				else {
 					ped->SetInCloggingTime(0);
-					pedsToRemove.push_back(ped);
+					double velocity_x=ped->GetEllipse().GetCosPhi();
+					double velocity_y=ped->GetEllipse().GetSinPhi();
+					Point position=ped->GetPos();
+					
+					int random = rand() % 10000;
+					if (random<2500)
+					{
+						// moving forward
+						Point velocity(velocity_x,velocity_y);
+						ped->SetPos(position+velocity*1.34*deltaT);
+					}
+					else if (random < 5000)
+					{
+						// Moving backward
+						Point velocity(velocity_x,velocity_y);
+						ped->SetPos(position+velocity*-1.34*deltaT);
+					}
+					else if (random < 7500)
+					{
+						// Moving left
+						Point velocity(velocity_y,velocity_x);
+						ped->SetPos(position+velocity*1.34*deltaT);
+					}
+					else
+					{
+						// moving right
+						Point velocity(velocity_y,velocity_x);
+						ped->SetPos(position+velocity*-1.34*deltaT);
+					}
+					
+					// Clogging experiment
+					//pedsToRemove.push_back(ped);
+
 					clogging_times++;
 					std::ofstream ofile;
 					string ProjectFileName = building->GetProjectFilename();
@@ -548,10 +599,15 @@ my_pair SimplestModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, 
 	double x1 = ped1->GetPos()._x;
 	double x2_real = ped2->GetPos()._x;
 	double y2 = ped2->GetPos()._y;
+	Point ped2_current = ped2->GetPos();
 
 	if (periodic) {
 		if ((xRight_simplest - x1) + (x2_real - xLeft_simplest) <= cutoff_simplest) {
 			double x2_periodic = x2_real + xRight_simplest - xLeft_simplest;
+			ped2->SetPos(Point(x2_periodic, y2));
+		}
+		if ((x1 - xLeft_simplest) + (xRight_simplest - x2_real) <= cutoff_simplest) {
+			double x2_periodic = xLeft_simplest - xRight_simplest + x2_real;
 			ped2->SetPos(Point(x2_periodic, y2));
 		}
 	}
@@ -574,6 +630,7 @@ my_pair SimplestModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, 
 	double eff_dist = eped1.EffectiveDistanceToEllipse(eped2, &dist);
 	double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
 	if (condition1 <= 0) {
+		ped2->SetPos(ped2_current);
 		return  my_pair(FLT_MAX, ped2->GetID());
 	}
 	if (!ped1->GetEllipse().DoesStretch())
@@ -581,6 +638,7 @@ my_pair SimplestModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, 
 		double l = ped1->GetLargerAxis() + ped2->GetLargerAxis();
 		double condition2 = ei.Rotate(0, 1).ScalarProduct(ep12); // theta = pi/2. condition2 should <= than l/Distance
 		condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
+		ped2->SetPos(ped2_current);
 		if ((condition1 >= 0) && (condition2 <= l / Distance))
 			// return a pair <dist, condition1>. Then take the smallest dist. In case of equality the biggest condition1
 			return  my_pair(distp12.Norm() - l, ped2->GetID());
@@ -621,6 +679,7 @@ my_pair SimplestModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, 
 		double d2 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) - b1;
 		if (d1*d2 <= 0) {
 			//if the center between two lines, collision
+			ped2->SetPos(ped2_current);
 			return  my_pair(eff_dist, ped2->GetID());
 		}
 		//If the center not between two lines, Judge if ped2 contact with two lines
@@ -704,6 +763,10 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 			double x2_periodic = x_j + xRight_simplest - xLeft_simplest;
 			ped2->SetPos(Point(x2_periodic, y_j));
 		}
+		if ((x - xLeft_simplest) + (xRight_simplest - x_j) <= cutoff_simplest) {
+			double x2_periodic = xLeft_simplest - xRight_simplest + x_j;
+			ped2->SetPos(Point(x2_periodic, y_j));
+		}
 	}
 
 	Point distp12 = ped2->GetPos() - ped1->GetPos();
@@ -745,6 +808,7 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 		R_ij = -_aPed * exp((-dist) / _DPed);
 		F_rep = ep12 * R_ij;
 	}
+	ped2->SetPos(Point(x_j, y_j));
 	return F_rep;
 }//END Velocity:ForceRepPed()
 
