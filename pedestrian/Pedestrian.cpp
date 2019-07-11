@@ -1226,6 +1226,28 @@ bool Pedestrian::Relocate(std::function<void(const Pedestrian&)> flowupdater) {
      {
           auto& room = it_room.second;
           auto subrooms = room->GetAllSubRooms();
+
+          // This part is used for move pedestrian in geometry manually
+          if (GetmoveManually()==true){
+               auto sub_in =
+                  std::find_if(subrooms.begin(), subrooms.end(), [&] (std::pair<int, std::shared_ptr<SubRoom>> iterator) {
+                      return (iterator.second->IsInSubRoom(this));
+                  }); 
+               if (sub_in!=subrooms.end()){
+                    ClearMentalMap(); // reset the destination
+                    SetRoomID(room->GetID(), room->GetCaption());
+                    SetSubRoomID(sub_in->second->GetSubRoomID());
+                    SetSubRoomUID(sub_in->second->GetUID());
+                    _router->FindExit(this);
+                    status=true;
+                    SetmoveManually(false);
+                    break;
+               }else{
+                    continue;
+               }
+
+          }
+          
           map<int, std::shared_ptr<SubRoom> >::iterator sub =
                   std::find_if(subrooms.begin(), subrooms.end(), [&] (std::pair<int, std::shared_ptr<SubRoom>> iterator) {
                       return ((iterator.second->IsDirectlyConnectedWith(allRooms[_roomID]->GetSubRoom(_subRoomID))) && iterator.second->IsInSubRoom(this));
@@ -1278,4 +1300,12 @@ void Pedestrian::SetInCloggingTime(double t) {
 
 double Pedestrian::GetInCloggingTime() const {
 	return _InCloggingTime;
+}
+
+void Pedestrian::SetmoveManually(bool m){
+     _moveManually = m;
+}
+
+bool Pedestrian::GetmoveManually() const{
+     return _moveManually;
 }

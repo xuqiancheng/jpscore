@@ -448,7 +448,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		if (converse != relations.end())
 		{
 			//using this when delete pedestrian
-			//*converse = ID_pair(first_ID, second_ID);
+			*converse = ID_pair(first_ID, second_ID);
 		}
 		for (int p = start; p <= end; ++p) {
 			Pedestrian* ped = allPeds[p];
@@ -460,39 +460,6 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				}
 				else {
 					ped->SetInCloggingTime(0);
-					double velocity_x=ped->GetEllipse().GetCosPhi();
-					double velocity_y=ped->GetEllipse().GetSinPhi();
-					Point position=ped->GetPos();
-					
-					int random = rand() % 10000;
-					if (random<2500)
-					{
-						// moving forward
-						Point velocity(velocity_x,velocity_y);
-						ped->SetPos(position+velocity*1.34*deltaT);
-					}
-					else if (random < 5000)
-					{
-						// Moving backward
-						Point velocity(velocity_x,velocity_y);
-						ped->SetPos(position+velocity*-1.34*deltaT);
-					}
-					else if (random < 7500)
-					{
-						// Moving left
-						Point velocity(velocity_y,velocity_x);
-						ped->SetPos(position+velocity*1.34*deltaT);
-					}
-					else
-					{
-						// moving right
-						Point velocity(velocity_y,velocity_x);
-						ped->SetPos(position+velocity*-1.34*deltaT);
-					}
-					
-					// Clogging experiment
-					//pedsToRemove.push_back(ped);
-
 					clogging_times++;
 					std::ofstream ofile;
 					string ProjectFileName = building->GetProjectFilename();
@@ -519,6 +486,46 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					//ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
 					ofile  << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
 					ofile.close();
+					/*
+					// Todo: Cooperation-----------------------------------------------------------
+					double velocity_x=ped->GetEllipse().GetCosPhi();
+					double velocity_y=ped->GetEllipse().GetSinPhi();
+					Point position=ped->GetPos();
+					int random = rand() % 10000;
+					if (random<2500)
+					{
+						// moving forward
+						Point velocity(velocity_x,velocity_y);
+						ped->SetPos(position+velocity*1.34*deltaT);
+					}
+					else if (random < 5000)
+					{
+						// Moving backward
+						Point velocity(velocity_x,velocity_y);
+						ped->SetPos(position+velocity*-1.34*deltaT);
+					}
+					else if (random < 7500)
+					{
+						// Moving left
+						Point velocity(velocity_y,velocity_x);
+						ped->SetPos(position+velocity*1.34*deltaT);
+					}
+					else
+					{
+						// moving right
+						Point velocity(velocity_y,velocity_x);
+						ped->SetPos(position+velocity*-1.34*deltaT);
+					}
+					//---------------------------------------------------------------------------
+					*/
+					// Clogging experiment
+					// Delete
+					//pedsToRemove.push_back(ped);
+					// Moving to waiting area
+					Point position=ped->GetPos();
+					Point position_w(position._x-18,position._y);
+					ped->SetPos(position_w,true);
+					ped->SetmoveManually(true);
 					//Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), clogging_times);
 					break;
 

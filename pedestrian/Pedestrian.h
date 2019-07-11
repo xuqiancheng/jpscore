@@ -154,7 +154,9 @@ private:
 
      int _lastGoalID = -1;
      bool _insideGoal =false;
-	 double _InCloggingTime = 0;
+	double _InCloggingTime = 0;
+
+     bool _moveManually = false;
 
 
 public:
@@ -510,9 +512,13 @@ public:
      bool IsInsideGoal() const;
 
 
-	 void SetInCloggingTime(double t);
+	void SetInCloggingTime(double t);
 
-	 double GetInCloggingTime() const;
+	double GetInCloggingTime() const;
+
+     void SetmoveManually(bool m);
+     
+     bool GetmoveManually() const;
 };
 
 #endif  /* _PEDESTRIAN_H */
