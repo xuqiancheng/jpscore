@@ -460,32 +460,34 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				}
 				else {
 					ped->SetInCloggingTime(0);
-					clogging_times++;
-					std::ofstream ofile;
-					string ProjectFileName = building->GetProjectFilename();
-					int start= ProjectFileName.find_last_of("\\");
-					start = start == -1 ? ProjectFileName.find_last_of("/") : start;
-					int end = ProjectFileName.find(".xml");
-					string InifileName = ProjectFileName.substr(start+1,end-start-1);
-					if (clogging_times == 1) {
-						ofile.open(building->GetProjectRootDir() + "CloggingLog_"+InifileName+".txt", std::ofstream::trunc);
-						ofile <<"#inifile: "<< building->GetProjectFilename()<<"\n";
-						ofile << "#Commit date: " << GIT_COMMIT_DATE << "\n";
-						ofile << "#Branch: " << GIT_BRANCH << "\n";
-						ofile << "#Timestep: " << deltaT << " (s)\n";
-						ofile << "#Waiting time: " << _WaitingTime << " (s)\n";
-						ofile << "#Parallel: " << _Parallel << " (1:parallel,0:unparallel)\n";
-						ofile << "#Direction: " << _SubmodelDirection << " (1:Using direction submodel,0:Not using direction submodel)\n";
-						ofile << "#Speed: " << _SubmodelSpeed << " (1:Using speed submodel,0:Not using speed submodel)\n";
-						ofile << "#GCVM: " << _GCVMUsing << " (1:Using GCVM instead of simplest model,0:Using simplest model)\n";
-						ofile << "#ID\ttime(s)\tamount\tposition_x\tpostion_y\n";
+					if (ped->GetPos()._x>=0){
+						clogging_times++;
+						std::ofstream ofile;
+						string ProjectFileName = building->GetProjectFilename();
+						int start= ProjectFileName.find_last_of("\\");
+						start = start == -1 ? ProjectFileName.find_last_of("/") : start;
+						int end = ProjectFileName.find(".xml");
+						string InifileName = ProjectFileName.substr(start+1,end-start-1);
+						if (clogging_times == 1) {
+							ofile.open(building->GetProjectRootDir() + "CloggingLog_"+InifileName+".txt", std::ofstream::trunc);
+							ofile <<"#inifile: "<< building->GetProjectFilename()<<"\n";
+							ofile << "#Commit date: " << GIT_COMMIT_DATE << "\n";
+							ofile << "#Branch: " << GIT_BRANCH << "\n";
+							ofile << "#Timestep: " << deltaT << " (s)\n";
+							ofile << "#Waiting time: " << _WaitingTime << " (s)\n";
+							ofile << "#Parallel: " << _Parallel << " (1:parallel,0:unparallel)\n";
+							ofile << "#Direction: " << _SubmodelDirection << " (1:Using direction submodel,0:Not using direction submodel)\n";
+							ofile << "#Speed: " << _SubmodelSpeed << " (1:Using speed submodel,0:Not using speed submodel)\n";
+							ofile << "#GCVM: " << _GCVMUsing << " (1:Using GCVM instead of simplest model,0:Using simplest model)\n";
+							ofile << "#ID\ttime(s)\tamount\tposition_x\tpostion_y\n";
+						}
+						else {
+							ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName+".txt", std::ofstream::app);
+						}
+						//ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
+						ofile  << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
+						ofile.close();
 					}
-					else {
-						ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName+".txt", std::ofstream::app);
-					}
-					//ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
-					ofile  << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
-					ofile.close();
 					/*
 					// Todo: Cooperation-----------------------------------------------------------
 					double velocity_x=ped->GetEllipse().GetCosPhi();
@@ -523,9 +525,11 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					//pedsToRemove.push_back(ped);
 					// Moving to waiting area
 					Point position=ped->GetPos();
-					Point position_w(position._x-18,position._y);
+					double position_wx=position._x>-8?position._x-18:position._x-2;
+					Point position_w(position_wx,position._y);
 					ped->SetPos(position_w,true);
 					ped->SetmoveManually(true);
+
 					//Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), clogging_times);
 					break;
 
