@@ -130,6 +130,7 @@ private:
 	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0) const;
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) const;
 	double GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const;
+	double GetSpacing2move(Pedestrian* ped, Point direction, Building* building, int periodic) const;
 
 public:
 

@@ -158,7 +158,7 @@ private:
 
      bool _moveManually = false;
 
-
+     bool _cooperation = true;
 public:
      // public member
      int _ticksInThisRoom;
@@ -519,6 +519,10 @@ public:
      void SetmoveManually(bool m);
      
      bool GetmoveManually() const;
+
+     void SetCooperation(bool c);
+
+     bool GetCooperation() const;
 };
 
 #endif  /* _PEDESTRIAN_H */

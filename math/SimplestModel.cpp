@@ -448,7 +448,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		if (converse != relations.end())
 		{
 			//using this when delete pedestrian
-			*converse = ID_pair(first_ID, second_ID);
+			//*converse = ID_pair(first_ID, second_ID);
 		}
 		for (int p = start; p <= end; ++p) {
 			Pedestrian* ped = allPeds[p];
@@ -488,46 +488,119 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 						ofile  << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
 						ofile.close();
 					}
-					/*
+					
 					// Todo: Cooperation-----------------------------------------------------------
 					double velocity_x=ped->GetEllipse().GetCosPhi();
 					double velocity_y=ped->GetEllipse().GetSinPhi();
 					Point position=ped->GetPos();
-					int random = rand() % 10000;
-					if (random<2500)
+					bool cooperation=ped->GetCooperation();
+					Pedestrian* ped2;
+					bool cooperation2;
+					for (int p2=start; p2<=end; ++p2){
+						ped2 = allPeds[p2];
+						if (ped2->GetID() == second_ID){
+							cooperation2=ped2->GetCooperation();
+							break;
+						}
+					}
+					if (cooperation==false && cooperation2==false){
+						ped->SetCooperation(true);
+					}
+					if (cooperation==true && cooperation2==true){
+						ped->SetCooperation(false);
+					}
+					if (ped->GetCooperation()==false)
 					{
 						// moving forward
-						Point velocity(velocity_x,velocity_y);
-						ped->SetPos(position+velocity*1.34*deltaT);
+						Point AvoidDirection(velocity_x,velocity_y);
+						double Space2move=GetSpacing2move(ped,AvoidDirection,building,periodic);
+						//Point AvoidSpeed = AvoidDirection.NormalizedMolified() *OptimalSpeed(ped, Space2move);
+						double spacing_wall = GetSpacingRoom(ped, building->GetRoom(ped->GetRoomID())->GetSubRoom(ped->GetSubRoomID()), AvoidDirection);
+						Point AvoidSpeed = AvoidDirection.NormalizedMolified() *OptimalSpeed(ped, spacing_wall);
+						Point pos_neu=position+AvoidSpeed*deltaT;
+						if (periodic) {
+							if ((ped->GetPos()._x < xRight_simplest)&&(pos_neu._x>=xRight_simplest)) {
+								ped->SetPos(Point(pos_neu._x - (xRight_simplest - xLeft_simplest), pos_neu._y));
+							}
+							else if ((ped->GetPos()._x > xLeft_simplest) && (pos_neu._x <= xLeft_simplest)) {
+								ped->SetPos(Point(pos_neu._x + (xRight_simplest - xLeft_simplest), pos_neu._y));
+							}
+							else {
+							ped->SetPos(pos_neu);
+							}
+						}
+						else {
+							ped->SetPos(pos_neu);
+						}
 					}
-					else if (random < 5000)
+					if (ped->GetCooperation()==true)
 					{
+						Point ped2_pos=ped2->GetPos();
+						Point ped_pos=ped->GetPos();
+						Point AvoidDirection=(ped_pos-ped2_pos).Normalized();
+						double spacing_wall = GetSpacingRoom(ped, building->GetRoom(ped->GetRoomID())->GetSubRoom(ped->GetSubRoomID()), AvoidDirection);
+						Point AvoidSpeed = AvoidDirection.NormalizedMolified() *OptimalSpeed(ped, spacing_wall);
+						Point pos_neu=position+AvoidSpeed*deltaT;
+						if (periodic) {
+							if ((ped->GetPos()._x < xRight_simplest)&&(pos_neu._x>=xRight_simplest)) {
+								ped->SetPos(Point(pos_neu._x - (xRight_simplest - xLeft_simplest), pos_neu._y));
+							}
+							else if ((ped->GetPos()._x > xLeft_simplest) && (pos_neu._x <= xLeft_simplest)) {
+								ped->SetPos(Point(pos_neu._x + (xRight_simplest - xLeft_simplest), pos_neu._y));
+							}
+							else {
+							ped->SetPos(pos_neu);
+							}
+						}
+						else {
+							ped->SetPos(pos_neu);
+						}
+						/*	
+						SubRoom* subroom=building->GetRoom(ped->GetRoomID())->GetSubRoom(ped->GetSubRoomID());
 						// Moving backward
-						Point velocity(velocity_x,velocity_y);
-						ped->SetPos(position+velocity*-1.34*deltaT);
-					}
-					else if (random < 7500)
-					{
+						Point AvoidDirectionb(-velocity_x,-velocity_y);
+						double Space2moveb=GetSpacing2move(ped, AvoidDirectionb, building,periodic);
+						Point AvoidSpeedb = AvoidDirectionb.NormalizedMolified() *OptimalSpeed(ped, Space2moveb);
 						// Moving left
-						Point velocity(velocity_y,velocity_x);
-						ped->SetPos(position+velocity*1.34*deltaT);
-					}
-					else
-					{
+						Point AvoidDirectionl(velocity_y,velocity_x);
+						double Space2movel=GetSpacing2move(ped,AvoidDirectionl,building,periodic);
+						Point AvoidSpeedl = AvoidDirectionl.NormalizedMolified() *OptimalSpeed(ped, Space2movel);
 						// moving right
-						Point velocity(velocity_y,velocity_x);
-						ped->SetPos(position+velocity*-1.34*deltaT);
+						Point AvoidDirectionr(-velocity_y,-velocity_x);
+						double Space2mover=GetSpacing2move(ped,AvoidDirectionr,building,periodic);
+						Point AvoidSpeedr = AvoidDirectionr.NormalizedMolified() *OptimalSpeed(ped, Space2mover);
+						Point AvoidSpeed= Space2moveb>Space2movel?AvoidSpeedb:AvoidSpeedl;
+						double Space2move=Space2moveb>Space2movel?Space2moveb:Space2movel;
+						AvoidSpeed=Space2move>Space2mover?AvoidSpeed:AvoidSpeedr;
+						Point pos_neu=position+AvoidSpeed*deltaT;
+						if (periodic) {
+							if ((ped->GetPos()._x < xRight_simplest)&&(pos_neu._x>=xRight_simplest)) {
+								ped->SetPos(Point(pos_neu._x - (xRight_simplest - xLeft_simplest), pos_neu._y));
+							}
+							else if ((ped->GetPos()._x > xLeft_simplest) && (pos_neu._x <= xLeft_simplest)) {
+								ped->SetPos(Point(pos_neu._x + (xRight_simplest - xLeft_simplest), pos_neu._y));
+							}
+							else {
+							ped->SetPos(pos_neu);
+							}
+						}
+						else {
+							ped->SetPos(pos_neu);
+						}
+						*/
 					}
 					//---------------------------------------------------------------------------
-					*/
+					
 					// Clogging experiment
 					// Delete
 					//pedsToRemove.push_back(ped);
 					// Moving to waiting area
+					/*
 					Point position=ped->GetPos();
 					double position_wx=position._x>-8?position._x-18:position._x-2;
 					Point position_w(position_wx,position._y);
 					ped->SetPos(position_w,true);
+					*/
 					ped->SetmoveManually(true);
 
 					//Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), clogging_times);
@@ -779,8 +852,10 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 			ped2->SetPos(Point(x2_periodic, y_j));
 		}
 	}
-
-	Point distp12 = ped2->GetPos() - ped1->GetPos();
+	
+	double Anticipation_time=0;
+	Point distp12 = ped2->GetPos()-ped2->GetV()*Anticipation_time - ped1->GetPos()+ped1->GetV()*Anticipation_time;
+	
 	double Distance = distp12.Norm();
 	Point ep12; // x- and y-coordinate of the normalized vector between p1 and p2
 	double R_ij;
@@ -820,7 +895,13 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 		F_rep = ep12 * R_ij;
 	}
 	ped2->SetPos(Point(x_j, y_j));
-	return F_rep;
+	Point direction_ped1(ped1->GetEllipse().GetCosPhi(),ped1->GetEllipse().GetSinPhi());
+	double Anti_value = (ped1->GetV() - ped2->GetV()).ScalarProduct(direction_ped1);
+	// if (ped1->GetV().Norm()<=0.01){
+	// 	Anti_value=1;
+	// }
+	Anti_value=1;
+	return F_rep*Anti_value;
 }//END Velocity:ForceRepPed()
 
 Point SimplestModel::ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const
@@ -1133,6 +1214,43 @@ double SimplestModel::GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) c
 	}
 	*/
 	return spacing;
+}
+
+double SimplestModel::GetSpacing2move(Pedestrian* ped, Point direction, Building* building, int periodic) const
+{
+	const vector< Pedestrian* >& allPeds = building->GetAllPedestrians();
+	unsigned long nSize;
+	nSize = allPeds.size();
+	vector< my_pair > spacings = vector<my_pair >();
+	spacings.reserve(nSize); // larger than needed
+	Room* room = building->GetRoom(ped->GetRoomID());
+	SubRoom* subroom = room->GetSubRoom(ped->GetSubRoomID());
+	vector<Pedestrian*> neighbours;
+	building->GetGrid()->GetNeighbourhood(ped, neighbours);
+	int size = (int)neighbours.size();
+	for (int i = 0; i < size; i++) {
+			Pedestrian* ped1 = neighbours[i];
+			// calculate spacing
+			if (ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
+				spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
+			}
+			else {
+				// or in neighbour subrooms
+				SubRoom* sb2 = building->GetRoom(ped1->GetRoomID())->GetSubRoom(ped1->GetSubRoomID());
+				if (subroom->IsDirectlyConnectedWith(sb2)) {
+					spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
+				}
+			}
+		}
+		//------------------------------------------------------------------------------------------------------------------------------------
+	// Calculate min spacing, and save all spacing=0 to vector relation--------------------------------------------------------------------
+	std::sort(spacings.begin(), spacings.end(), sort_pred_Simplest());
+	double spacing = spacings.size() == 0 ? 100 : spacings[0].first; // No pedestrian in front
+	double first_ID = spacings.size() == 0 ? -1 : spacings[0].second;
+	// add this part to avoid pedestrian cross the wall directly
+	// some pedestrian are blocked by wall
+	double spacing_wall = GetSpacingRoom(ped, subroom, direction);
+	spacing = spacing > spacing_wall ? spacing_wall : spacing;
 }
 
 string SimplestModel::GetDescription()

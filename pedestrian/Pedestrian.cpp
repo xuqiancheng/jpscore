@@ -120,6 +120,9 @@ Pedestrian::Pedestrian()
      _FED_Heat = 0.0;
      _WalkingSpeed = nullptr;
      _ToxicityAnalysis = nullptr;
+
+     _cooperation=true;
+     _moveManually=false;
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -1308,4 +1311,12 @@ void Pedestrian::SetmoveManually(bool m){
 
 bool Pedestrian::GetmoveManually() const{
      return _moveManually;
+}
+
+void Pedestrian::SetCooperation(bool c){
+     _cooperation=c;
+}
+
+bool Pedestrian::GetCooperation() const{
+     return _cooperation;
 }
