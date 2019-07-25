@@ -32,12 +32,14 @@
 #define SIMPLESTMODEL_H_
 
 #include <vector>
-
+#include <tuple>
 #include "../geometry/Building.h"
 #include "OperationalModel.h"
 
 typedef std::pair<double, double> my_pair;
 typedef std::pair<int, int> ID_pair;
+typedef std::tuple<int, double> inf_pair;
+
 // sort with respect to first element (ascending).
 // In case of equality sort with respect to second element (descending)
 
@@ -201,6 +203,9 @@ public:
 	int GetGCVMU() const;
 
 	double GetAreaSize() const;
+
+	bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds);
+
 };
 
 

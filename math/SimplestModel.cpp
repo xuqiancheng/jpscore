@@ -162,11 +162,18 @@ bool SimplestModel::Init(Building* building)
 void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic)
 {
 	// collect all pedestrians in the simulation.
-	const vector< Pedestrian* >& allPeds = building->GetAllPedestrians();
+	const vector< Pedestrian* >& allPeds_ini = building->GetAllPedestrians();
 	vector<Pedestrian*> pedsToRemove;
 	pedsToRemove.reserve(500);
 	unsigned long nSize;
-	nSize = allPeds.size();
+	nSize = allPeds_ini.size();
+
+    //Rearrange pedestrians according to the distance to exit
+	//printf("\ntime=%f\n", current);
+	vector<Pedestrian*>& allPeds = vector<Pedestrian*>();
+	allPeds.reserve(nSize);
+	ReArrange(allPeds_ini,allPeds);
+
 	vector< Point > result_acc = vector<Point >();
 	result_acc.reserve(nSize);
 	vector< Point > result_dir = vector<Point >();
@@ -182,6 +189,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	int start = 0;
 	int end = nSize - 1;
 	for (int p = start; p <= end; ++p) {
+		//printf("\ID=%d\n", allPeds[p]->GetID());
 		Pedestrian* ped = allPeds[p];
 		Room* room = building->GetRoom(ped->GetRoomID());
 		SubRoom* subroom = room->GetSubRoom(ped->GetSubRoomID());
@@ -1202,4 +1210,35 @@ int SimplestModel::GetGCVMU() const
 double SimplestModel::GetAreaSize() const
 {
 	return _AreaSize;
+}
+
+bool SimplestModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds)
+{
+	int nsize = allPeds_ini.size();
+	vector<inf_pair> inf_ped = vector<inf_pair>();
+	inf_ped.reserve(nsize);
+	for (int p = 0; p < nsize; p++) 
+	{
+		Pedestrian* ped = allPeds_ini[p];
+		double distance = ped->GetExitLine()->DistTo(ped->GetPos());
+		Point line_position = ped->GetExitLine()->GetCentre();
+		double position = line_position._x - distance;
+		inf_ped.push_back(inf_pair(p, position));
+	}
+	for (int p = 0; p < nsize; p++)
+	{
+		for (int q = 0; q < nsize-1; q++)
+		{
+			if (std::get<1>(inf_ped[q]) < std::get<1>(inf_ped[q + 1]))
+			{
+				inf_ped[q].swap(inf_ped[q + 1]);
+			}
+		}
+	}
+	for (int p = 0; p < nsize; p++)
+	{
+		int number = std::get<0>(inf_ped[p]);
+		allPeds.push_back(allPeds_ini[number]);
+	}
+	return TRUE;
 }
