@@ -170,7 +170,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 
     //Rearrange pedestrians according to the distance to exit
 	//printf("\ntime=%f\n", current);
-	vector<Pedestrian*>& allPeds = vector<Pedestrian*>();
+	vector<Pedestrian*> allPeds = vector<Pedestrian*>();
 	allPeds.reserve(nSize);
 	ReArrange(allPeds_ini,allPeds);
 
@@ -1240,5 +1240,5 @@ bool SimplestModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< 
 		int number = std::get<0>(inf_ped[p]);
 		allPeds.push_back(allPeds_ini[number]);
 	}
-	return TRUE;
+	return true;
 }

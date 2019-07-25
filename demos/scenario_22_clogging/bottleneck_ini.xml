@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<JuPedSim project="JPS-Project" version="0.7"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="http://134.94.2.137/jps_ini_core.xsd">
+
+        <!-- seed used for initialising random generator -->
+        <seed>12542</seed>
+        <!-- geometry file -->
+        <max_sim_time>20</max_sim_time>
+        <geometry>bottleneck_geo.xml</geometry>
+        <!-- traectories file and format -->
+        <trajectories format="xml-plain"  fps="8">
+                <file location="bottleneck_traj.xml" />
+        </trajectories>
+        <!-- where to store the logs -->
+        <logfile>log.txt</logfile>
+
+        <!-- traffic information: e.g closed doors or smoked rooms -->
+        <traffic_constraints>
+                <!-- doors states are: close or open -->
+                <doors>
+                        <door trans_id="2" caption="main_exit" state="open" />
+                </doors>
+        </traffic_constraints>
+
+        <routing>
+                <goals>
+                        <goal id="0" final="true" caption="goal 1">
+                                <polygon>
+                                        <vertex px="70" py="101" />
+                                        <vertex px="70" py="103" />
+                                        <vertex px="75" py="103" />
+                                        <vertex px="75" py="101" />
+                                        <vertex px="70" py="101" />
+                                </polygon>
+                        </goal>
+                </goals>
+        </routing>
+
+        <!--persons information and distribution -->
+        <agents operational_model_id="7">
+                <agents_distribution>
+                        <group group_id="1" agent_parameter_id="1" room_id="1" subroom_id="0" number="10" goal_id="0" router_id="1" />
+                </agents_distribution>
+        </agents>
+
+            <!-- These parameters may be overwritten -->
+         
+
+    <operational_models>
+	<model description="simplest" operational_model_id="7">
+      <model_parameters>
+        <solver>euler</solver>
+        <stepsize>0.05</stepsize> <!-- Set time steps -->
+        <exit_crossing_strategy>3</exit_crossing_strategy>
+        <linkedcells cell_size="300" enabled="true" />
+        <force_ped D="0.1" a="3" />
+        <force_wall D="0.05" a="6" />
+		<time_parameters Td="0.3" Ts="0.3" />
+		<update_method parallel="1"/> <!-- Update method is parallel when parallel=1, while unparallel when parallel=0 -->
+		<waiting_time Tw="1"/> <!-- Deleting pedestrian Tw seconds after the clogging -->
+		<clogging_area size="1" /> <!-- Only deleting pedestrian when the distance between clogging to exit is smaller than the size-->
+		<model_submodel direction="1" speed="1"/> <!-- When direction=1 means using direction part, when speed=1 means using speed part -->
+		<GCVM using="1"/> <!-- When using=1 menas we using GCVM in the simulation -->
+      </model_parameters>
+	  <agent_parameters agent_parameter_id="1">
+        <v0 mu="1.34" sigma="0.26" />
+        <bmax mu="0.20" sigma="0.00000" /> 
+        <bmin mu="0.20" sigma="0.00000" />
+        <amin mu="0.20" sigma="0.00000" />
+        <atau mu="0.00" sigma="0.00000" />
+		<tau mu="0.5" sigma="0.000" />
+		<shape circle="1" /> 
+      </agent_parameters>
+    </model>
+  </operational_models>
+
+
+        <route_choice_models>
+                <router router_id="1" description="global_shortest">
+                        <parameters>
+             <!-- <navigation_lines file="routing.xml" /> -->
+                        </parameters>
+                </router>
+        </route_choice_models>
+
+</JuPedSim>
