@@ -20,14 +20,14 @@
 		<group agent_parameter_id="1" goal_id="-1" group_id="3" number="0" room_id="0" router_id="1" subroom_id="0" />			
 	</agents_distribution>
 	<agents_sources> <!-- Set entrance flow -->
-		<source id="1" frequency="1" agents_max="20" group_id="0" caption="source 1" greedy="false"  />
-		<source id="2" frequency="1" agents_max="20" group_id="1" caption="source 2" greedy="false"  />
-		<source id="3" frequency="1" agents_max="20" group_id="2" caption="source 3" greedy="false"  />
-		<source id="4" frequency="1" agents_max="20" group_id="3" caption="source 4" greedy="false"  />
-		<source id="5" frequency="1" agents_max="20" group_id="0" caption="source 5" greedy="false"  />
-		<source id="6" frequency="1" agents_max="20" group_id="1" caption="source 6" greedy="false"  />
-		<source id="7" frequency="1" agents_max="20" group_id="2" caption="source 7" greedy="false"  />
-		<source id="8" frequency="1" agents_max="20" group_id="3" caption="source 8" greedy="false"  />
+		<source id="1" frequency="1" agents_max="50" group_id="0" caption="source 1" greedy="false"  />
+		<source id="2" frequency="1" agents_max="50" group_id="1" caption="source 2" greedy="false"  />
+		<source id="3" frequency="1" agents_max="50" group_id="2" caption="source 3" greedy="false"  />
+		<source id="4" frequency="1" agents_max="50" group_id="3" caption="source 4" greedy="false"  />
+		<source id="5" frequency="1" agents_max="50" group_id="0" caption="source 5" greedy="false"  />
+		<source id="6" frequency="1" agents_max="50" group_id="1" caption="source 6" greedy="false"  />
+		<source id="7" frequency="1" agents_max="50" group_id="2" caption="source 7" greedy="false"  />
+		<source id="8" frequency="1" agents_max="50" group_id="3" caption="source 8" greedy="false"  />
 	</agents_sources>
   </agents>
  
@@ -43,7 +43,7 @@
 		<time_parameters Td="0.3" Ts="0.3" />
 		<update_method parallel="1"/> <!-- Update method is parallel when parallel=1, while unparallel when parallel=0 -->
 		<waiting_time Tw="1"/> <!-- Deleting pedestrian Tw seconds after the clogging -->
-		<clogging_area size="1" /> <!-- Only deleting pedestrian when the distance between clogging to exit is smaller than the size-->
+		<clogging_area size="100" /> <!-- Only deleting pedestrian when the distance between clogging to exit is smaller than the size-->
 		<model_submodel direction="1" speed="1"/> <!-- When direction=1 means using direction part, when speed=1 means using speed part -->
 		<GCVM using="1"/> <!-- When using=1 menas we using GCVM in the simulation -->
       </model_parameters>

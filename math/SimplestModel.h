@@ -132,6 +132,7 @@ private:
 	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0) const;
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) const;
 	double GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const;
+	bool RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
 
 public:
 

@@ -165,10 +165,11 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	const vector< Pedestrian* >& allPeds_ini = building->GetAllPedestrians();
 	vector<Pedestrian*> pedsToRemove;
 	pedsToRemove.reserve(500);
+
 	unsigned long nSize;
 	nSize = allPeds_ini.size();
 
-    //Rearrange pedestrians according to the distance to exit
+    //Rearrange pedestrians according to the distance to exit (Using new function ReArrange)
 	//printf("\ntime=%f\n", current);
 	vector<Pedestrian*> allPeds = vector<Pedestrian*>();
 	allPeds.reserve(nSize);
@@ -176,16 +177,25 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 
 	vector< Point > result_acc = vector<Point >();
 	result_acc.reserve(nSize);
+
 	vector< Point > result_dir = vector<Point >();
 	result_dir.reserve(nSize);
+
 	vector< my_pair > spacings = vector<my_pair >();
 	spacings.reserve(nSize); // larger than needed
+
 	vector<Point> f_pos = vector<Point>();
 	f_pos.reserve(nSize);
+
 	vector< ID_pair > relations = vector<ID_pair>();
 	relations.reserve(nSize);
+
 	vector<int> stoppings = vector<int>();
 	stoppings.reserve(nSize);
+
+	vector<bool>  RealCloggings= vector<bool>();
+	RealCloggings.reserve(nSize);
+
 	int start = 0;
 	int end = nSize - 1;
 	for (int p = start; p <= end; ++p) {
@@ -196,10 +206,14 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		Point repPed = Point(0, 0);
 		vector<Pedestrian*> neighbours;
 		building->GetGrid()->GetNeighbourhood(ped, neighbours);
+
+		// Get desired moving direction
 		Point inid_direction = e0(ped, room);
+
 		int size = (int)neighbours.size();
 		Point direction;
-		int UDirection = GetSDirection();
+
+		int UDirection = GetSDirection(); // If using direction part?
 		if (!UDirection)
 		{
 			direction = inid_direction;
@@ -208,7 +222,9 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		{
 			//using a new method calculate the influence of pedestrian (the value of influence id decided by distance and the direction is vertical with desired direction)
 			Point inf_direction;// left side of pedestrian
-			if (GetGCVMU())
+
+			 // If using GCVM or CVM?
+			if (GetGCVMU()) 
 			{
 				inf_direction._x = -inid_direction._y;
 				inf_direction._y = inid_direction._x;
@@ -229,15 +245,19 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				{
 					double result1 = inid_direction.CrossProduct(ep12);
 					Point zero = Point(0, 0);
-					if (bool equal = almostEqual(result1, 0, 0.00001)) {
-						int random = rand() % 1000;//choose one direciton bu random
-						if (random < 500) {
+					if (bool equal = almostEqual(result1, 0, 0.00001)) 
+					{
+						int random = rand() % 1000;//choose one direciton by random
+						if (random < 500) 
+						{
 							inf_direction = zero - inf_direction;
 						}
 					}
-					else {
+					else 
+					{
 						double result2 = inid_direction.CrossProduct(inf_direction);
-						if (result1*result2 > 0) {
+						if (result1*result2 > 0) 
+						{
 							inf_direction = zero - inf_direction;
 						}
 					}
@@ -247,10 +267,14 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				vector<SubRoom*> emptyVector;
 				emptyVector.push_back(subroom);
 				emptyVector.push_back(building->GetRoom(ped1->GetRoomID())->GetSubRoom(ped1->GetSubRoomID()));
+				
+				//This part is not my work, may be have to read it. But in my simple case, may be no influence.
 				bool isVisible = building->IsVisible(p1, p2, emptyVector, false);
 				if (!isVisible) {
 					continue;
 				}
+				//-------------------------------------------------------
+
 				if (ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
 					if (GetGCVMU())
 					{
@@ -258,7 +282,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					}
 					else
 					{
-						repPed += ForceRepPed(ped, ped1, inid_direction, periodic);//Simplest model
+						repPed += ForceRepPed(ped, ped1, inid_direction, periodic);//CVM
 					}
 				}
 				else {
@@ -270,7 +294,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 						}
 						else
 						{
-							repPed += ForceRepPed(ped, ped1, inid_direction, periodic);//Simplest model
+							repPed += ForceRepPed(ped, ped1, inid_direction, periodic);//CVM
 						}
 					}
 				}
@@ -278,22 +302,20 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			//-----------------------------------------------------------------------------------------------------------
 
 			// Calculating influence of walls-------------------------------------------------------------------------
-			//todo:reform the ForceReoRoom function	
-			
 			Point repWall = ForceRepRoom(ped, subroom, inid_direction);
 			if (ped->GetExitLine()->DistTo(ped->GetPos())<0.2)
 			{
 				std::vector<SubRoom*> Nsubrooms= subroom->GetNeighbors();
 				for (int i=0;i<Nsubrooms.size();i++)
-				repWall+=ForceRepRoom(ped,Nsubrooms[i],inid_direction);
+					repWall+=ForceRepRoom(ped,Nsubrooms[i],inid_direction);
 			}
 			//-----------------------------------------------------------------------------------------------------------
 
 			//Caluculating desired direcition----------------------------------------------------------------------------------------------
 			Point d_direction;
-			d_direction = inid_direction + repPed + repWall;//new method
+			d_direction = inid_direction + repPed + repWall;
 			//------------------------------------------------------------------------------------------------------------------------------
-			direction = d_direction;//Simplest model
+			direction = d_direction;
 
 			if (GetGCVMU())
 			{
@@ -311,18 +333,22 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		direction = direction.Normalized();
 		result_dir.push_back(direction);
 		//------------------------------------------------------------------------------------------------------------------------------------
+
+
 		//Calculating spacing in front -------------------------------------------------------------------------------------------------------
 		for (int i = 0; i < size; i++) {
 			Pedestrian* ped1 = neighbours[i];
 			// calculate spacing
 			if (ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
 				spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
+				RealCloggings.push_back(RealClogging(ped, ped1, inid_direction, periodic));
 			}
 			else {
 				// or in neighbour subrooms
 				SubRoom* sb2 = building->GetRoom(ped1->GetRoomID())->GetSubRoom(ped1->GetSubRoomID());
 				if (subroom->IsDirectlyConnectedWith(sb2)) {
 					spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
+					RealCloggings.push_back(RealClogging(ped, ped1, inid_direction, periodic));
 				}
 			}
 		}
@@ -332,28 +358,74 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		std::sort(spacings.begin(), spacings.end(), sort_pred_Simplest());
 		double spacing = spacings.size() == 0 ? 100 : spacings[0].first;
 		double first_ID = spacings.size() == 0 ? -1 : spacings[0].second;
-		my_pair relation = my_pair(ped->GetID(), first_ID);
+		
+		// We should save all the relations
 		const Point& pos = ped->GetPos();
 		double distGoal = ped->GetExitLine()->DistTo(pos);
-		double DRange=GetAreaSize();
-		if (UDirection==0||distGoal<DRange)
+		double DRange = GetAreaSize();
+		
+		if (spacing < 0.01)
 		{
-			relations.push_back(relation);
+			vector<bool>::iterator RC = std::find(RealCloggings.begin(), RealCloggings.end(), false);
+			if (RC == RealCloggings.end())
+			{
+				for (int i = 0; i < spacings.size(); i++)
+				{
+					if (spacings[i].first < 0.01)
+					{
+						my_pair relation = my_pair(ped->GetID(), spacings[i].second);
+						relations.push_back(relation);
+					}
+				}
+			}
+			/*
+			// Only save real clogging
+			for (int i = spacings.size()-1; i >= 0; i--)
+			{
+				double limitation = 1; // May be bigger or smaller ?
+				if (spacings[i].first < limitation)
+				{
+					if (spacings[i].first > 0.01)
+					{
+						break;
+					}
+					else
+					{
+						my_pair relation = my_pair(ped->GetID(), spacings[i].second);
+						relations.push_back(relation);
+					}
+				}
+				
+					// Depends on the distance to exit
+					
+					if (UDirection == 0 || distGoal < DRange)
+					{
+						relations.push_back(relation);
+					}
+					
+			}
+			*/
+
 		}
+		RealCloggings.clear();
 		// add this part to avoid pedestrian cross the wall directly
 		// some pedestrian are blocked by wall
 		double spacing_wall = GetSpacingRoom(ped, subroom, direction);
-		if (spacing == FLT_MAX && spacing_wall < 0.01)
+		if ( spacing_wall < 0.01)
 		{
 			my_pair relation_wall = my_pair(ped->GetID(), -100);
+			
+			// Depends on the distance to exit
 			if (UDirection==0||distGoal<DRange)
 			{
 				relations.push_back(relation_wall);
 			}
 		}
+
 		spacing = spacing > spacing_wall ? spacing_wall : spacing;
+
+		//optimal speed function
 		Point speed;
-		//optimap speed function
 		speed = direction.NormalizedMolified() *OptimalSpeed(ped, spacing);
 		result_acc.push_back(speed);
 		spacings.clear(); //clear for ped p
@@ -453,11 +525,16 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		{
 			continue;
 		}
-		if (converse != relations.end())
+
+		// Every pedestrian only once
+		for (vector<ID_pair>::iterator iter1 = relations.begin(); iter1 < relations.end(); ++iter1)
 		{
-			//using this when delete pedestrian
-			*converse = ID_pair(first_ID, second_ID);
+			if (iter1->second == first_ID || iter->first ==first_ID || iter->second == second_ID || iter->second == first_ID)
+			{
+				*iter1 = ID_pair(first_ID, second_ID);
+			}
 		}
+
 		for (int p = start; p <= end; ++p) {
 			Pedestrian* ped = allPeds[p];
 			if (ped->GetID() == first_ID) {
@@ -759,6 +836,7 @@ my_pair SimplestModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, 
 		double Dis1 = Ne1.ScalarProduct(Re1) - Ne1.ScalarProduct(A1e);
 		double Dis2 = Ne2.ScalarProduct(Re2) - Ne2.ScalarProduct(A2e);
 		//Judge if the line contact with ellipse2
+		ped2->SetPos(ped2_current);
 		if (Dis1 >= 0 && Dis2 >= 0)
 			return  my_pair(FLT_MAX, ped2->GetID());
 		else
@@ -793,11 +871,12 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 	Point ep12; // x- and y-coordinate of the normalized vector between p1 and p2
 	double R_ij;
 
+	//This part is not my work, may be read it later.
 	if (Distance >= J_EPS) {
 		ep12 = distp12.Normalized();
 	}
 	else {
-		//printf("ERROR: \tin VelocityModel::forcePedPed() ep12 can not be calculated!!!\n");
+		printf("ERROR: \tin VelocityModel::forcePedPed() ep12 can not be calculated!!!\n");
 		Log->Write(KRED "\nWARNING: \tin SimplestModel::forcePedPed() ep12 can not be calculated!!!" RESET);
 		Log->Write("\t\t Pedestrians are too near to each other (dist=%f).", Distance);
 		Log->Write("\t\t Maybe the value of <a> in force_ped should be increased. Going to exit.\n");
@@ -805,6 +884,8 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 		printf("ped1 at (%f, %f), ped2 at (%f, %f)\n", ped1->GetPos()._x, ped1->GetPos()._y, ped2->GetPos()._x, ped2->GetPos()._y);
 		//exit(EXIT_FAILURE);
 	}
+	//--------------------------------------------------
+
 	Point ei;
 	JEllipse Eped1 = ped1->GetEllipse();
 	ei._x = Eped1.GetCosPhi();
@@ -814,7 +895,9 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 	double condition1 = e0.ScalarProduct(ep12); // < e_i , e_ij > should be positive
 	double condition2 = ei.ScalarProduct(ep12);
 	if (!GetGCVMU())
-	condition1 = 1;
+	{
+		condition1 = 1;
+	}
 	//-----------------------------------------------
 	//rule:pedestrian's direction only influenced by pedestrian in version area
 	if (condition1 > 0 || condition2 > 0)
@@ -869,12 +952,12 @@ Point SimplestModel::ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) c
 		// ignore my transition consider closed doors
 		//closed doors are considered as wall
 		//door is open, but it's not my door (has influence)
-		/*
+		
 		if((uid1 != uid2) && (goal->IsOpen()==true ))
 		{
-		f +=  ForceRepWall(ped,*(static_cast<Line*>(goal)), centroid, inside, e0, pdesire);
+			f +=  ForceRepWall(ped,*(static_cast<Line*>(goal)), centroid, inside, e0);
 		}
-		*/
+		
 	}
 	return f;
 }
@@ -1241,4 +1324,160 @@ bool SimplestModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< 
 		allPeds.push_back(allPeds_ini[number]);
 	}
 	return true;
+}
+
+
+bool SimplestModel::RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const
+{
+	//-------------------------------------------------------------
+	double limitation = 100;
+	double x1 = ped1->GetPos()._x;
+	double x2_real = ped2->GetPos()._x;
+	double y2 = ped2->GetPos()._y;
+	Point ped2_current = ped2->GetPos();
+
+	if (periodic) {
+		if ((xRight_simplest - x1) + (x2_real - xLeft_simplest) <= cutoff_simplest) {
+			double x2_periodic = x2_real + xRight_simplest - xLeft_simplest;
+			ped2->SetPos(Point(x2_periodic, y2));
+		}
+		if ((x1 - xLeft_simplest) + (xRight_simplest - x2_real) <= cutoff_simplest) {
+			double x2_periodic = xLeft_simplest - xRight_simplest + x2_real;
+			ped2->SetPos(Point(x2_periodic, y2));
+		}
+	}
+
+	Point distp12 = ped2->GetPos() - ped1->GetPos(); // inversed sign
+	double Distance = distp12.Norm();
+	Point ep12;
+	if (Distance >= J_EPS) {
+		ep12 = distp12.Normalized();
+	}
+	else {
+		Log->Write("WARNING: \tin SimplestModel::GetSPacing() ep12 can not be calculated!!!\n");
+		Log->Write("\t\t Pedestrians are too near to each other (%f).", Distance);
+		//exit(EXIT_FAILURE);
+	}
+	//calculate effective distance
+	JEllipse eped1 = ped1->GetEllipse();
+	JEllipse eped2 = ped2->GetEllipse();
+	double dist;
+	double eff_dist = eped1.EffectiveDistanceToEllipse(eped2, &dist);
+	double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
+	if (condition1 <= 0) {
+		ped2->SetPos(ped2_current);
+		return true;
+	}
+	if (!ped1->GetEllipse().DoesStretch())
+	{
+		double r = ped2->GetLargerAxis();
+		double l = ped1->GetLargerAxis() + ped2->GetLargerAxis();
+		double condition2 = ei.Rotate(0, 1).ScalarProduct(ep12); // theta = pi/2. condition2 should <= than l/Distance
+		condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
+		ped2->SetPos(ped2_current);
+		if ((condition1 >= 0) && (condition2 <= r / Distance) && (distp12.Norm() - l>0.01) && (distp12.Norm() - l<limitation))
+			// return a pair <dist, condition1>. Then take the smallest dist. In case of equality the biggest condition1
+			return  false;
+		else
+			return  true;
+	}
+	else
+	{
+		//Judge conllision
+		//Obtain parameters
+		double a1 = ped1->GetLargerAxis();
+		Point v = ped1->GetV();
+		//double b1 = ped1->GetSmallerAxis();
+		double b1 = 0.001;
+		double a2 = ped2->GetLargerAxis();
+		double b2 = ped2->GetSmallerAxis();
+		double x2 = ped2->GetPos()._x;
+		double y1 = ped1->GetPos()._y;
+		double cosphi1 = ei.Normalized()._x;
+		double sinphi1 = ei.Normalized()._y;
+		double cosphi2 = ped2->GetEllipse().GetCosPhi();
+		double sinphi2 = ped2->GetEllipse().GetSinPhi();
+		//Judge the position of the center of ped2
+		double d1 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) + b1;
+		double d2 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) - b1;
+		if (d1*d2 <= 0) {
+			//if the center between two lines, collision
+			ped2->SetPos(ped2_current);
+			if (eff_dist<0.01 || eff_dist>limitation)
+			{
+				return true;
+			}
+			return false;
+		}
+		//If the center not between two lines, Judge if ped2 contact with two lines
+		Point D;
+		D._x = cosphi1;
+		D._y = sinphi1;
+		Point De;
+		De._x = cosphi1 * cosphi2 + sinphi1 * sinphi2;
+		De._y = sinphi1 * cosphi2 - sinphi2 * cosphi1;
+		Point Ne;
+		Ne._x = -De._y;
+		Ne._y = De._x;
+		Point A1;
+		A1._x = x1 + b1 * sinphi1;
+		A1._y = y1 - b1 * cosphi1;
+		Point A2;
+		A2._x = x1 - b1 * sinphi1;
+		A2._y = y1 + b1 * cosphi1;
+		//Transfer A1 and A2 to ped2 coordinate
+		//Point A1e = ((A1._x - x2)*cosphi2 + (A1._y - y2)*sinphi2, (A1._y - y2)*cosphi2 - (A1._x - x2)*sinphi2);
+		Point A1e = A1.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+		//Point A2e = ((A2._x - x2)*cosphi2 + (A2._y - y2)*sinphi2, (A2._y - y2)*cosphi2 - (A2._x - x2)*sinphi2);
+		Point A2e = A2.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+		// Judge if the direction of De is right (ellipse2 coordinate)
+		double J1 = Ne.ScalarProduct(A1e);
+		double J2 = Ne.ScalarProduct(A2e);
+		Point De1 = (J1 >= 0) ? De * (-1, -1) : De;
+		Point De2 = (J2 >= 0) ? De * (-1, -1) : De;
+		//Calculate point R (ellipse2 coordinate)
+		Point Ne1;
+		Ne1._x = -De1._y;
+		Ne1._y = De1._x;
+		Point Ne2;
+		Ne2._x = -De2._y;
+		Ne2._y = De2._x;
+		Point Te1;
+		Te1._x = De1._y / b2;
+		Te1._y = -De1._x / a2;
+		Point Te2;
+		Te2._x = De2._y / b2;
+		Te2._y = -De2._x / a2;
+		Point Te1n = Te1.Normalized();
+		Point Te2n = Te2.Normalized();
+		Point Re1;
+		Re1._x = a2 * Te1n._x;
+		Re1._y = b2 * Te1n._y;
+		Point Re2;
+		Re2._x = a2 * Te2n._x;
+		Re2._y = b2 * Te2n._y;
+		//Transfer R to global coordinate
+		/*
+		Point R1 = (Re1._x*cosphi2 - Re1._y*sinphi2 + x2, Re1._y*cosphi2 + Re1._x*sinphi2 + y2);
+		Point R1 = Re1.TransformToCartesianCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+		Point R2 = (Re2._x*cosphi2 - Re2._y*sinphi2 + x2, Re2._y*cosphi2 + Re2._x*sinphi2 + y2);
+		Point R2 = Re2.TransformToCartesianCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+		*/
+		//Calculate distance between point R and line
+		double Dis1 = Ne1.ScalarProduct(Re1) - Ne1.ScalarProduct(A1e);
+		double Dis2 = Ne2.ScalarProduct(Re2) - Ne2.ScalarProduct(A2e);
+		//Judge if the line contact with ellipse2
+		ped2->SetPos(ped2_current);
+		if (Dis1 >= 0 && Dis2 >= 0)
+			return  true;
+		else
+		{
+			if (eff_dist<0.01 || eff_dist>limitation)
+			{
+				return true;
+			}
+			return false;
+		}
+	}
+
 }
