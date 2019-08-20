@@ -395,14 +395,6 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 						relations.push_back(relation);
 					}
 				}
-				
-					// Depends on the distance to exit
-					
-					if (UDirection == 0 || distGoal < DRange)
-					{
-						relations.push_back(relation);
-					}
-					
 			}
 			*/
 
@@ -414,12 +406,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		if ( spacing_wall < 0.01)
 		{
 			my_pair relation_wall = my_pair(ped->GetID(), -100);
-			
-			// Depends on the distance to exit
-			if (UDirection==0||distGoal<DRange)
-			{
-				relations.push_back(relation_wall);
-			}
+			relations.push_back(relation_wall);
 		}
 
 		spacing = spacing > spacing_wall ? spacing_wall : spacing;
