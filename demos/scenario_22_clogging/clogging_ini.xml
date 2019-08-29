@@ -42,8 +42,8 @@
         <force_wall D="0.05" a="6" />
 		<time_parameters Td="0.3" Ts="0.3" />
 		<update_method parallel="1"/> <!-- Update method is parallel when parallel=1, while unparallel when parallel=0 -->
-		<waiting_time Tw="1"/> <!-- Deleting pedestrian Tw seconds after the clogging -->
-		<clogging_area size="100" /> <!-- Only deleting pedestrian when the distance between clogging to exit is smaller than the size-->
+		<waiting_time Tw="0"/> <!-- Deleting pedestrian Tw seconds after the clogging -->
+		<clogging_area size="0" /> <!-- Only deleting pedestrian when the distance between clogging to exit is smaller than the size-->
 		<model_submodel direction="1" speed="1"/> <!-- When direction=1 means using direction part, when speed=1 means using speed part -->
 		<GCVM using="1"/> <!-- When using=1 menas we using GCVM in the simulation -->
       </model_parameters>

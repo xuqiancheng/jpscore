@@ -466,6 +466,8 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	Point v = ped1->GetV();
 	double b1 = ped1->GetSmallerAxis();
 	b1 = ped1->GetEllipse().GetBmin();
+	int random_test = rand() % 1000;
+	b1 = b1 + 0.1*(random_test - 500) / 500;
 	//Avoid block B(drill,small tricks)-----------------------------------------------------
 	/*
 	if (fabs(v._x) < J_EPS && fabs(v._y) < J_EPS) // v==0

@@ -42,8 +42,8 @@
   
   <agents operational_model_id="6">
     <agents_distribution>
-		<group agent_parameter_id="2" goal_id="0" group_id="0" number="50" room_id="0" router_id="1" subroom_id="0" x_min="0" x_max="8" />
-		<group agent_parameter_id="2" goal_id="1" group_id="4" number="50" room_id="0" router_id="1" subroom_id="0" x_min="18" x_max="26" />	
+		<group agent_parameter_id="2" goal_id="0" group_id="0" number="70" room_id="0" router_id="1" subroom_id="0" x_min="0" x_max="8" />
+		<group agent_parameter_id="2" goal_id="1" group_id="4" number="70" room_id="0" router_id="1" subroom_id="0" x_min="18" x_max="26" />	
 	</agents_distribution>
   </agents>
  
@@ -55,9 +55,9 @@
 		<periodic>1</periodic>
         <exit_crossing_strategy>3</exit_crossing_strategy>
         <linkedcells cell_size="300" enabled="true" />
-        <force_ped D="0.05" a="20" />
-        <force_wall D="0.15" a="6" />
-		<time_parameters Td="0.2" Ts="1.0" />
+        <force_ped D="0.1" a="3" />
+        <force_wall D="0.05" a="6" />
+		<time_parameters Td="0.3" Ts="1.08" />
 		<GCVM using="1" />
       </model_parameters>
       <agent_parameters agent_parameter_id="1">

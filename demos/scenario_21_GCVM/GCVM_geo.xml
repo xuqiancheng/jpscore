@@ -10,34 +10,34 @@
 	<polygon caption="oben">
 	  <vertex px="65.000000" py="106.000000" />
 	  <vertex px="62.000000" py="106.000000" />
-	  <vertex px="62.000000" py="102.700" />
+	  <vertex px="62.000000" py="102.400" />
 	</polygon>
 	<polygon caption="unten">
-	  <vertex px="62.000000" py="101.300" />
+	  <vertex px="62.000000" py="101.600" />
 	  <vertex px="62.000000" py="98.000000" />
 	  <vertex px="65.000000" py="98.000000" />
 	</polygon>
       </subroom>
       <subroom id="1" closed="0" class="subroom">
 	<polygon caption="wall">
-	  <vertex px="62.000000" py="102.700" />
-	  <vertex px="60.000000" py="102.700" />
+	  <vertex px="62.000000" py="102.400" />
+	  <vertex px="60.000000" py="102.400" />
 	</polygon>
 	<polygon caption="wall">
-	  <vertex px="60.000000" py="101.300" />
-	  <vertex px="62.000000" py="101.300" />
+	  <vertex px="60.000000" py="101.600" />
+	  <vertex px="62.000000" py="101.600" />
 	</polygon>
       </subroom>
       <subroom id="2" closed="0" class="subroom">
 	<polygon caption="wall">
-	  <vertex px="60.000000" py="102.700" />
+	  <vertex px="60.000000" py="102.400" />
 	  <vertex px="60.000000" py="106.000000" />
 	  <vertex px="50.000000" py="106.000000" />
 	</polygon>
 	<polygon caption="wall">
 	  <vertex px="50.000000" py="98.000000" />
 	  <vertex px="60.000000" py="98.000000" />
-	  <vertex px="60.000000" py="101.300" />
+	  <vertex px="60.000000" py="101.600" />
         </polygon>
         <polygon>
           <vertex px="50.000000" py="106.000000" />
@@ -47,12 +47,12 @@
       </subroom>
       <crossings>
 	<crossing id="0" subroom1_id="0" subroom2_id="1">
-	  <vertex px="62.000000" py="102.700" />
-	  <vertex px="62.000000" py="101.300" />
+	  <vertex px="62.000000" py="102.400" />
+	  <vertex px="62.000000" py="101.600" />
 	</crossing>
 	<crossing id="1" subroom1_id="1" subroom2_id="2">
-	  <vertex px="60.000000" py="102.700" />
-	  <vertex px="60.000000" py="101.300" />
+	  <vertex px="60.000000" py="102.400" />
+	  <vertex px="60.000000" py="101.600" />
 	</crossing>
       </crossings>
     </room>
