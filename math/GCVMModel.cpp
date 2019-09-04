@@ -43,10 +43,11 @@
 #define omp_get_max_threads()  1
 #endif
 
-double xRight_gcvm = 26.0;
-double xLeft_gcvm = 0.0;
+double xRight_gcvm = 6.0;
+double xLeft_gcvm = -12.0;
 double cutoff_gcvm = 2.0;
-
+double yUp_gcvm = 12;
+double yDown_gcvm = -6;
 //-------------------------------
 
 using std::vector;
@@ -344,10 +345,20 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 			ped->SetV(v_neu);
 			if (periodic) {
 				if ((ped->GetPos()._x < xRight_gcvm)&&(pos_neu._x>=xRight_gcvm)) {
+					ped->SetmoveManually(true);
 					ped->SetPos(Point(pos_neu._x - (xRight_gcvm - xLeft_gcvm), pos_neu._y));
 				}
 				else if ((ped->GetPos()._x > xLeft_gcvm) && (pos_neu._x <= xLeft_gcvm)) {
+					ped->SetmoveManually(true);
 					ped->SetPos(Point(pos_neu._x + (xRight_gcvm - xLeft_gcvm), pos_neu._y));
+				}
+				else if ((ped->GetPos()._y < yUp_gcvm) && (pos_neu._y >= yUp_gcvm)) {
+					ped->SetmoveManually(true);
+					ped->SetPos(Point(pos_neu._x, pos_neu._y - (yUp_gcvm - yDown_gcvm)));
+				}
+				else if ((ped->GetPos()._y > yDown_gcvm) && (pos_neu._y <= yDown_gcvm)) {
+					ped->SetmoveManually(true);
+					ped->SetPos(Point(pos_neu._x, pos_neu._y+(yUp_gcvm - yDown_gcvm)));
 				}
 				else {
 					ped->SetPos(pos_neu);
@@ -415,18 +426,27 @@ double GCVMModel::OptimalSpeed(Pedestrian* ped, double spacing) const
 my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const
 {
 	double x1 = ped1->GetPos()._x;
+	double y1 = ped1->GetPos()._y;
 	double x2_real = ped2->GetPos()._x;
-	double y2 = ped2->GetPos()._y;
+	double y2_real = ped2->GetPos()._y;
 	Point ped2_current = ped2->GetPos();
 	
 	if (periodic) {
 		if ((xRight_gcvm - x1) + (x2_real - xLeft_gcvm) <= cutoff_gcvm) {
 			double x2_periodic = x2_real + xRight_gcvm - xLeft_gcvm;
-			ped2->SetPos(Point(x2_periodic, y2));
+			ped2->SetPos(Point(x2_periodic, y2_real));
 		}
 		if ((x1 - xLeft_gcvm) + (xRight_gcvm - x2_real) <= cutoff_gcvm) {
 			double x2_periodic = xLeft_gcvm - xRight_gcvm + x2_real;
-			ped2->SetPos(Point(x2_periodic, y2));
+			ped2->SetPos(Point(x2_periodic, y2_real));
+		}
+		if ((y1 - yDown_gcvm) + (yUp_gcvm - y2_real) <= cutoff_gcvm) {
+			double y2_periodic = yDown_gcvm - yUp_gcvm + y2_real;
+			ped2->SetPos(Point(x2_real, y2_periodic));
+		}
+		if ((y2_real - yDown_gcvm) + (yUp_gcvm - y1) <= cutoff_gcvm) {
+			double y2_periodic = yUp_gcvm + y2_real - yDown_gcvm;
+			ped2->SetPos(Point(x2_real, y2_periodic));
 		}
 	}
 	
@@ -440,7 +460,7 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 		//printf("ERROR: \tin VelocityModel::forcePedPed() ep12 can not be calculated!!!\n");
 		Log->Write("WARNING: \tin VelocityModel::GetSPacing() ep12 can not be calculated!!!\n");
 		Log->Write("\t\t Pedestrians are too near to each other (%f).", Distance);
-		exit(EXIT_FAILURE);
+		//exit(EXIT_FAILURE);
 	}
 	//calculate effective distance
 	JEllipse eped1 = ped1->GetEllipse();
@@ -467,7 +487,7 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	double b1 = ped1->GetSmallerAxis();
 	b1 = ped1->GetEllipse().GetBmin();
 	int random_test = rand() % 1000;
-	b1 = b1 + 0.1*(random_test - 500) / 500;
+	//b1 = b1 + 0.1*(random_test - 500) / 500;
 	//Avoid block B(drill,small tricks)-----------------------------------------------------
 	/*
 	if (fabs(v._x) < J_EPS && fabs(v._y) < J_EPS) // v==0
@@ -486,7 +506,7 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	double a2 = ped2->GetLargerAxis();
 	double b2 = ped2->GetSmallerAxis();
 	double x2 = ped2->GetPos()._x;
-	double y1 = ped1->GetPos()._y;
+	double y2= ped2->GetPos()._y;
 	double cosphi1 = ei.Normalized()._x;
 	double sinphi1 = ei.Normalized()._y;
 	double cosphi2 = ped2->GetEllipse().GetCosPhi();
@@ -576,6 +596,7 @@ Point GCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int p
 	
 	if (periodic) {
 		double x = ped1->GetPos()._x;
+		double y = ped1->GetPos()._y;
 		if ((xRight_gcvm - x) + (x_j - xLeft_gcvm) <= cutoff_gcvm) {
 			double x2_periodic = x_j + xRight_gcvm - xLeft_gcvm;
 			ped2->SetPos(Point(x2_periodic, y_j));
@@ -583,6 +604,14 @@ Point GCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int p
 		if ((x - xLeft_gcvm) + (xRight_gcvm - x_j) <= cutoff_gcvm) {
 			double x2_periodic = xLeft_gcvm - xRight_gcvm + x_j;
 			ped2->SetPos(Point(x2_periodic, y_j));
+		}
+		if ((y - yDown_gcvm) + (yUp_gcvm - y_j) <= cutoff_gcvm) {
+			double y2_periodic = yDown_gcvm - yUp_gcvm + y_j;
+			ped2->SetPos(Point(x_j, y2_periodic));
+		}
+		if ((y_j - yDown_gcvm) + (yUp_gcvm - y) <= cutoff_gcvm) {
+			double y2_periodic = yUp_gcvm + y_j - yDown_gcvm;
+			ped2->SetPos(Point(x_j, y2_periodic));
 		}
 	}
 	
@@ -601,7 +630,7 @@ Point GCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int p
 		Log->Write("\t\t Maybe the value of <a> in force_ped should be increased. Going to exit.\n");
 		printf("ped1 %d  ped2 %d\n", ped1->GetID(), ped2->GetID());
 		printf("ped1 at (%f, %f), ped2 at (%f, %f)\n", ped1->GetPos()._x, ped1->GetPos()._y, ped2->GetPos()._x, ped2->GetPos()._y);
-		exit(EXIT_FAILURE);
+		//exit(EXIT_FAILURE);
 	}
 	Point ei;
 	JEllipse Eped1 = ped1->GetEllipse();
@@ -807,11 +836,13 @@ double GCVMModel::GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) co
 		int uid1 = goal->GetUniqueID();
 		int uid2 = ped->GetExitIndex();
 		//door is open, bur not my door
+		/*
 		if ((uid1 != uid2) && (goal->IsOpen() == true))
 		{
 			distance = GetSpacingWall(ped, *(static_cast<Line*>(goal)), ei);
 			spacing = spacing > distance ? distance : spacing;
 		}
+		*/
 	}
 	return spacing;
 
