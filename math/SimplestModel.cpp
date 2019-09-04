@@ -173,7 +173,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	//printf("\ntime=%f\n", current);
 	vector<Pedestrian*> allPeds = vector<Pedestrian*>();
 	allPeds.reserve(nSize);
-	ReArrange(allPeds_ini,allPeds);
+	ReArrange(allPeds_ini,allPeds,building);
 
 	vector< Point > result_acc = vector<Point >();
 	result_acc.reserve(nSize);
@@ -303,7 +303,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 
 			// Calculating influence of walls-------------------------------------------------------------------------
 			Point repWall = ForceRepRoom(ped, subroom, inid_direction);
-			if (ped->GetExitLine()->DistTo(ped->GetPos())<0.2)
+			if (ped->GetExitLine()->DistTo(ped->GetPos())<0.1)
 			{
 				std::vector<SubRoom*> Nsubrooms= subroom->GetNeighbors();
 				for (int i=0;i<Nsubrooms.size();i++)
@@ -939,11 +939,12 @@ Point SimplestModel::ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) c
 		// ignore my transition consider closed doors
 		//closed doors are considered as wall
 		//door is open, but it's not my door (has influence)
-		
+		/*
 		if((uid1 != uid2) && (goal->IsOpen()==true ))
 		{
 			f +=  ForceRepWall(ped,*(static_cast<Line*>(goal)), centroid, inside, e0);
 		}
+		*/
 		
 	}
 	return f;
@@ -1141,11 +1142,13 @@ double SimplestModel::GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei
 		int uid1 = goal->GetUniqueID();
 		int uid2 = ped->GetExitIndex();
 		//door is open, bur not my door
+		/*
 		if ((uid1 != uid2) && (goal->IsOpen() == true))
 		{
 			distance = GetSpacingWall(ped, *(static_cast<Line*>(goal)), ei);
 			spacing = spacing > distance ? distance : spacing;
 		}
+		*/
 	}
 	return spacing;
 
@@ -1282,7 +1285,7 @@ double SimplestModel::GetAreaSize() const
 	return _AreaSize;
 }
 
-bool SimplestModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds)
+bool SimplestModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building)
 {
 	int nsize = allPeds_ini.size();
 	vector<inf_pair> inf_ped = vector<inf_pair>();
@@ -1290,9 +1293,10 @@ bool SimplestModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< 
 	for (int p = 0; p < nsize; p++) 
 	{
 		Pedestrian* ped = allPeds_ini[p];
-		double distance = ped->GetExitLine()->DistTo(ped->GetPos());
-		Point line_position = ped->GetExitLine()->GetCentre();
-		double position = line_position._x - distance;
+		Room* room = building->GetRoom(ped->GetRoomID());
+		const Point target = _direction->GetTarget(room, ped); 
+		double distance = (target-ped->GetPos()).Norm();
+		double position = target._x - distance;
 		inf_ped.push_back(inf_pair(p, position));
 	}
 	for (int p = 0; p < nsize; p++)

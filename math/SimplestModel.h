@@ -205,7 +205,7 @@ public:
 
 	double GetAreaSize() const;
 
-	bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds);
+	bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building);
 
 };
 
