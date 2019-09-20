@@ -486,8 +486,18 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	Point v = ped1->GetV();
 	double b1 = ped1->GetSmallerAxis();
 	b1 = ped1->GetEllipse().GetBmin();
+	/*
 	int random_test = rand() % 1000;
-	//b1 = b1 + 0.1*(random_test - 500) / 500;
+	b1 = b1*(1000-random_test) / 1000;
+	*/
+	int max_lim = 1000;
+	int random_test = rand() % max_lim;
+	if (random_test > 800)
+	{
+		b1 = b1 * sqrt(max_lim - random_test) / sqrt(max_lim);
+		//b1 = b1 * (max_lim - random_test) / max_lim;
+	}
+
 	//Avoid block B(drill,small tricks)-----------------------------------------------------
 	/*
 	if (fabs(v._x) < J_EPS && fabs(v._y) < J_EPS) // v==0
@@ -861,6 +871,24 @@ double GCVMModel::GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const
 	ei_vertical._y = ei.Normalized()._x;
 	double b = ped->GetSmallerAxis();
 	b = ped->GetEllipse().GetBmin();
+	
+	
+	//for old 
+	int max_lim = 1000;
+	int random_test = rand() % max_lim;
+	if (random_test > 400)
+	{
+		b = b * sqrt(max_lim - random_test) / sqrt(max_lim);
+		//b = b * (max_lim - random_test) / max_lim;
+	}
+	
+
+	/*
+	//for young 
+	int random_test = rand() % 100;
+	b = b * (10000 - random_test* random_test) / 10000;
+	*/
+
 	Point A1 = pp + ei_vertical * b;
 	Point A2 = pp - ei_vertical * b;
 	Point p1_A1 = p1 - A1;
