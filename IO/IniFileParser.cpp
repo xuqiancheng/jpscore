@@ -2015,7 +2015,8 @@ bool IniFileParser::ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
 			_config->SetTd(atof(Td.c_str()));
 		}
 		Log->Write("INFO: \ttime_parameters Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
-	
+	}
+		
 	if (xModelPara->FirstChild("GCVM")) {
 		if (!xModelPara->FirstChildElement("GCVM")->Attribute("using"))
 			_config->SetGCVMUsing(1);
@@ -2023,19 +2024,54 @@ bool IniFileParser::ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
 			string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
 			_config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
 		}
-	}
 	_config->GetGCVMUsing() == 1 ?
 		Log->Write("INFO:\tUsing Generalized part") :
 		Log->Write("INFO:\tOnly using CVM model");
-	
-	
+	}
+
+	//boundary condition
+	if (xModelPara->FirstChild("boundary")) {
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
+			_config->SetLeftBoundary(-100);
+		else {
+			string leftboundary = xModelPara->FirstChildElement("boundary")->Attribute("left");
+			_config->SetLeftBoundary(atof(leftboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("right"))
+			_config->SetRightBoundary(100);
+		else {
+			string rightboundary = xModelPara->FirstChildElement("boundary")->Attribute("right");
+			_config->SetRightBoundary(atof(rightboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("up"))
+			_config->SetUpBoundary(100);
+		else {
+			string upboundary = xModelPara->FirstChildElement("boundary")->Attribute("up");
+			_config->SetUpBoundary(atof(upboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("down"))
+			_config->SetDownBoundary(-100);
+		else {
+			string downboundary = xModelPara->FirstChildElement("boundary")->Attribute("down");
+			_config->SetDownBoundary(atof(downboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("cutoff"))
+			_config->SetCutoff(2);
+		else {
+			string cutoff = xModelPara->FirstChildElement("boundary")->Attribute("cutoff");
+			_config->SetCutoff(atof(cutoff.c_str()));
+		}
+		Log->Write("INFO: \tboundary left=%0.2f, right=%0.2f, up=%0.2f, down=%0.2f, cutoff=%0.2f", 
+			_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff());
 	}
 	//Parsing the agent parameters
 	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
 	ParseAgentParameters(xGCVM, xAgentDistri);
 	_config->SetModel(std::shared_ptr<OperationalModel>(new GCVMModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
-		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing())));
+		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(), 
+		_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), 
+		_config->GetDownBoundary(), _config->GetCutoff())));
 
 	return true;
 }

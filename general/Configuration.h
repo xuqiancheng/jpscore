@@ -105,6 +105,12 @@ public:
 		  _SubmodelSpeed = 0;
 		  _GCVMUsing = 0;
 		  _AreaSize = 1;
+		  //--------  boundary ------
+		  _left_boundary = -100;
+		  _right_boundary = 100;
+		  _up_boundary = 100;
+		  _down_boundary = 100;
+		  _cutoff = 2;
           // ----------------
 
           _hostname = "localhost";
@@ -388,6 +394,25 @@ public:
 
 	double GetAreaSize() const { return _AreaSize; };
 
+	void SetLeftBoundary(double lb) { _left_boundary = lb; };
+
+	double GetLeftBoundary() const { return _left_boundary; };
+
+	void SetRightBoundary(double rb) { _right_boundary = rb; };
+
+	double GetRightBoundary() const { return _right_boundary; };
+
+	void SetUpBoundary(double ub) { _up_boundary = ub; };
+
+	double GetUpBoundary() const { return _up_boundary; };
+
+	void SetDownBoundary(double db) { _down_boundary = db; };
+
+	double GetDownBoundary() const { return _down_boundary; };
+
+	void SetCutoff(double co) { _cutoff = co; };
+
+	double GetCutoff() const { return _cutoff; };
 #ifdef _JPS_AS_A_SERVICE
 
      const bool GetRunAsService() const { return _runAsService; };
@@ -472,7 +497,12 @@ private:
      bool _write_VTK_files_direction;
 
      int _exit_strat;
-
+	 //boundary
+	 double _left_boundary;
+	 double _right_boundary;
+	 double _up_boundary;
+	 double _down_boundary;
+	 double _cutoff;
 //     DirectionSubLocalFloorfield* _dirSubLocal;
 //     DirectionLocalFloorfield* _dirLocal;
 //     DirectionSubLocalFloorfieldTrips* _dirSubLocalTrips;

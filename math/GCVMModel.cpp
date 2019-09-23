@@ -43,18 +43,11 @@
 #define omp_get_max_threads()  1
 #endif
 
-double xRight_gcvm = 6.0;
-double xLeft_gcvm = -12.0;
-double cutoff_gcvm = 2.0;
-double yUp_gcvm = 12;
-double yDown_gcvm = -6;
-//-------------------------------
-
 using std::vector;
 using std::string;
 
 GCVMModel::GCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-	double awall, double Dwall, double Ts, double Td, int GCVM)
+	double awall, double Dwall, double Ts, double Td, int GCVM, double lb, double rb, double ub, double db, double co)
 {
 	_direction = dir;
 	// Force_rep_PED Parameter
@@ -67,6 +60,13 @@ GCVMModel::GCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double
 	_Ts = Ts; // Speed module
 	_Td = Td; // Direction module
 	_GCVMUsing = GCVM; // If using GCVM
+
+	//for boundary case
+	_left_boundary = lb;
+	_right_boundary = rb;
+	_up_boundary = ub;
+	_down_boundary = db;
+	_cutoff = co;
 }
 
 
@@ -344,6 +344,10 @@ void GCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bui
 
 			ped->SetV(v_neu);
 			if (periodic) {
+				double xLeft_gcvm = GetLeftBoundary();
+				double xRight_gcvm = GetRightBoundary();
+				double yUp_gcvm = GetUpBoundary();
+				double yDown_gcvm = GetDownBoundary();
 				if ((ped->GetPos()._x < xRight_gcvm)&&(pos_neu._x>=xRight_gcvm)) {
 					ped->SetmoveManually(true);
 					ped->SetPos(Point(pos_neu._x - (xRight_gcvm - xLeft_gcvm), pos_neu._y));
@@ -432,6 +436,11 @@ my_pair GCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 	Point ped2_current = ped2->GetPos();
 	
 	if (periodic) {
+		double xLeft_gcvm = GetLeftBoundary();
+		double xRight_gcvm = GetRightBoundary();
+		double yUp_gcvm = GetUpBoundary();
+		double yDown_gcvm = GetDownBoundary();
+		double cutoff_gcvm = GetCutoff();
 		if ((xRight_gcvm - x1) + (x2_real - xLeft_gcvm) <= cutoff_gcvm) {
 			double x2_periodic = x2_real + xRight_gcvm - xLeft_gcvm;
 			ped2->SetPos(Point(x2_periodic, y2_real));
@@ -605,6 +614,11 @@ Point GCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int p
 	double y_j = ped2->GetPos()._y;
 	
 	if (periodic) {
+		double xLeft_gcvm = GetLeftBoundary();
+		double xRight_gcvm = GetRightBoundary();
+		double yUp_gcvm = GetUpBoundary();
+		double yDown_gcvm = GetDownBoundary();
+		double cutoff_gcvm = GetCutoff();
 		double x = ped1->GetPos()._x;
 		double y = ped1->GetPos()._y;
 		if ((xRight_gcvm - x) + (x_j - xLeft_gcvm) <= cutoff_gcvm) {
@@ -961,4 +975,29 @@ double GCVMModel::GetDWall() const
 int GCVMModel::GetGCVMU() const
 {
 	return _GCVMUsing;
+}
+
+double GCVMModel::GetLeftBoundary() const
+{
+	return _left_boundary;
+}
+
+double GCVMModel::GetRightBoundary() const
+{
+	return _right_boundary;
+}
+
+double GCVMModel::GetUpBoundary() const
+{
+	return _up_boundary;
+}
+
+double GCVMModel::GetDownBoundary() const
+{
+	return _down_boundary;
+}
+
+double GCVMModel::GetCutoff() const
+{
+	return _cutoff;
 }

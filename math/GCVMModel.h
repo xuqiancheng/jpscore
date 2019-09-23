@@ -71,6 +71,13 @@ private:
 	double _Td;
 	
 	int _GCVMUsing=1;
+	
+	//bounday
+	double _left_boundary = -100;
+	double _right_boundary = 100;
+	double _up_boundary = 100;
+	double _down_boundary = -100;
+	double _cutoff = 2;
 
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
@@ -126,7 +133,7 @@ private:
 public:
 
 	GCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td, int GCVM);
+		double awall, double Dwall, double Ts, double Td, int GCVM, double lb, double rb, double ub, double db, double co);
 	virtual ~GCVMModel(void);
 
 
@@ -183,6 +190,17 @@ public:
 	virtual void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic);
 
 	int GetGCVMU() const;
+
+	double GetLeftBoundary() const;
+
+	double GetRightBoundary() const;
+
+	double GetUpBoundary() const;
+
+	double GetDownBoundary() const;
+
+	double GetCutoff() const;
+
 };
 
 
