@@ -174,3 +174,4 @@ packages/
 /cmake-*
 /issues
 /latex
+/demos/scenario_25_cross/cross_traj.xml
