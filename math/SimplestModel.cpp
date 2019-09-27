@@ -70,8 +70,10 @@ SimplestModel::SimplestModel(std::shared_ptr<DirectionStrategy> dir, double aped
 	// Force_rep_WALL Parameter
 	_aWall = awall;
 	_DWall = Dwall;
+	//GCVM Parameters
 	_Ts = Ts;
 	_Td = Td;
+	//Simplest model Parameters
 	_Parallel = Parallel;
 	_WaitingTime = waitingTime;
 	_SubmodelDirection = sDirection;
@@ -223,7 +225,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			//using a new method calculate the influence of pedestrian (the value of influence id decided by distance and the direction is vertical with desired direction)
 			Point inf_direction;// left side of pedestrian
 
-			 // If using GCVM or CVM?
+            // If using GCVM or CVM?
 			if (GetGCVMU()) 
 			{
 				inf_direction._x = -inid_direction._y;
