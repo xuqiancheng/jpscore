@@ -60,129 +60,64 @@ class DirectionStrategy;
 class AGCVMModel : public OperationalModel {
 private:
 
-	/// Modellparameter
+	// Modellparameter (CVM)
 	double _aPed;
 	double _DPed;
-
 	double _aWall;
 	double _DWall;
 
+	// GCVM
 	double _Ts;
 	double _Td;
-	
 	int _GCVMUsing=1;// Keep it for incase
 
-	double OptimalSpeed(Pedestrian* ped, double spacing) const;
+	// Clogging
+	int _Parallel=1;
+	double _WaitingTime=2;
 
-	/**
-	* The desired direction of pedestrian
-	*
-	* @param ped: Pointer to Pedestrians
-	* @param room: Pointer to room
-	*
-	* @return Point
-	*/
+	// Boundary case
+	double _left_boundary = -100;
+	double _right_boundary = 100;
+	double _up_boundary = 100;
+	double _down_boundary = -100;
+	double _cutoff = 2;
+
+	// Functions
+	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 	Point e0(Pedestrian *ped, Room* room) const;
-	/**
-	* Get the spacing between ped1 and ped2
-	*
-	* @param ped1 Pointer to Pedestrian: First pedestrian
-	* @param ped2 Pointer to Pedestrian: Second pedestrian
-	* @param ei the direction of pedestrian.
-	*
-	* @return Point
-	*/
 	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
-	/**
-	* Repulsive force between two pedestrians ped1 and ped2 
-	* @param ped1 Pointer to Pedestrian: First pedestrian
-	* @param ped2 Pointer to Pedestrian: Second pedestrian
-	*
-	* @return Point
-	*/
 	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int periodic) const;
-	/**
-	* Repulsive force acting on pedestrian <ped> from the walls in
-	* <subroom>. The sum of all repulsive forces of the walls in <subroom> is calculated
-	* @see ForceRepWall
-	* @param ped Pointer to Pedestrian
-	* @param subroom Pointer to SubRoom
-	*
-	* @return Point
-	*/
 	Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
-	/**
-	* Repulsive force between pedestrian <ped> and wall <l>
-	*
-	* @param ped Pointer to Pedestrian
-	* @param l reference to Wall
-	*
-	* @return Point
-	*/
 	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0) const;
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) const;
 	double GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const;
-
+	void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
 public:
 
 	AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td, int GCVM);
+		double awall, double Dwall, double Ts, double Td, int GCVM, 
+		int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co);
 	virtual ~AGCVMModel(void);
 
 
 	std::shared_ptr<DirectionStrategy> GetDirection() const;
-
-	/**
-	* ToDO: What is this parameter doing?
-	*
-	* @return double
-	*
-	*/
 	double GetaPed() const;
-
-	/**
-	* ToDO: What is this parameter doing?
-	*
-	* @return double
-	*/
 	double GetDPed() const;
-
-	/**
-	* ToDO: What is this parameter doing?
-	*
-	* @return double
-	*/
 	double GetaWall() const;
-
-	/**
-	* ToDO: What is this parameter doing?
-	*
-	* @return double
-	*/
 	double GetDWall() const;
-
-	/**
-	* @return all model parameters in a nicely formatted string
-	*/
+	double GetTs() const;
+	double GetTd() const;
 	virtual std::string GetDescription();
-
-	/**
-	* initialize the phi angle
-	* @param building
-	*/
 	virtual bool Init(Building* building);
-
-	/**
-	* Compute the next simulation step
-	* Solve the differential equations and update the positions and velocities
-	* @param current the actual time
-	* @param deltaT the next timestep
-	* @param building the geometry object
-	* @param periodic: used in some utests for periodic scenarios (very specific)
-	*/
 	virtual void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic);
-
 	int GetGCVMU() const;
+	int GetUpdate() const;
+	double GetWaitingTime() const;
+	double GetLeftBoundary() const;
+	double GetRightBoundary() const;
+	double GetUpBoundary() const;
+	double GetDownBoundary() const;
+	double GetCutoff() const;
 };
 
 

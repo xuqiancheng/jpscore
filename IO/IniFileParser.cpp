@@ -2349,27 +2349,88 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 			_config->SetTd(atof(Td.c_str()));
 		}
 		Log->Write("INFO: \ttime_parameters Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
+	}
 
-		if (xModelPara->FirstChild("GCVM")) {
-			if (!xModelPara->FirstChildElement("GCVM")->Attribute("using"))
-				_config->SetGCVMUsing(1);
-			else {
-				string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
-				_config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
-			}
+	if (xModelPara->FirstChild("GCVM"))
+	{
+		if (!xModelPara->FirstChildElement("GCVM")->Attribute("using"))
+			_config->SetGCVMUsing(1);
+		else {
+			string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
+			_config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
 		}
 		_config->GetGCVMUsing() == 1 ?
 			Log->Write("INFO:\tUsing Generalized part") :
 			Log->Write("INFO:\tOnly using CVM model");
-
-
 	}
+
+	//boundary condition
+	if (xModelPara->FirstChild("boundary")) {
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
+			_config->SetLeftBoundary(-100);
+		else {
+			string leftboundary = xModelPara->FirstChildElement("boundary")->Attribute("left");
+			_config->SetLeftBoundary(atof(leftboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("right"))
+			_config->SetRightBoundary(100);
+		else {
+			string rightboundary = xModelPara->FirstChildElement("boundary")->Attribute("right");
+			_config->SetRightBoundary(atof(rightboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("up"))
+			_config->SetUpBoundary(100);
+		else {
+			string upboundary = xModelPara->FirstChildElement("boundary")->Attribute("up");
+			_config->SetUpBoundary(atof(upboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("down"))
+			_config->SetDownBoundary(-100);
+		else {
+			string downboundary = xModelPara->FirstChildElement("boundary")->Attribute("down");
+			_config->SetDownBoundary(atof(downboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("cutoff"))
+			_config->SetCutoff(2);
+		else {
+			string cutoff = xModelPara->FirstChildElement("boundary")->Attribute("cutoff");
+			_config->SetCutoff(atof(cutoff.c_str()));
+		}
+		Log->Write("INFO: \tboundary left=%0.2f, right=%0.2f, up=%0.2f, down=%0.2f, cutoff=%0.2f",
+			_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff());
+	}
+
+	if (xModelPara->FirstChild("update_method")) {
+
+		if (!xModelPara->FirstChildElement("update_method")->Attribute("parallel"))
+			_config->SetUpdate(1); // default value
+		else {
+			string Parallel = xModelPara->FirstChildElement("update_method")->Attribute("parallel");
+			_config->SetUpdate(atoi(Parallel.c_str()));
+		}
+		_config->GetUpdate() == 1 ?
+			Log->Write("INFO: \tupdate_method: parallel") :
+			Log->Write("INFO: \tupdate_method: unparallel ");
+	}
+
+	if (xModelPara->FirstChild("waiting_time")) {
+
+		if (!xModelPara->FirstChildElement("waiting_time")->Attribute("Tw"))
+			_config->SetWaitingTime(0); // default value
+		else {
+			string WaitingTime = xModelPara->FirstChildElement("waiting_time")->Attribute("Tw");
+			_config->SetWaitingTime(atof(WaitingTime.c_str()));
+		}
+		Log->Write("INFO: \twaiting_time Tw=%0.2f", _config->GetWaitingTime());
+	}
+
 	//Parsing the agent parameters
 	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
 	ParseAgentParameters(xAGCVM, xAgentDistri);
 	_config->SetModel(std::shared_ptr<OperationalModel>(new AGCVMModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
-		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing())));
-
+		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
+		_config->GetGCVMUsing(), _config->GetUpdate(), 
+		_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff())));
 	return true;
 }
