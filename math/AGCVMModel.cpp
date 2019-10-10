@@ -154,17 +154,28 @@ bool AGCVMModel::Init(Building* building)
 // Compute the status of pedestrians at next timestep
 void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic)
 {
-	const vector< Pedestrian* >& allPeds = building->GetAllPedestrians();
+	const vector< Pedestrian* >& allPeds_ini = building->GetAllPedestrians();
 	vector<Pedestrian*> pedsToRemove;
 	pedsToRemove.reserve(500);
 	unsigned long nSize;
-	nSize = allPeds.size();
+	nSize = allPeds_ini.size();
+	//Rearrange the pedestrian according to the distance to the exit
+	vector<Pedestrian*> allPeds = vector<Pedestrian*>();
+	allPeds.reserve(nSize);
+	ReArrange(allPeds_ini, allPeds, building);
+	//---------------------------------------------------------------
 	vector< Point > result_acc = vector<Point >();
 	result_acc.reserve(nSize);
 	vector< Point > result_dir = vector<Point >();
 	result_dir.reserve(nSize);
 	vector< my_pair > spacings = vector<my_pair >();
 	spacings.reserve(nSize); 
+	vector<bool> RealCloggings = vector<bool>();
+	RealCloggings.reserve(nSize);
+	vector< ID_pair > relations = vector<ID_pair>();
+	relations.reserve(nSize);
+	vector<int> stoppings = vector<int>();
+	stoppings.reserve(nSize);
 
 	int start = 0;
 	int end = nSize - 1;
@@ -272,6 +283,8 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			if (ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()|| subroom->IsDirectlyConnectedWith(sb2))
 			{
 				spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
+				//Extra condition 1 in the paper: only when no ``false'' in RealCloggings, may be real clogging.
+				RealCloggings.push_back(RealClogging(ped, ped1, inid_direction, periodic));
 			}
 		}//for i
 
@@ -279,14 +292,47 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 		std::sort(spacings.begin(), spacings.end(), sort_pred_agcvm());
 		double spacing = spacings.size() == 0 ? 100 : spacings[0].first;
 		double first_ID = spacings.size() == 0 ? -1 : spacings[0].second;
-
 		// add this part to avoid pedestrian cross the wall directly
-		spacing = spacing > GetSpacingRoom(ped, subroom, direction) ? GetSpacingRoom(ped, subroom, direction) : spacing;
+		double spacing_wall = GetSpacingRoom(ped, subroom, direction);
+		// relations contains all ped whose spacing=<0.001, for clogging
+		vector<bool>::iterator RC = std::find(RealCloggings.begin(), RealCloggings.end(), false);
+		if (RC == RealCloggings.end()) 
+		{
+			if (spacing < 0.001) 
+			{
+				for (int i = 0; i < spacings.size(); i++)
+				{
+					if (spacings[i].first < 0.001)
+					{
+						my_pair relation = my_pair(ped->GetID(), spacings[i].second);
+						relations.push_back(relation);
+					}
+				}
+			}
+			if (spacing_wall < 0.001) 
+			{
+				my_pair relation_wall = my_pair(ped->GetID(), -100);
+				relations.push_back(relation_wall);
+			}
+		}
+		RealCloggings.clear();
+		spacing = spacing > spacing_wall ? spacing_wall : spacing;
+
+		// Optimal speed function
 		Point speed;
 		speed = direction.NormalizedMolified() *OptimalSpeed(ped, spacing);
 		result_acc.push_back(speed);
 		spacings.clear(); //clear for ped p
 
+		// stoppings contains all the ped whose speed is 0
+		if (speed.Norm() < 0.001) {
+			stoppings.push_back(ped->GetID());
+		}
+		else
+		{
+			ped->SetInCloggingTime(0);
+		}
+		
 		// Unparallel update
 		if (!GetUpdate())
 		{
@@ -305,8 +351,86 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			UpdatePed(ped, v_neu, dir_neu, deltaT, periodic);
 		}
 	}
+
+	// Find out the real clogging in this step
+	for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter)
+	{
+		int first_ID = iter->first;
+		vector<int>::iterator stopping = std::find(stoppings.begin(), stoppings.end(), first_ID);
+		if (stopping == stoppings.end()) {
+			continue;
+		}
+		int second_ID = iter->second;
+		stopping = std::find(stoppings.begin(), stoppings.end(), second_ID);
+		if (stopping == stoppings.end()) {
+			continue;
+		}
+		vector<ID_pair>::iterator converse = std::find(relations.begin(), relations.end(), ID_pair(second_ID, first_ID));
+		vector<ID_pair>::iterator converse_wall = std::find(relations.begin(), relations.end(), ID_pair(second_ID, -100));
+		if (converse == relations.end() && converse_wall == relations.end())
+		{
+			continue;
+		}
+		// Every pedestrian only once, so clean the influence of this pedestrian
+		for (vector<ID_pair>::iterator iter1 = relations.begin(); iter1 < relations.end(); ++iter1)
+		{
+			if (iter1->first == first_ID || iter->second == first_ID || iter->first == second_ID || iter->second == second_ID)
+			{
+				*iter1 = ID_pair(first_ID, second_ID);
+			}
+		}
+		for (int p = start; p <= end; ++p)
+		{
+			Pedestrian* ped = allPeds[p];
+			if (ped->GetID() == first_ID)
+			{
+				double InCloggingTime = ped->GetInCloggingTime() + deltaT;
+				//setting waiting time before delete
+				if (InCloggingTime <= GetWaitingTime())
+				{
+					ped->SetInCloggingTime(InCloggingTime);
+				}
+				else
+				{
+					ped->SetInCloggingTime(0);
+					if (ped->GetPos()._x >= 0)
+					{
+						_clogging_times++;
+						std::ofstream ofile;
+						string ProjectFileName = building->GetProjectFilename();
+						int start = ProjectFileName.find_last_of("\\");
+						start = start == -1 ? ProjectFileName.find_last_of("/") : start;
+						int end = ProjectFileName.find(".xml");
+						string InifileName = ProjectFileName.substr(start + 1, end - start - 1);
+						if (_clogging_times == 1) {
+							ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::trunc);
+							ofile << "#inifile: " << building->GetProjectFilename() << "\n";
+							ofile << "#Commit date: " << GIT_COMMIT_DATE << "\n";
+							ofile << "#Branch: " << GIT_BRANCH << "\n";
+							ofile << "#Timestep: " << deltaT << " (s)\n";
+							ofile << "#Waiting time: " << _WaitingTime << " (s)\n";
+							ofile << "#Parallel: " << _Parallel << " (1:parallel,0:unparallel)\n";
+							ofile << "#GCVM: " << _GCVMUsing << " (1:Using GCVM instead of simplest model,0:Using simplest model)\n";
+							ofile << "#ID\ttime(s)\tamount\tposition_x\tpostion_y\n";
+						}
+						else
+						{
+							ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::app);
+						}
+						//ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
+						ofile << ped->GetID() << "\t" << current << "\t" << _clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
+						ofile.close();
+					}
+					pedsToRemove.push_back(ped);
+					Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), _clogging_times);
+					break;
+				}
+			}
+		}
+	}
 	// remove the pedestrians that have left the building
-	for (unsigned int p = 0; p < pedsToRemove.size(); p++) {
+	for (unsigned int p = 0; p < pedsToRemove.size(); p++) 
+	{
 		building->DeletePedestrian(pedsToRemove[p]);
 	}
 	pedsToRemove.clear();
@@ -399,85 +523,99 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 	}
 
 	//Judge conllision
-	double a1 = ped1->GetLargerAxis();
-	Point v = ped1->GetV();
-	//-------------------------------------------------------------
-	// introduce disturbance here can eliminate clogging
-	double b1 = ped1->GetSmallerAxis();
-	b1 = ped1->GetEllipse().GetBmin();
-	//-------------------------------------------------------------
-	double a2 = ped2->GetLargerAxis();
-	double b2 = ped2->GetSmallerAxis();
-	double x2 = ped2->GetPos()._x;
-	double y2 = ped2->GetPos()._y;
-	double cosphi1 = ei.Normalized()._x;
-	double sinphi1 = ei.Normalized()._y;
-	double cosphi2 = ped2->GetEllipse().GetCosPhi();
-	double sinphi2 = ped2->GetEllipse().GetSinPhi();
-	//Judge the position of the center of ped2
-	double d1 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) + b1;
-	double d2 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) - b1;
-	if (d1*d2 <= 0) 
+	if (!ped1->GetEllipse().DoesStretch())
 	{
-		//if the center between two lines, collision
+		double l = ped1->GetLargerAxis() + ped2->GetLargerAxis();
+		double condition2 = ei.Rotate(0, 1).ScalarProduct(ep12); // theta = pi/2. condition2 should <= than l/Distance
+		condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
 		ped2->SetPos(ped2_current);
-		return  my_pair(eff_dist, ped2->GetID());
+		if ((condition1 >= 0) && (condition2 <= l / Distance))
+			return  my_pair(distp12.Norm() - l, ped2->GetID());
+		else
+			return  my_pair(FLT_MAX, ped2->GetID());
 	}
-	//If the center not between two lines, Judge if ped2 contact with two lines
-	Point D;
-	D._x = cosphi1;
-	D._y = sinphi1;
-	Point De;
-	De._x = cosphi1 * cosphi2 + sinphi1 * sinphi2;
-	De._y = sinphi1 * cosphi2 - sinphi2 * cosphi1;
-	Point Ne;
-	Ne._x = -De._y;
-	Ne._y = De._x;
-	Point A1;
-	A1._x = x1 + b1 * sinphi1;
-	A1._y = y1 - b1 * cosphi1;
-	Point A2;
-	A2._x = x1 - b1 * sinphi1;
-	A2._y = y1 + b1 * cosphi1;
-	//Transfer A1 and A2 to ped2 coordinate
-	Point A1e = A1.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
-	Point A2e = A2.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
-	// Judge if the direction of De is right (ellipse2 coordinate)
-	double J1 = Ne.ScalarProduct(A1e);
-	double J2 = Ne.ScalarProduct(A2e);
-	Point De1 = (J1 >= 0) ? De * (-1, -1) : De;
-	Point De2 = (J2 >= 0) ? De * (-1, -1) : De;
-	//Calculate point R (ellipse2 coordinate)
-	Point Ne1;
-	Ne1._x = -De1._y;
-	Ne1._y = De1._x;
-	Point Ne2;
-	Ne2._x = -De2._y;
-	Ne2._y = De2._x;
-	Point Te1;
-	Te1._x = De1._y / b2;
-	Te1._y = -De1._x / a2;
-	Point Te2;
-	Te2._x = De2._y / b2;
-	Te2._y = -De2._x / a2;
-	Point Te1n = Te1.Normalized();
-	Point Te2n = Te2.Normalized();
-	Point Re1;
-	Re1._x = a2 * Te1n._x;
-	Re1._y = b2 * Te1n._y;
-	Point Re2;
-	Re2._x = a2 * Te2n._x;
-	Re2._y = b2 * Te2n._y;
-	//Calculate distance between point R and line
-	double Dis1 = Ne1.ScalarProduct(Re1) - Ne1.ScalarProduct(A1e);
-	double Dis2 = Ne2.ScalarProduct(Re2) - Ne2.ScalarProduct(A2e);
-	//Judge if the line contact with ellipse2
-	ped2->SetPos(ped2_current);
-	if (Dis1 >= 0 && Dis2 >= 0)
-		return  my_pair(FLT_MAX, -1);
 	else
 	{
-		return  my_pair(eff_dist, ped2->GetID());
+		double a1 = ped1->GetLargerAxis();
+		Point v = ped1->GetV();
+		//-------------------------------------------------------------
+		// introduce disturbance here can eliminate clogging
+		double b1 = ped1->GetSmallerAxis();
+		b1 = ped1->GetEllipse().GetBmin();
+		//-------------------------------------------------------------
+		double a2 = ped2->GetLargerAxis();
+		double b2 = ped2->GetSmallerAxis();
+		double x2 = ped2->GetPos()._x;
+		double y2 = ped2->GetPos()._y;
+		double cosphi1 = ei.Normalized()._x;
+		double sinphi1 = ei.Normalized()._y;
+		double cosphi2 = ped2->GetEllipse().GetCosPhi();
+		double sinphi2 = ped2->GetEllipse().GetSinPhi();
+		//Judge the position of the center of ped2
+		double d1 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) + b1;
+		double d2 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) - b1;
+		if (d1*d2 <= 0)
+		{
+			//if the center between two lines, collision
+			ped2->SetPos(ped2_current);
+			return  my_pair(eff_dist, ped2->GetID());
+		}
+		//If the center not between two lines, Judge if ped2 contact with two lines
+		Point D;
+		D._x = cosphi1;
+		D._y = sinphi1;
+		Point De;
+		De._x = cosphi1 * cosphi2 + sinphi1 * sinphi2;
+		De._y = sinphi1 * cosphi2 - sinphi2 * cosphi1;
+		Point Ne;
+		Ne._x = -De._y;
+		Ne._y = De._x;
+		Point A1;
+		A1._x = x1 + b1 * sinphi1;
+		A1._y = y1 - b1 * cosphi1;
+		Point A2;
+		A2._x = x1 - b1 * sinphi1;
+		A2._y = y1 + b1 * cosphi1;
+		//Transfer A1 and A2 to ped2 coordinate
+		Point A1e = A1.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+		Point A2e = A2.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+		// Judge if the direction of De is right (ellipse2 coordinate)
+		double J1 = Ne.ScalarProduct(A1e);
+		double J2 = Ne.ScalarProduct(A2e);
+		Point De1 = (J1 >= 0) ? De * (-1, -1) : De;
+		Point De2 = (J2 >= 0) ? De * (-1, -1) : De;
+		//Calculate point R (ellipse2 coordinate)
+		Point Ne1;
+		Ne1._x = -De1._y;
+		Ne1._y = De1._x;
+		Point Ne2;
+		Ne2._x = -De2._y;
+		Ne2._y = De2._x;
+		Point Te1;
+		Te1._x = De1._y / b2;
+		Te1._y = -De1._x / a2;
+		Point Te2;
+		Te2._x = De2._y / b2;
+		Te2._y = -De2._x / a2;
+		Point Te1n = Te1.Normalized();
+		Point Te2n = Te2.Normalized();
+		Point Re1;
+		Re1._x = a2 * Te1n._x;
+		Re1._y = b2 * Te1n._y;
+		Point Re2;
+		Re2._x = a2 * Te2n._x;
+		Re2._y = b2 * Te2n._y;
+		//Calculate distance between point R and line
+		double Dis1 = Ne1.ScalarProduct(Re1) - Ne1.ScalarProduct(A1e);
+		double Dis2 = Ne2.ScalarProduct(Re2) - Ne2.ScalarProduct(A2e);
+		//Judge if the line contact with ellipse2
+		ped2->SetPos(ped2_current);
+		if (Dis1 >= 0 && Dis2 >= 0)
+			return  my_pair(FLT_MAX, -1);
+		else
+		{
+			return  my_pair(eff_dist, ped2->GetID());
+		}
 	}
 }
 
@@ -915,4 +1053,188 @@ void AGCVMModel::UpdatePed(Pedestrian* ped, Point speed, Point direction, double
 	{
 		ped->SetPos(pos_neu);
 	}
+}
+
+bool AGCVMModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building)
+{
+	int nsize = allPeds_ini.size();
+	vector<inf_pair> inf_ped = vector<inf_pair>();
+	inf_ped.reserve(nsize);
+	for (int p = 0; p < nsize; p++)
+	{
+		Pedestrian* ped = allPeds_ini[p];
+		Room* room = building->GetRoom(ped->GetRoomID());
+		const Point target = _direction->GetTarget(room, ped);
+		double distance = (target - ped->GetPos()).Norm();
+		double position = target._x - distance;
+		inf_ped.push_back(inf_pair(p, position));
+	}
+	for (int p = 0; p < nsize; p++)
+	{
+		for (int q = 0; q < nsize - 1; q++)
+		{
+			if (std::get<1>(inf_ped[q]) < std::get<1>(inf_ped[q + 1]))
+			{
+				inf_ped[q].swap(inf_ped[q + 1]);
+			}
+		}
+	}
+	for (int p = 0; p < nsize; p++)
+	{
+		int number = std::get<0>(inf_ped[p]);
+		allPeds.push_back(allPeds_ini[number]);
+	}
+	return true;
+}
+
+bool AGCVMModel::RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const
+{
+	//-------------------------------------------------------------
+	double limitation = 100;
+	double x1 = ped1->GetPos()._x;
+	double y1 = ped1->GetPos()._y;
+	double x2_real = ped2->GetPos()._x;
+	double y2_real = ped2->GetPos()._y;
+	Point ped2_current = ped2->GetPos();
+
+	if (periodic)
+	{
+		double xLeft_gcvm = GetLeftBoundary();
+		double xRight_gcvm = GetRightBoundary();
+		double yUp_gcvm = GetUpBoundary();
+		double yDown_gcvm = GetDownBoundary();
+		double cutoff_gcvm = GetCutoff();
+		if ((xRight_gcvm - x1) + (x2_real - xLeft_gcvm) <= cutoff_gcvm) {
+			double x2_periodic = x2_real + xRight_gcvm - xLeft_gcvm;
+			ped2->SetPos(Point(x2_periodic, y2_real));
+		}
+		if ((x1 - xLeft_gcvm) + (xRight_gcvm - x2_real) <= cutoff_gcvm) {
+			double x2_periodic = xLeft_gcvm - xRight_gcvm + x2_real;
+			ped2->SetPos(Point(x2_periodic, y2_real));
+		}
+		if ((y1 - yDown_gcvm) + (yUp_gcvm - y2_real) <= cutoff_gcvm) {
+			double y2_periodic = yDown_gcvm - yUp_gcvm + y2_real;
+			ped2->SetPos(Point(x2_real, y2_periodic));
+		}
+		if ((y2_real - yDown_gcvm) + (yUp_gcvm - y1) <= cutoff_gcvm) {
+			double y2_periodic = yUp_gcvm + y2_real - yDown_gcvm;
+			ped2->SetPos(Point(x2_real, y2_periodic));
+		}
+	}
+
+	Point distp12 = ped2->GetPos() - ped1->GetPos();
+	double Distance = distp12.Norm();
+	Point ep12;
+	if (Distance >= J_EPS) {
+		ep12 = distp12.Normalized();
+	}
+	else {
+		Log->Write("WARNING: \tin AGCVMModel::GetSPacing() ep12 can not be calculated!!!\n");
+		Log->Write("\t\t Pedestrians are too near to each other (%f).", Distance);
+		exit(EXIT_FAILURE);
+	}
+	//calculate effective distance
+	JEllipse eped1 = ped1->GetEllipse();
+	JEllipse eped2 = ped2->GetEllipse();
+	double dist;
+	double eff_dist = eped1.EffectiveDistanceToEllipse(eped2, &dist);
+	double condition1 = ei.ScalarProduct(ep12);
+	if (condition1 <= 0) {
+		ped2->SetPos(ped2_current);
+		return true; // ped2---ped1---Target, may be a real clogging
+	}
+	if (!ped1->GetEllipse().DoesStretch())
+	{
+		double r = ped2->GetLargerAxis();
+		double l = ped1->GetLargerAxis() + ped2->GetLargerAxis();
+		double condition2 = ei.Rotate(0, 1).ScalarProduct(ep12); // theta = pi/2. condition2 should <= than l/Distance
+		condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
+		ped2->SetPos(ped2_current);
+		if ((condition1 >= 0) && (condition2 <= r / Distance) && (distp12.Norm() - l > 0.01) && (distp12.Norm() - l < limitation))
+			return  false; //1. in front 2. ped1---ped2---Target 3. l+0.01 <distance < l+limitation 
+		else
+			return  true;
+	}
+	else
+	{
+		//Judge conllision
+		//Obtain parameters
+		double a1 = ped1->GetLargerAxis();
+		Point v = ped1->GetV();
+		double b1 = 0.001;
+		double a2 = ped2->GetLargerAxis();
+		double b2 = ped2->GetSmallerAxis();
+		double x2 = ped2->GetPos()._x;
+		double y2 = ped2->GetPos()._y;
+		double cosphi1 = ei.Normalized()._x;
+		double sinphi1 = ei.Normalized()._y;
+		double cosphi2 = ped2->GetEllipse().GetCosPhi();
+		double sinphi2 = ped2->GetEllipse().GetSinPhi();
+		//Judge the position of the center of ped2
+		double d1 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) + b1;
+		double d2 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) - b1;
+		if (d1*d2 <= 0) {
+			ped2->SetPos(ped2_current);
+			if (eff_dist<0.01 || eff_dist>limitation)
+			{
+				return true;
+			}
+			return false;
+		}
+		Point D;
+		D._x = cosphi1;
+		D._y = sinphi1;
+		Point De;
+		De._x = cosphi1 * cosphi2 + sinphi1 * sinphi2;
+		De._y = sinphi1 * cosphi2 - sinphi2 * cosphi1;
+		Point Ne;
+		Ne._x = -De._y;
+		Ne._y = De._x;
+		Point A1;
+		A1._x = x1 + b1 * sinphi1;
+		A1._y = y1 - b1 * cosphi1;
+		Point A2;
+		A2._x = x1 - b1 * sinphi1;
+		A2._y = y1 + b1 * cosphi1;
+		Point A1e = A1.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+		Point A2e = A2.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+		double J1 = Ne.ScalarProduct(A1e);
+		double J2 = Ne.ScalarProduct(A2e);
+		Point De1 = (J1 >= 0) ? De * (-1, -1) : De;
+		Point De2 = (J2 >= 0) ? De * (-1, -1) : De;
+		Point Ne1;
+		Ne1._x = -De1._y;
+		Ne1._y = De1._x;
+		Point Ne2;
+		Ne2._x = -De2._y;
+		Ne2._y = De2._x;
+		Point Te1;
+		Te1._x = De1._y / b2;
+		Te1._y = -De1._x / a2;
+		Point Te2;
+		Te2._x = De2._y / b2;
+		Te2._y = -De2._x / a2;
+		Point Te1n = Te1.Normalized();
+		Point Te2n = Te2.Normalized();
+		Point Re1;
+		Re1._x = a2 * Te1n._x;
+		Re1._y = b2 * Te1n._y;
+		Point Re2;
+		Re2._x = a2 * Te2n._x;
+		Re2._y = b2 * Te2n._y;
+		double Dis1 = Ne1.ScalarProduct(Re1) - Ne1.ScalarProduct(A1e);
+		double Dis2 = Ne2.ScalarProduct(Re2) - Ne2.ScalarProduct(A2e);
+		ped2->SetPos(ped2_current);
+		if (Dis1 >= 0 && Dis2 >= 0)
+			return  true;
+		else
+		{
+			if (eff_dist<0.01 || eff_dist>limitation)
+			{
+				return true;
+			}
+			return false;
+		}
+	}
+
 }

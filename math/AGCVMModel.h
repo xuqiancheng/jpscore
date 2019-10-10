@@ -37,6 +37,8 @@
 #include "OperationalModel.h"
 
 typedef std::pair<double, double> my_pair;
+typedef std::pair<int, int> ID_pair;
+typedef std::tuple<int, double> inf_pair;
 // sort with respect to first element (ascending).
 // In case of equality sort with respect to second element (descending)
 
@@ -73,8 +75,8 @@ private:
 
 	// Clogging
 	int _Parallel=1;
-	double _WaitingTime=2;
-
+	double _WaitingTime = 2;
+	int _clogging_times = 0;
 	// Boundary case
 	double _left_boundary = -100;
 	double _right_boundary = 100;
@@ -92,6 +94,8 @@ private:
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) const;
 	double GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const;
 	void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
+	bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building);
+	bool RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
 public:
 
 	AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
