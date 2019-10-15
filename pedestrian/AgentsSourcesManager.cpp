@@ -215,7 +215,9 @@ void AgentsSourcesManager::ComputeBestPositionCompleteRandom(AgentsSource* src,
 {
      auto dist = src->GetStartDistribution();
      auto subroom = _building->GetRoom(dist->GetRoomId())->GetSubRoom(dist->GetSubroomID());
-     vector<Point> positions = PedDistributor::PossiblePositions(*subroom);
+	 auto config = GetBuilding()->GetConfig();
+	 auto distributor = std::unique_ptr<PedDistributor>(new PedDistributor(config));
+	 vector<Point> positions = distributor->PossiblePositions(*subroom);
      double seed = time(0);
      //TODO: get the seed from the simulation
      std:: cout << "seed: "<< seed << std::endl;
@@ -372,7 +374,9 @@ void AgentsSourcesManager::ComputeBestPositionRandom(AgentsSource* src,
      auto dist = src->GetStartDistribution();
      auto subroom = _building->GetRoom(dist->GetRoomId())->GetSubRoom(
           dist->GetSubroomID());
-     vector<Point> positions = PedDistributor::PossiblePositions(*subroom);
+	 auto config = GetBuilding()->GetConfig();
+	 auto distributor = std::unique_ptr<PedDistributor>(new PedDistributor(config));
+	 vector<Point> positions = distributor->PossiblePositions(*subroom);
      double bounds[4] = { 0, 0, 0, 0 };
      dist->Getbounds(bounds);
 
