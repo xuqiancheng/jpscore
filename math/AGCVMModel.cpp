@@ -176,7 +176,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 	relations.reserve(nSize);
 	vector<int> stoppings = vector<int>();
 	stoppings.reserve(nSize);
-
+	
 	int start = 0;
 	int end = nSize - 1;
 	for (int p = start; p <= end; ++p) 
@@ -254,7 +254,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 		//Caluculating desired direcition----------------------------------------------------------------------------------------------
 		Point d_direction;
 		d_direction = inid_direction + repPed + repWall;//new method
-
+		
 		//Calculating the actual direction of pedestrian at next timestep------------------------------------------------------------------
 		Point a_direction;
 		a_direction._x = ped->GetEllipse().GetCosPhi();

@@ -2430,7 +2430,7 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 	_config->SetModel(std::shared_ptr<OperationalModel>(new AGCVMModel(_exit_strategy, _config->GetaPed(),
 		_config->GetDPed(), _config->GetaWall(),
 		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
-		_config->GetGCVMUsing(), _config->GetUpdate(), 
+		_config->GetUpdate(), _config->GetWaitingTime(),
 		_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff())));
 	return true;
 }
