@@ -1156,8 +1156,10 @@ int Pedestrian::GetColor() const
      {
      case BY_SPOTLIGHT:
      {
-          if (_spotlight==false)
-               return -1;
+		 if (_spotlight == false)
+			 return 255;
+		 else
+			 return 0;
           break;
      }
 

@@ -203,6 +203,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	for (int p = start; p <= end; ++p) {
 		//printf("\ID=%d\n", allPeds[p]->GetID());
 		Pedestrian* ped = allPeds[p];
+		ped->SetSpotlight(false);
 		Room* room = building->GetRoom(ped->GetRoomID());
 		SubRoom* subroom = room->GetSubRoom(ped->GetSubRoomID());
 		Point repPed = Point(0, 0);
@@ -514,7 +515,20 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		{
 			continue;
 		}
-
+		for (int p = start; p <= end; ++ p) {
+			Pedestrian* ped = allPeds[p];
+			if (ped->GetID() == first_ID || ped->GetID() == second_ID) {
+				ped->SetSpotlight(true);
+			}
+		}
+		for (vector<ID_pair>::iterator iter1 = relations.begin(); iter1 < relations.end(); ++iter1)
+		{
+			if (iter1->second == first_ID || iter->first == first_ID || iter->second == second_ID || iter->second == first_ID)
+			{
+				*iter1 = ID_pair(first_ID, second_ID);
+			}
+		}
+		/*
 		// Every pedestrian only once
 		for (vector<ID_pair>::iterator iter1 = relations.begin(); iter1 < relations.end(); ++iter1)
 		{
@@ -523,6 +537,9 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				*iter1 = ID_pair(first_ID, second_ID);
 			}
 		}
+		*/
+
+
 
 		for (int p = start; p <= end; ++p) {
 			Pedestrian* ped = allPeds[p];
