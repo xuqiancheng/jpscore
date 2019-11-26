@@ -240,6 +240,17 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 				if (GetGCVMU() == 1)
 				{
 					repPed += inf_direction * ForceRepPed(ped, ped1, inid_direction, periodic).Norm();//new method
+					/*
+					double distance = (ped->GetPos() - ped1->GetPos()).Norm();
+					if (distance < 0.5)
+					{
+						repPed += ForceRepPed(ped, ped1, inid_direction, periodic);
+					}
+					else
+					{
+						repPed += inf_direction * ForceRepPed(ped, ped1, inid_direction, periodic).Norm();//new method
+					}
+					*/
 				}
 				else
 				{
@@ -263,11 +274,13 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 		Point angle_v = (d_direction.Normalized() - a_direction) / angle_tau;
 		Point direction = a_direction + angle_v * deltaT;
 
+		/*
 		//When the angle between actual moving direction and initial desired moving direction is bigger than 90 degree. turning to the desired moving direction directly.
 		if (a_direction.ScalarProduct(inid_direction) < 0) 
 		{
 			direction = d_direction;
 		}
+		*/
 
 		if (GetGCVMU() == 0) 
 		{
@@ -421,7 +434,17 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 						ofile << ped->GetID() << "\t" << current << "\t" << _clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
 						ofile.close();
 					}
-					pedsToRemove.push_back(ped);
+
+					Room* room = building->GetRoom(ped->GetRoomID());
+					SubRoom* subroom = room->GetSubRoom(ped->GetSubRoomID());
+					double x = ped->GetEllipse().GetCosPhi();
+					double y = ped->GetEllipse().GetSinPhi();
+					Point direction = (x, y);
+					direction = direction.Normalized();
+					double newSpace = GetSpacingRoom(ped, subroom, direction);
+					double newSpeed = OptimalSpeed(ped, newSpace);
+					UpdatePed(ped, newSpeed, direction, deltaT, periodic);
+					//pedsToRemove.push_back(ped);
 					Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), _clogging_times);
 					break;
 				}
@@ -689,6 +712,12 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 		double dist;
 		JEllipse Eped2 = ped2->GetEllipse();
 		dist = Eped1.EffectiveDistanceToEllipse(Eped2, &dist);
+		Point ei2;
+		ei2._x = Eped2.GetCosPhi();
+		ei2._y = Eped2.GetSinPhi();
+		double t_anti = 0.5;
+		dist = dist - (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12))*t_anti;
+		//dist = dist > 0 ? dist : 0;
 		R_ij = -_aPed * exp((-dist) / _DPed);
 		F_rep = ep12 * R_ij;
 	}
