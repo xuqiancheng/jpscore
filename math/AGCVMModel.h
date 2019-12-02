@@ -84,11 +84,17 @@ private:
 	double _down_boundary = -100;
 	double _cutoff = 2;
 
+	// Switch
+	int _Anticipation = 1;
+	int _ContactRep = 1;
+	int _AttracForce = 1;
+	double _AntiT=0;
+
 	// Functions
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 	Point e0(Pedestrian *ped, Room* room) const;
 	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
-	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int periodic) const;
+	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Point infd, int periodic) const;
 	Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
 	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0) const;
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) const;
@@ -100,7 +106,8 @@ public:
 
 	AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
 		double awall, double Dwall, double Ts, double Td, int GCVM, 
-		int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co);
+		int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co,
+		int Anticipation, int ContactRep, int AttracForce, double AntiT);
 	virtual ~AGCVMModel(void);
 
 
@@ -122,6 +129,12 @@ public:
 	double GetUpBoundary() const;
 	double GetDownBoundary() const;
 	double GetCutoff() const;
+
+	int GetAnticipation() const;
+	int GetContactRep() const;
+	int GetAttracForce() const;
+	double GetAntiT() const;
+
 };
 
 

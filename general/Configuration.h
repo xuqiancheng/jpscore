@@ -105,6 +105,11 @@ public:
 		  _SubmodelSpeed = 0;
 		  _GCVMUsing = 0;
 		  _AreaSize = 1;
+		  // --------  AGCVM model ------
+		  _Anticipation = 1;
+		  _ContactRep = 1;
+		  _AttracForce = 1;
+		  _AntiT = 0;
 		  //--------  boundary ------
 		  _left_boundary = -100;
 		  _right_boundary = 100;
@@ -413,6 +418,23 @@ public:
 	void SetCutoff(double co) { _cutoff = co; };
 
 	double GetCutoff() const { return _cutoff; };
+
+	void SetAnticipation(int Anticipation) { _Anticipation = Anticipation; };
+
+	int GetAnticipation() const { return _Anticipation; };
+
+	void SetContactRep(int ContactRep) { _ContactRep = ContactRep; };
+
+	int GetContactRep() const { return _ContactRep; };
+
+	void SetAttracForce(int AttracForce) { _AttracForce = AttracForce; };
+
+	int GetAttracForce() const { return _AttracForce; };
+
+	void SetAntiT(double AntiT) { _AntiT = AntiT; };
+
+	double GetAntiT() const { return _AntiT; };
+
 #ifdef _JPS_AS_A_SERVICE
 
      const bool GetRunAsService() const { return _runAsService; };
@@ -487,6 +509,12 @@ private:
 	 int _SubmodelSpeed;
 	 int _GCVMUsing;
 	 double _AreaSize;
+	 //AGCVMmodel
+	 int _Anticipation;
+	 int _ContactRep;
+	 int _AttracForce;
+	 double _AntiT;
+
      //ff router quickest
      double _recalc_interval;
 

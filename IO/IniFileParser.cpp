@@ -2423,7 +2423,69 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 		}
 		Log->Write("INFO: \twaiting_time Tw=%0.2f", _config->GetWaitingTime());
 	}
+	if (xModelPara->FirstChild("boundary")) {
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
+			_config->SetLeftBoundary(-100);
+		else {
+			string leftboundary = xModelPara->FirstChildElement("boundary")->Attribute("left");
+			_config->SetLeftBoundary(atof(leftboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("right"))
+			_config->SetRightBoundary(100);
+		else {
+			string rightboundary = xModelPara->FirstChildElement("boundary")->Attribute("right");
+			_config->SetRightBoundary(atof(rightboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("up"))
+			_config->SetUpBoundary(100);
+		else {
+			string upboundary = xModelPara->FirstChildElement("boundary")->Attribute("up");
+			_config->SetUpBoundary(atof(upboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("down"))
+			_config->SetDownBoundary(-100);
+		else {
+			string downboundary = xModelPara->FirstChildElement("boundary")->Attribute("down");
+			_config->SetDownBoundary(atof(downboundary.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("boundary")->Attribute("cutoff"))
+			_config->SetCutoff(2);
+		else {
+			string cutoff = xModelPara->FirstChildElement("boundary")->Attribute("cutoff");
+			_config->SetCutoff(atof(cutoff.c_str()));
+		}
+		Log->Write("INFO: \tboundary left=%0.2f, right=%0.2f, up=%0.2f, down=%0.2f, cutoff=%0.2f",
+			_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff());
+	}
 
+	if (xModelPara->FirstChild("AGCVM")) {
+		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("anticipation"))
+			_config->SetAnticipation(0);
+		else {
+			string Anticipation = xModelPara->FirstChildElement("AGCVM")->Attribute("anticipation");
+			_config->SetAnticipation(atoi(Anticipation.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("contactRep"))
+			_config->SetContactRep(0);
+		else {
+			string ContactRep = xModelPara->FirstChildElement("AGCVM")->Attribute("contactRep");
+			_config->SetContactRep(atoi(ContactRep.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("attractive"))
+			_config->SetAttracForce(0);
+		else {
+			string AttracForce = xModelPara->FirstChildElement("AGCVM")->Attribute("attractive");
+			_config->SetAttracForce(atoi(AttracForce.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("AntiTime"))
+			_config->SetAntiT(0);
+		else {
+			string AntiT = xModelPara->FirstChildElement("AGCVM")->Attribute("AntiTime");
+			_config->SetAntiT(atof(AntiT.c_str()));
+		}
+		Log->Write("INFO: \tAGCVM anticipation=%d, contactRep=%d, attractive=%d, AntiTime=%0.2f",
+			_config->GetAnticipation(), _config->GetContactRep(), _config->GetAttracForce(), _config->GetAntiT());
+	}
 	//Parsing the agent parameters
 	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
 	ParseAgentParameters(xAGCVM, xAgentDistri);
@@ -2431,6 +2493,7 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 		_config->GetDPed(), _config->GetaWall(),
 		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
 		_config->GetUpdate(), _config->GetWaitingTime(),
-		_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff())));
+		_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
+		_config->GetAnticipation(), _config->GetContactRep(), _config->GetAttracForce(), _config->GetAntiT())));
 	return true;
 }

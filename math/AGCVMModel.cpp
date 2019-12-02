@@ -46,7 +46,8 @@ using std::string;
 
 AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
 	double awall, double Dwall, double Ts, double Td, int GCVM,
-	int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co)
+	int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co, 
+	int Anticipation, int ContactRep, int AttracForce, double AntiT)
 {
 	_direction = dir;
 
@@ -73,6 +74,11 @@ AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, doub
 	_up_boundary = ub;
 	_down_boundary = db;
 	_cutoff = co;
+
+	_Anticipation = Anticipation;
+	_ContactRep = ContactRep;
+	_AttracForce = AttracForce;
+	_AntiT = AntiT;
 }
 
 
@@ -237,25 +243,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			}
 			if (ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()||subroom->IsDirectlyConnectedWith(sb2)) 
 			{
-				if (GetGCVMU() == 1)
-				{
-					repPed += inf_direction * ForceRepPed(ped, ped1, inid_direction, periodic).Norm();//new method
-					/*
-					double distance = (ped->GetPos() - ped1->GetPos()).Norm();
-					if (distance < 0.5)
-					{
-						repPed += ForceRepPed(ped, ped1, inid_direction, periodic);
-					}
-					else
-					{
-						repPed += inf_direction * ForceRepPed(ped, ped1, inid_direction, periodic).Norm();//new method
-					}
-					*/
-				}
-				else
-				{
-					repPed += ForceRepPed(ped, ped1, inid_direction, periodic);//original method
-				}
+					repPed += ForceRepPed(ped, ped1, inid_direction,inf_direction, periodic);//new method
 			}
 		} //for i
 
@@ -274,13 +262,21 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 		Point angle_v = (d_direction.Normalized() - a_direction) / angle_tau;
 		Point direction = a_direction + angle_v * deltaT;
 
-		/*
-		//When the angle between actual moving direction and initial desired moving direction is bigger than 90 degree. turning to the desired moving direction directly.
-		if (a_direction.ScalarProduct(inid_direction) < 0) 
+		if (GetContactRep()==1)// when using contact forece, pedestrian can move backward
 		{
-			direction = d_direction;
+			//When the angle between actual moving direction and initial desired moving direction is bigger than 90 degree. turning to the desired moving direction directly.
+			bool c_backward = (d_direction.ScalarProduct(inid_direction) < 0);//going move backward
+			bool c_forward = (inid_direction.ScalarProduct(d_direction) > 0);// going move forward
+			bool on_backward = (inid_direction.ScalarProduct(a_direction) < 0);// move backward now
+			bool on_forward = (inid_direction.ScalarProduct(a_direction) > 0);// move forward now
+			double condition_final = (inid_direction.ScalarProduct(d_direction)*inid_direction.ScalarProduct(a_direction));
+			double condition_backward = d_direction.ScalarProduct(a_direction);
+			if (condition_final < 0 && condition_backward < 0)
+			{
+				direction = d_direction;
+			}
 		}
-		*/
+		
 
 		if (GetGCVMU() == 0) 
 		{
@@ -545,6 +541,10 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 		return  my_pair(FLT_MAX, -1);// ped2 is behind ped1, so not considered
 	}
 
+	double t_anti = 0;
+	double S_Gap = (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12))*t_anti;
+	S_Gap = S_Gap < 0 ? S_Gap: 0;
+	S_Gap = 0;
 	//Judge conllision
 	if (!ped1->GetEllipse().DoesStretch())
 	{
@@ -553,7 +553,7 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 		condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
 		ped2->SetPos(ped2_current);
 		if ((condition1 >= 0) && (condition2 <= l / Distance))
-			return  my_pair(distp12.Norm() - l, ped2->GetID());
+			return  my_pair(distp12.Norm() - l-S_Gap, ped2->GetID());
 		else
 			return  my_pair(FLT_MAX, ped2->GetID());
 	}
@@ -581,7 +581,7 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 		{
 			//if the center between two lines, collision
 			ped2->SetPos(ped2_current);
-			return  my_pair(eff_dist, ped2->GetID());
+			return  my_pair(eff_dist-S_Gap, ped2->GetID());
 		}
 		//If the center not between two lines, Judge if ped2 contact with two lines
 		Point D;
@@ -637,12 +637,12 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 			return  my_pair(FLT_MAX, -1);
 		else
 		{
-			return  my_pair(eff_dist, ped2->GetID());
+			return  my_pair(eff_dist - S_Gap, ped2->GetID());
 		}
 	}
 }
 
-Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int periodic) const
+Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Point infd, int periodic) const
 {
 	Point F_rep(0.0, 0.0);
 	double x_j = ped2->GetPos()._x;
@@ -694,32 +694,57 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 	}
 	Point ei;
 	JEllipse Eped1 = ped1->GetEllipse();
+	JEllipse Eped2 = ped2->GetEllipse();
+	double dist;
+	dist = Eped1.EffectiveDistanceToEllipse(Eped2, &dist);
 	ei._x = Eped1.GetCosPhi();
 	ei._y = Eped1.GetSinPhi();
 	//Vision area-----------------------------------
 	double condition1 = e0.ScalarProduct(ep12);
 	double condition2 = ei.ScalarProduct(ep12);
-	if (GetGCVMU() == 0)//all
-	{
-		condition1 = 1;
-		condition2 = 1;
-	}
 	//-----------------------------------------------
+	Point ei2;
+	ei2._x = Eped2.GetCosPhi();
+	ei2._y = Eped2.GetSinPhi();
 
-	//rule:pedestrian's direction only influenced by pedestrian in vision area
-	if (condition1 > 0 || condition2 > 0)
+	//Anticipation
+	double S_Gap = 0;
+	double Dis_Gap = 0;
+	if (GetAnticipation() == 1)
 	{
-		double dist;
-		JEllipse Eped2 = ped2->GetEllipse();
-		dist = Eped1.EffectiveDistanceToEllipse(Eped2, &dist);
-		Point ei2;
-		ei2._x = Eped2.GetCosPhi();
-		ei2._y = Eped2.GetSinPhi();
-		double t_anti = 0.5;
-		dist = dist - (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12))*t_anti;
-		//dist = dist > 0 ? dist : 0;
-		R_ij = -_aPed * exp((-dist) / _DPed);
-		F_rep = ep12 * R_ij;
+		double t_anti = GetAntiT();//Anticipation time
+		double multi_e0 = ped1->GetV0().ScalarProduct(ped2->GetV0());
+		S_Gap = (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12));// Speed gap, S_Gap<0: away, S_Gap>0: close
+		Dis_Gap=S_Gap * t_anti*(3 - multi_e0) / 2;
+	}
+
+	if (GetGCVMU() == 0)
+	{
+		R_ij = _aPed * exp((-dist) / _DPed);
+		F_rep = ep12 * (-R_ij);//ep12: from 1(i) to 2(j)
+	}
+	else if (condition1 > 0 || condition2 > 0)//rule:pedestrian's direction only influenced by pedestrian in vision area
+	{
+		double condition3 = e0.ScalarProduct(ped2->GetV());// ped2 move in the same direction of ped1's e0;
+		if ((dist < 0.01) && (GetContactRep() == 1))
+		{
+			double R_dist = dist - Dis_Gap;
+			R_ij = _aPed * exp((-R_dist) / _DPed);
+			F_rep = ep12 * (-R_ij);// Contact repulision force
+		}
+		else if ((GetAttracForce() == 1) && condition3 > 0 && S_Gap < 0) 
+		{
+			double R_dist = dist + Dis_Gap;
+			R_ij = _aPed * exp((-R_dist) / _DPed);
+			F_rep = ep12 * (R_ij);// Attractive force
+		}
+		else
+		{
+			double R_dist = dist - Dis_Gap;
+			R_ij = _aPed * exp((-R_dist) / _DPed);
+			F_rep = infd * R_ij;// Normal repulsion force
+		}
+
 	}
 	ped2->SetPos(Point(x_j, y_j));
 	return F_rep;
@@ -1266,4 +1291,24 @@ bool AGCVMModel::RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, int 
 		}
 	}
 
+}
+
+int AGCVMModel::GetAnticipation() const
+{
+	return _Anticipation;
+}
+
+int AGCVMModel::GetContactRep() const
+{
+	return _ContactRep;
+}
+
+int AGCVMModel::GetAttracForce() const
+{
+	return _AttracForce;
+}
+
+double AGCVMModel::GetAntiT() const
+{
+	return _AntiT;
 }
