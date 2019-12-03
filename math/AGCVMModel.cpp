@@ -273,14 +273,14 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			double condition_backward = d_direction.ScalarProduct(a_direction);
 			if (condition_final < 0 && condition_backward < 0)
 			{
-				direction = d_direction;
+				direction = d_direction.NormalizedMolified();
 			}
 		}
 		
 
 		if (GetGCVMU() == 0) 
 		{
-			direction = d_direction;//original method
+			direction = d_direction.NormalizedMolified();//original method
 		}
 		result_dir.push_back(direction);
 
