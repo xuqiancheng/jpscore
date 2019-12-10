@@ -541,10 +541,6 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 		return  my_pair(FLT_MAX, -1);// ped2 is behind ped1, so not considered
 	}
 
-	double t_anti = 0;
-	double S_Gap = (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12))*t_anti;
-	S_Gap = S_Gap < 0 ? S_Gap: 0;
-	S_Gap = 0;
 	//Judge conllision
 	if (!ped1->GetEllipse().DoesStretch())
 	{
@@ -553,7 +549,7 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 		condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
 		ped2->SetPos(ped2_current);
 		if ((condition1 >= 0) && (condition2 <= l / Distance))
-			return  my_pair(distp12.Norm() - l-S_Gap, ped2->GetID());
+			return  my_pair((distp12.Norm() - l), ped2->GetID());
 		else
 			return  my_pair(FLT_MAX, ped2->GetID());
 	}
@@ -581,7 +577,7 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 		{
 			//if the center between two lines, collision
 			ped2->SetPos(ped2_current);
-			return  my_pair(eff_dist-S_Gap, ped2->GetID());
+			return  my_pair(eff_dist, ped2->GetID());
 		}
 		//If the center not between two lines, Judge if ped2 contact with two lines
 		Point D;
@@ -637,7 +633,7 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int
 			return  my_pair(FLT_MAX, -1);
 		else
 		{
-			return  my_pair(eff_dist - S_Gap, ped2->GetID());
+			return  my_pair(eff_dist, ped2->GetID());
 		}
 	}
 }
@@ -715,7 +711,8 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Poin
 		double t_anti = GetAntiT();//Anticipation time
 		double multi_e0 = ped1->GetV0().ScalarProduct(ped2->GetV0());
 		S_Gap = (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12));// Speed gap, S_Gap<0: away, S_Gap>0: close
-		Dis_Gap=S_Gap * t_anti*(3 - multi_e0) / 2;
+		double beta = (3 - multi_e0) / 2;
+		Dis_Gap=S_Gap * t_anti*beta;
 	}
 
 	if (GetGCVMU() == 0)
