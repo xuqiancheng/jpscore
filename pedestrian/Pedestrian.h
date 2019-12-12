@@ -154,10 +154,10 @@ private:
 
      int _lastGoalID = -1;
      bool _insideGoal =false;
-	double _InCloggingTime = 0;
+	 double _InCloggingTime = 0;
 
      bool _moveManually = false;
-
+	 double _cooperation;
 
 public:
      // public member
@@ -519,6 +519,8 @@ public:
      void SetmoveManually(bool m);
      
      bool GetmoveManually() const;
+
+	 double GetCooperation() const;
 };
 
 #endif  /* _PEDESTRIAN_H */

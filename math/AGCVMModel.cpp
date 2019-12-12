@@ -357,6 +357,83 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			Pedestrian* ped = allPeds[p];
 			Point v_neu = result_acc[p];
 			Point dir_neu = result_dir[p];
+			//UpdatePed(ped, v_neu, dir_neu, deltaT, periodic);
+			
+			double normdir = dir_neu.Norm();
+			double cosPhi = dir_neu._x / normdir;
+			double sinPhi = dir_neu._y / normdir;
+			JEllipse e = ped->GetEllipse();
+			e.SetCosPhi(cosPhi);
+			e.SetSinPhi(sinPhi);
+			ped->SetEllipse(e);
+			ped->SetV(v_neu);
+			
+		}
+	}
+	
+	//Check conflict
+	result_acc.clear();
+	for (int p = start; p <= end; ++p)
+	{
+		Pedestrian* ped1 = allPeds[p];
+		Room* room = building->GetRoom(ped1->GetRoomID());
+		SubRoom* subroom = room->GetSubRoom(ped1->GetSubRoomID());
+		Point repPed = Point(0, 0);
+		vector<Pedestrian*> neighbours;
+		building->GetGrid()->GetNeighbourhood(ped1, neighbours);
+		int size = (int)neighbours.size();
+		Point speed = ped1->GetV();
+		for (int i = 0; i < size; i++)
+		{
+			Pedestrian* ped2 = neighbours[i];
+			JEllipse Eped1 = ped1->GetEllipse();
+			JEllipse Eped2 = ped2->GetEllipse();
+			double dist;
+			dist = Eped1.EffectiveDistanceToEllipse(Eped2, &dist);
+
+			Point p1 = ped1->GetPos();
+			Point p2 = ped2->GetPos();
+			Point distp12 = p2 - p1;
+			Point ep12= distp12.Normalized();
+			
+			double S_Gap = 0;
+			double Dis_Gap = 0;
+			if (GetAnticipation() == 0)
+			{
+				double c1 = ped1->GetCooperation();
+				double c2 = ped2->GetCooperation();
+				double t_anti = GetAntiT();//Anticipation time
+				double multi_e0 = ped1->GetV0().ScalarProduct(ped2->GetV0());
+				S_Gap = (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12));// Speed gap, S_Gap<0: away, S_Gap>0: close
+				S_Gap = (ped1->GetV().Normalized().ScalarProduct(ep12)*ped1->GetV0Norm() - ped2->GetV().Normalized().ScalarProduct(ep12)*ped2->GetV0Norm());
+				double beta = (3 - multi_e0) / 2;
+				Dis_Gap = S_Gap * 0.1;
+				if (Dis_Gap > dist)
+				{
+					if (c1 > c2)
+					{
+						speed = Point(0, 0);
+						break;
+					}
+					else if (c1 == c2)
+					{
+						c1 = c1 + 1;
+						speed = Point(0, 0);
+						break;
+					}
+				}
+			}
+		}
+		result_acc.push_back(speed);
+	}
+	
+	if (GetUpdate())
+	{
+		for (int p = start; p <= end; ++p)
+		{
+			Pedestrian* ped = allPeds[p];
+			Point v_neu = result_acc[p];
+			Point dir_neu = result_dir[p];
 			UpdatePed(ped, v_neu, dir_neu, deltaT, periodic);
 		}
 	}
@@ -712,6 +789,8 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Poin
 		double multi_e0 = ped1->GetV0().ScalarProduct(ped2->GetV0());
 		S_Gap = (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12));// Speed gap, S_Gap<0: away, S_Gap>0: close
 		double beta = (3 - multi_e0) / 2;
+		//New S_Gap: Using desired speed instead of real speed
+		S_Gap = (ped1->GetV().Normalized().ScalarProduct(ep12)*ped1->GetV0Norm() - ped2->GetV().Normalized().ScalarProduct(ep12)*ped2->GetV0Norm());
 		Dis_Gap=S_Gap * t_anti*beta;
 	}
 
