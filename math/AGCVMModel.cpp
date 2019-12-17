@@ -783,6 +783,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Poin
 	//Anticipation
 	double S_Gap = 0;
 	double Dis_Gap = 0;
+	double A_Gap = 0;
 	if (GetAnticipation() == 1)
 	{
 		double t_anti = GetAntiT();//Anticipation time
@@ -792,6 +793,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Poin
 		//New S_Gap: Using desired speed instead of real speed
 		S_Gap = (ped1->GetV().Normalized().ScalarProduct(ep12)*ped1->GetV0Norm() - ped2->GetV().Normalized().ScalarProduct(ep12)*ped2->GetV0Norm());
 		Dis_Gap=S_Gap * t_anti*beta;
+		A_Gap= (ped1->GetV().ScalarProduct(ep12) - ped2->GetV().ScalarProduct(ep12))* t_anti;
 	}
 
 	if (GetGCVMU() == 0)
@@ -801,14 +803,14 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Poin
 	}
 	else if (condition1 > 0 || condition2 > 0)//rule:pedestrian's direction only influenced by pedestrian in vision area
 	{
-		double condition3 = e0.ScalarProduct(ped2->GetV());// ped2 move in the same direction of ped1's e0;
+		double condition3 = e0.ScalarProduct(ped2->GetV().Normalized());// ped2 move in the same direction of ped1's e0;
 		if ((dist < 0.01) && (GetContactRep() == 1))
 		{
 			double R_dist = dist - Dis_Gap;
 			R_ij = _aPed * exp((-R_dist) / _DPed);
 			F_rep = ep12 * (-R_ij);// Contact repulision force
 		}
-		else if ((GetAttracForce() == 1) && condition3 > 0 && S_Gap < 0) 
+		else if ((GetAttracForce() == 1) && condition2>0 && condition3 > 0 && S_Gap < 0)
 		{
 			double R_dist = dist + Dis_Gap;
 			R_ij = _aPed * exp((-R_dist) / _DPed);
