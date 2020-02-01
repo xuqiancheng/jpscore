@@ -32,7 +32,7 @@
 #define AGCVMMODEL_H_
 
 #include <vector>
-
+#include <math.h>
 #include "../geometry/Building.h"
 #include "OperationalModel.h"
 
@@ -135,6 +135,8 @@ public:
 	int GetAttracForce() const;
 	double GetAntiT() const;
 
+	int JudgeCollision(Pedestrian* ped1, Pedestrian* ped2) const;
+	my_pair AGCVMModel::GetSpacing_collision(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
 };
 
 
