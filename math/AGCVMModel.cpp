@@ -373,8 +373,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 	}
 
 	// Cooperation
-	if (1)
-	{
+
 		for (int p = start; p <= end; ++p)
 		{
 			Pedestrian* ped1 = allPeds[p];
@@ -454,24 +453,30 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			// Optimal speed function
 
 			Point speed;
-			if (try_coop == 0)
+			if (0)
 			{
-				speed = normal_acc[p];
-			}
-			else
-			{
-				if (back_move == 0)
+				if (try_coop == 0)
 				{
-					speed = defect_acc[p];
+					speed = normal_acc[p];
 				}
 				else
 				{
-					speed = back_acc[p];
+					if (back_move == 0)
+					{
+						speed = defect_acc[p];
+					}
+					else
+					{
+						speed = back_acc[p];
+					}
 				}
+			}
+			else
+			{
+				speed = normal_acc[p];
 			}
 			coop_acc.push_back(speed);
 		} // for p
-	}
 	
 	//Update everything
 	for (int p = start; p <= end; ++p)
