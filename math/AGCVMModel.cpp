@@ -47,7 +47,7 @@ using std::string;
 AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
 	double awall, double Dwall, double Ts, double Td, int GCVM,
 	int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co, 
-	int Anticipation, int ContactRep, int AttracForce, double AntiT)
+	int Anticipation, int Cooperation, int AttracForce, double AntiT, double CoopT)
 {
 	_direction = dir;
 
@@ -76,9 +76,10 @@ AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, doub
 	_cutoff = co;
 
 	_Anticipation = Anticipation;
-	_ContactRep = ContactRep;
+	_Cooperation = Cooperation;
 	_AttracForce = AttracForce;
 	_AntiT = AntiT;
+	_CoopT = CoopT;
 }
 
 
@@ -453,7 +454,8 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			// Optimal speed function
 
 			Point speed;
-			if (0)
+			int do_cooperation = GetCooperation();
+			if (do_cooperation)
 			{
 				if (try_coop == 0)
 				{
@@ -770,13 +772,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Poin
 		double c2 = ped2->GetCooperation();
 		int collision = JudgeCollision(ped1, ped2);
 		double condition3 = e0.ScalarProduct(ped2->GetV().Normalized());// ped2 move in the same direction of ped1's e0;
-		if ((dist < 0.001) && (GetContactRep() == 1))
-		{
-			double R_dist = dist - Dis_Gap;
-			R_ij = _aPed * exp((-R_dist) / _DPed);
-			F_rep = ep12 * (-R_ij);// Contact repulision force
-		}
-		else if ((GetAttracForce() == 1) && condition2>0 && condition3>0 && S_Gap < 0&& dist>0)
+		if ((GetAttracForce() == 1) && condition2>0 && condition3>0 && S_Gap < 0&& dist>0)
 		{
 			double R_dist = dist+Dis_Gap;
 			R_ij = -1*_aPed * exp((-R_dist) / _DPed);
@@ -1346,9 +1342,9 @@ int AGCVMModel::GetAnticipation() const
 	return _Anticipation;
 }
 
-int AGCVMModel::GetContactRep() const
+int AGCVMModel::GetCooperation() const
 {
-	return _ContactRep;
+	return _Cooperation;
 }
 
 int AGCVMModel::GetAttracForce() const
@@ -1361,11 +1357,16 @@ double AGCVMModel::GetAntiT() const
 	return _AntiT;
 }
 
+double AGCVMModel::GetCoopT() const
+{
+	return _CoopT;
+}
+
 int AGCVMModel::JudgeCollision(Pedestrian* ped1, Pedestrian* ped2) const
 {
 	int collision=0;
-	double At = GetAntiT();
-	//At = 0.1;
+	double At = GetCoopT();
+	//At = 1;
 	Point p1 = ped1->GetPos();
 	Point p2 = ped2->GetPos();
 	double cosphi1 = ped1->GetEllipse().GetCosPhi();

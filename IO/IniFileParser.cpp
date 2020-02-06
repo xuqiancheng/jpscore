@@ -2465,11 +2465,11 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 			string Anticipation = xModelPara->FirstChildElement("AGCVM")->Attribute("anticipation");
 			_config->SetAnticipation(atoi(Anticipation.c_str()));
 		}
-		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("contactRep"))
-			_config->SetContactRep(0);
+		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("cooperation"))
+			_config->SetCooperation(0);
 		else {
-			string ContactRep = xModelPara->FirstChildElement("AGCVM")->Attribute("contactRep");
-			_config->SetContactRep(atoi(ContactRep.c_str()));
+			string Cooperation = xModelPara->FirstChildElement("AGCVM")->Attribute("cooperation");
+			_config->SetCooperation(atoi(Cooperation.c_str()));
 		}
 		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("attractive"))
 			_config->SetAttracForce(0);
@@ -2483,8 +2483,14 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 			string AntiT = xModelPara->FirstChildElement("AGCVM")->Attribute("AntiTime");
 			_config->SetAntiT(atof(AntiT.c_str()));
 		}
-		Log->Write("INFO: \tAGCVM anticipation=%d, contactRep=%d, attractive=%d, AntiTime=%0.2f",
-			_config->GetAnticipation(), _config->GetContactRep(), _config->GetAttracForce(), _config->GetAntiT());
+		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("CoopTime"))
+			_config->SetCoopT(0);
+		else {
+			string CoopT = xModelPara->FirstChildElement("AGCVM")->Attribute("CoopTime");
+			_config->SetCoopT(atof(CoopT.c_str()));
+		}
+		Log->Write("INFO: \tAGCVM anticipation=%d, cooperation=%d, attractive=%d, AntiTime=%0.2f, CoopTime=%0.2f.",
+			_config->GetAnticipation(), _config->GetCooperation(), _config->GetAttracForce(), _config->GetAntiT(), _config->GetCoopT());
 	}
 	//Parsing the agent parameters
 	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
@@ -2494,6 +2500,6 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
 		_config->GetUpdate(), _config->GetWaitingTime(),
 		_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
-		_config->GetAnticipation(), _config->GetContactRep(), _config->GetAttracForce(), _config->GetAntiT())));
+		_config->GetAnticipation(), _config->GetCooperation(), _config->GetAttracForce(), _config->GetAntiT(), _config->GetCoopT())));
 	return true;
 }

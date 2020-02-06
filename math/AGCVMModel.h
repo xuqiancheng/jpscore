@@ -86,9 +86,10 @@ private:
 
 	// Switch
 	int _Anticipation = 1;
-	int _ContactRep = 1;
+	int _Cooperation = 1;
 	int _AttracForce = 1;
 	double _AntiT=0;
+	double _CoopT = 0;
 
 	// Functions
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
@@ -107,7 +108,7 @@ public:
 	AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
 		double awall, double Dwall, double Ts, double Td, int GCVM, 
 		int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co,
-		int Anticipation, int ContactRep, int AttracForce, double AntiT);
+		int Anticipation, int Cooperation, int AttracForce, double AntiT, double CoopT);
 	virtual ~AGCVMModel(void);
 
 
@@ -131,9 +132,10 @@ public:
 	double GetCutoff() const;
 
 	int GetAnticipation() const;
-	int GetContactRep() const;
+	int GetCooperation() const;
 	int GetAttracForce() const;
 	double GetAntiT() const;
+	double GetCoopT() const;
 
 	int JudgeCollision(Pedestrian* ped1, Pedestrian* ped2) const;
 	my_pair AGCVMModel::GetSpacing_collision(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;

@@ -107,9 +107,11 @@ public:
 		  _AreaSize = 1;
 		  // --------  AGCVM model ------
 		  _Anticipation = 1;
-		  _ContactRep = 1;
+		  _Cooperation = 0;
 		  _AttracForce = 1;
 		  _AntiT = 0;
+		  _CoopT = 0;
+
 		  //--------  boundary ------
 		  _left_boundary = -100;
 		  _right_boundary = 100;
@@ -423,9 +425,9 @@ public:
 
 	int GetAnticipation() const { return _Anticipation; };
 
-	void SetContactRep(int ContactRep) { _ContactRep = ContactRep; };
+	void SetCooperation(int Cooperation) { _Cooperation = Cooperation; };
 
-	int GetContactRep() const { return _ContactRep; };
+	int GetCooperation() const { return _Cooperation; };
 
 	void SetAttracForce(int AttracForce) { _AttracForce = AttracForce; };
 
@@ -434,6 +436,10 @@ public:
 	void SetAntiT(double AntiT) { _AntiT = AntiT; };
 
 	double GetAntiT() const { return _AntiT; };
+
+	void SetCoopT(double CoopT) { _CoopT = CoopT; };
+
+	double GetCoopT() const { return _CoopT; };
 
 #ifdef _JPS_AS_A_SERVICE
 
@@ -511,9 +517,10 @@ private:
 	 double _AreaSize;
 	 //AGCVMmodel
 	 int _Anticipation;
-	 int _ContactRep;
+	 int _Cooperation;
 	 int _AttracForce;
 	 double _AntiT;
+	 double _CoopT;
 
      //ff router quickest
      double _recalc_interval;
