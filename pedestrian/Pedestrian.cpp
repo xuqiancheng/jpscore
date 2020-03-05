@@ -121,6 +121,8 @@ Pedestrian::Pedestrian()
      _WalkingSpeed = nullptr;
      _ToxicityAnalysis = nullptr;
 	 _cooperation = (rand() % 10000)*0.0001;
+	 _defect_speed = Point(0, 0);
+	 _defect_space = 0;
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -203,6 +205,8 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
      _ToxicityAnalysis = nullptr;
      _WalkingSpeed = nullptr;
 	 _cooperation = rand() % 10000;
+	 _defect_speed = Point(0, 0);
+	 _defect_space = 0;
 }
 
 
@@ -1314,4 +1318,20 @@ bool Pedestrian::GetmoveManually() const{
 
 double Pedestrian::GetCooperation() const {
 	return _cooperation;
+}
+
+void Pedestrian::SetDefectSpeed(Point ds) {
+	_defect_speed = ds;
+}
+
+Point Pedestrian::GetDefectSpeed() const {
+	return _defect_speed;
+}
+
+void Pedestrian::SetDefectSpace(double ds) {
+	_defect_space = ds;
+}
+
+double Pedestrian::GetDefectSpace() const {
+	return _defect_space;
 }

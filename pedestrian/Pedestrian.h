@@ -159,6 +159,8 @@ private:
      bool _moveManually = false;
 	 double _cooperation;
 
+	 Point _defect_speed= Point(0, 0);
+	 double _defect_space = 0;
 public:
      // public member
      int _ticksInThisRoom;
@@ -521,6 +523,14 @@ public:
      bool GetmoveManually() const;
 
 	 double GetCooperation() const;
+
+	 void SetDefectSpeed(Point ds);
+
+	 Point GetDefectSpeed() const;
+
+	 void SetDefectSpace(double ds);
+	 
+	 double GetDefectSpace() const;
 };
 
 #endif  /* _PEDESTRIAN_H */
