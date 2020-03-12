@@ -303,7 +303,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 
 			// Calculating influence of walls-------------------------------------------------------------------------
 			Point repWall = ForceRepRoom(ped, subroom, inid_direction);
-			if (ped->GetExitLine()->DistTo(ped->GetPos())<0.1)
+			if (ped->GetExitLine()->DistTo(ped->GetPos())<0.2)
 			{
 				std::vector<SubRoom*> Nsubrooms= subroom->GetNeighbors();
 				for (int i=0;i<Nsubrooms.size();i++)
@@ -361,20 +361,39 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		
 		// We should save all the relations
 		const Point& pos = ped->GetPos();
-		double distGoal = ped->GetExitLine()->DistTo(pos);
+		double distGoal = (ped->GetExitLine()->GetCentre()-pos).Norm();// We use half circle here
 		double DRange = GetAreaSize();
-		
-		if (spacing < 0.01)
+		bool Inrange1=distGoal<DRange?1:0;
+		if (spacing < 0.01) // To use distance patramteres
 		{
 			vector<bool>::iterator RC = std::find(RealCloggings.begin(), RealCloggings.end(), false);
-			if (RC == RealCloggings.end())
+			//if (RC == RealCloggings.end())
+			if(1)
 			{
 				for (int i = 0; i < spacings.size(); i++)
 				{
 					if (spacings[i].first < 0.01)
 					{
-						my_pair relation = my_pair(ped->GetID(), spacings[i].second);
-						relations.push_back(relation);
+						//
+						bool Inrange2=0;
+						for (int j = 0; j < size; j++)
+						{
+							Pedestrian* ped2 = neighbours[j];
+							if (ped2->GetID()==spacings[i].second)
+							{
+								const Point& pos2 = ped2->GetPos();
+								double distGoal2 = (ped2->GetExitLine()->GetCentre()-pos2).Norm();// We use half circle here
+								Inrange2=distGoal2<DRange?1:0;
+								break;
+							}
+							
+						}
+						//
+						if (Inrange1==1||Inrange2==1)
+						{
+							my_pair relation = my_pair(ped->GetID(), spacings[i].second);
+							relations.push_back(relation);
+						}
 					}
 				}
 			}
