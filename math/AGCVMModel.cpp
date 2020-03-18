@@ -325,7 +325,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			else
 			{
 				//printf("I am here!!!!!!!!!!!\n");
-				d_direction = repPed_push + inid_direction + repWall;
+				d_direction = repPed_push + repWall;
 				direction = d_direction;
 				Point angle_v = (d_direction.Normalized() - a_direction) / angle_tau;
 				direction = a_direction + angle_v * deltaT;
@@ -983,7 +983,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Poin
 		{
 			double R_dist = dist+Dis_Gap;
 			//R_dist = R_dist > 0 ? R_dist : 0;
-			R_ij = -1*_aPed * exp((-R_dist) / _DPed);
+			R_ij = -1*_aPed * exp((-R_dist) / _DPed)*abs(multi_e0);
 			//F_rep = ep12 * (R_ij);// Attractive force
 			F_rep = F_rep + infd * R_ij;
 		}
@@ -991,7 +991,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Poin
 		{
 			double R_dist = dist - Dis_Gap;
 			//R_dist = R_dist > 0 ? R_dist : 0;
-			R_ij = _aPed * exp((-R_dist) / _DPed);
+			R_ij = _aPed * exp((-R_dist) / _DPed)*abs(multi_e0);
 			F_rep = F_rep + infd * R_ij;// Normal repulsion force
 		}
 		
