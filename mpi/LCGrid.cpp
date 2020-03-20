@@ -248,7 +248,7 @@ void LCGrid::GetNeighbourhood(const Pedestrian* ped, vector<Pedestrian*>& neighb
                }
           }
      }
-
+	 /*
      if ((myID == 70) && (fmod(Pedestrian::GetGlobalTime() , 45.) == 0) ){
           std::cout << Pedestrian::GetGlobalTime() << ":\t\tNeighborhood of 71 " << neighbourhood.size() << std::endl;
 
@@ -259,6 +259,7 @@ void LCGrid::GetNeighbourhood(const Pedestrian* ped, vector<Pedestrian*>& neighb
 
 
      }
+	 */
 
      grid_mutex.unlock();
 

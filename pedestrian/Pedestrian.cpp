@@ -207,6 +207,7 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
 	 _cooperation = rand() % 10000;
 	 _defect_speed = Point(0, 0);
 	 _defect_space = 0;
+	 _MTTC_Person = -1;
 }
 
 
@@ -1334,4 +1335,29 @@ void Pedestrian::SetDefectSpace(double ds) {
 
 double Pedestrian::GetDefectSpace() const {
 	return _defect_space;
+}
+
+void Pedestrian::SetMTTCP(int MTTCP)
+{
+	_MTTC_Person = MTTCP;
+}
+
+int Pedestrian::GetMTTCP() const
+{
+	return _MTTC_Person;
+}
+
+Point Pedestrian::GetMoveDirection() const
+{
+	Point ei;
+	ei._x = _ellipse.GetCosPhi();
+	ei._y = _ellipse.GetSinPhi();
+	return ei;
+}
+
+void Pedestrian::SetMoveDirection(Point ei)
+{
+	Point e = ei.Normalized();
+	_ellipse.SetCosPhi(e._x);
+	_ellipse.SetSinPhi(e._y);
 }

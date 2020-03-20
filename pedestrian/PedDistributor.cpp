@@ -494,8 +494,9 @@ vector<Point>  PedDistributor::PossiblePositions(const SubRoom &r) const{
 	double bufy = GetB_dist();
 
 	double dx = 2 * amin;
+	dx = 0.50;
 	double dy = 2 * bmax;
-
+	dy = 0.50;
     double max_buf = max(bufx, bufy);
 	double max_size = max(dx, dy);// In case of using ellipse
 

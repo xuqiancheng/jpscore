@@ -161,6 +161,9 @@ private:
 
 	 Point _defect_speed= Point(0, 0);
 	 double _defect_space = 0;
+
+	 int _MTTC_Person = -1;
+
 public:
      // public member
      int _ticksInThisRoom;
@@ -531,6 +534,14 @@ public:
 	 void SetDefectSpace(double ds);
 	 
 	 double GetDefectSpace() const;
+
+	 void SetMTTCP(int MTTCP);
+
+	 int GetMTTCP() const;
+
+	 Point GetMoveDirection() const;
+
+	 void SetMoveDirection(Point ei);
 };
 
 #endif  /* _PEDESTRIAN_H */

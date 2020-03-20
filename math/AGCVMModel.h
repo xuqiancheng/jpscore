@@ -94,15 +94,32 @@ private:
 	// Functions
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 	Point e0(Pedestrian *ped, Room* room) const;
-	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
-	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Point infd, int periodic) const;
+	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic, bool collision) const;
+	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int periodic) const;
 	Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
 	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0) const;
-	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) const;
-	double GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const;
+	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom) const;
+	double GetSpacingWall(Pedestrian* ped, const Line& l) const;
 	void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
 	bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building);
-	bool RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
+	int GetGCVMU() const;
+	int GetUpdate() const;
+	double GetWaitingTime() const;
+	double GetLeftBoundary() const;
+	double GetRightBoundary() const;
+	double GetUpBoundary() const;
+	double GetDownBoundary() const;
+	double GetCutoff() const;
+
+	int GetAnticipation() const;
+	int GetCooperation() const;
+	int GetAttracForce() const;
+	double GetAntiT() const;
+	double GetCoopT() const;
+
+	my_pair JudgeCollision(Pedestrian* ped1, Pedestrian* ped2) const;
+	Point GetInfDirection(Point e0, Point ep12) const;
+	Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;
 public:
 
 	AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
@@ -122,23 +139,6 @@ public:
 	virtual std::string GetDescription();
 	virtual bool Init(Building* building);
 	virtual void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic);
-	int GetGCVMU() const;
-	int GetUpdate() const;
-	double GetWaitingTime() const;
-	double GetLeftBoundary() const;
-	double GetRightBoundary() const;
-	double GetUpBoundary() const;
-	double GetDownBoundary() const;
-	double GetCutoff() const;
-
-	int GetAnticipation() const;
-	int GetCooperation() const;
-	int GetAttracForce() const;
-	double GetAntiT() const;
-	double GetCoopT() const;
-
-	int JudgeCollision(Pedestrian* ped1, Pedestrian* ped2) const;
-	my_pair AGCVMModel::GetSpacing_collision(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
 };
 
 
