@@ -46,7 +46,7 @@ using std::string;
 
 double core_size = 0.10;
 double normal_size = 0.20;
-int ShowInfo = 1;
+int ShowInfo = 0;
 
 AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
 	double awall, double Dwall, double Ts, double Td, int GCVM,
