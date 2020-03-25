@@ -236,6 +236,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 		Point d_direction = IniDirection + repPed + repWall+ repPedPush;
 		//d_direction = d_direction.Normalized();
 		Point AccTu = Point(0, 0);
+		/*
 		if (d_direction.ScalarProduct(IniDirection)*a_direction.ScalarProduct(IniDirection) < 0)
 		{
 			direction = d_direction.Normalized();
@@ -247,6 +248,10 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			Point Push = repPedPush*0;
 			direction = ped1->GetV() + (AccTu + Push)*deltaT;
 		}
+		*/
+		double angle_tau = GetTd();
+		AccTu = (d_direction.Normalized()*ped1->GetV0Norm() - ped1->GetV()) / angle_tau;
+		direction = ped1->GetV() + AccTu *deltaT;
 		/*
 		if (IniDirection.ScalarProduct(a_direction) < 0 && IniDirection.ScalarProduct(d_direction) > 0)
 		{
@@ -521,7 +526,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 		{
 			double R_dist = dist + Dis_Gap;
 			R_dist = R_dist < 0 ? 0 : R_dist;
-			R_ij = _aPed * exp((-R_dist) / _DPed)*beta;
+			R_ij = _aPed * exp((-R_dist) / _DPed)* beta;
 			infd = infd * -1;
 			F_rep = infd * R_ij;
 		}
@@ -529,7 +534,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 		{
 			double R_dist = dist - Dis_Gap;
 			R_dist = R_dist < 0 ? 0 : R_dist;
-			R_ij = _aPed * exp((-R_dist) / _DPed)*beta;
+			R_ij = _aPed * exp((-R_dist ) / _DPed)* beta;
 			F_rep = infd * R_ij;
 		}
 	}
