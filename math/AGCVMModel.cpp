@@ -506,7 +506,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 		double t_anti = GetAntiT();//Anticipation time
 		//New S_Gap: Using desired speed instead of real speed
 		S_Gap = (ei.ScalarProduct(ep12)*ped1->GetV0Norm() - ei2.ScalarProduct(ep12)*ped2->GetV0Norm());
-		Dis_Gap=S_Gap * t_anti;
+		Dis_Gap=S_Gap * t_anti* beta;
 	}
 	
 	double R_ij;
@@ -526,7 +526,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 		{
 			double R_dist = dist + Dis_Gap;
 			R_dist = R_dist < 0 ? 0 : R_dist;
-			R_ij = _aPed * exp((-R_dist) / _DPed)* beta;
+			R_ij = _aPed * exp((-R_dist) / _DPed);
 			infd = infd * -1;
 			F_rep = infd * R_ij;
 		}
@@ -534,7 +534,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 		{
 			double R_dist = dist - Dis_Gap;
 			R_dist = R_dist < 0 ? 0 : R_dist;
-			R_ij = _aPed * exp((-R_dist ) / _DPed)* beta;
+			R_ij = _aPed * exp((-R_dist ) / _DPed);
 			F_rep = infd * R_ij;
 		}
 	}
