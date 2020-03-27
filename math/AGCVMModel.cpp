@@ -44,14 +44,12 @@
 using std::vector;
 using std::string;
 
-double core_size = 0.10;
-double normal_size = 0.20;
 int ShowInfo = 0;
 
 AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
 	double awall, double Dwall, double Ts, double Td, int GCVM,
 	int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co, 
-	int Anticipation, int Cooperation, int AttracForce, double AntiT, double CoopT)
+	int Anticipation, int Cooperation, int AttracForce, double AntiT, double CoopT, int Push, double CoreSize)
 {
 	_direction = dir;
 
@@ -84,6 +82,8 @@ AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, doub
 	_AttracForce = AttracForce;
 	_AntiT = AntiT;
 	_CoopT = CoopT;
+	_Pushing = Push;
+	_CoreSize = CoreSize;
 }
 
 
@@ -158,6 +158,15 @@ bool AGCVMModel::Init(Building* building)
 		E.SetCosPhi(cosPhi);
 		E.SetSinPhi(sinPhi);
 		ped->SetEllipse(E);
+
+		if (GetPushing())
+		{
+			ped->SetCore(GetCoreSize());
+		}
+		else
+		{
+			ped->SetCore(ped->GetEllipse().GetBmax());
+		}
 	}
 	return true;
 }
@@ -222,9 +231,12 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			}
 			if (ped1->GetUniqueRoomID() == ped2->GetUniqueRoomID() || subroom->IsDirectlyConnectedWith(subroom2))
 			{
-				Point ForcePush= ForceRepPed(ped1, ped2, IniDirection, periodic,true);//new method
+				if (GetPushing() == 1)
+				{
+					Point ForcePush = ForceRepPed(ped1, ped2, IniDirection, periodic, true);//new method
+					repPedPush += ForcePush;
+				}
 				Point Force = ForceRepPed(ped1, ped2, IniDirection, periodic,false);//new method
-				repPedPush += ForcePush;
 				repPed += Force;
 			}
 		} //for i
@@ -234,36 +246,10 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 		Point direction;
 		Point a_direction=ped1->GetMoveDirection();
 		Point d_direction = IniDirection + repPed + repWall+ repPedPush;
-		//d_direction = d_direction.Normalized();
 		Point AccTu = Point(0, 0);
-		/*
-		if (d_direction.ScalarProduct(IniDirection)*a_direction.ScalarProduct(IniDirection) < 0)
-		{
-			direction = d_direction.Normalized();
-		}
-		else
-		{
-			double angle_tau = GetTd();
-			AccTu = (d_direction.Normalized()*ped1->GetV0Norm() - ped1->GetV())/angle_tau;
-			Point Push = repPedPush*0;
-			direction = ped1->GetV() + (AccTu + Push)*deltaT;
-		}
-		*/
 		double angle_tau = GetTd();
 		AccTu = (d_direction.Normalized()*ped1->GetV0Norm() - ped1->GetV()) / angle_tau;
 		direction = ped1->GetV() + AccTu *deltaT;
-		/*
-		if (IniDirection.ScalarProduct(a_direction) < 0 && IniDirection.ScalarProduct(d_direction) > 0)
-		{
-			direction = d_direction;
-		}
-		else
-		{
-			double angle_tau = GetTd();
-			Point angle_v = (d_direction.Normalized() - a_direction) / angle_tau;
-			direction = a_direction + (angle_v)* deltaT;
-		}
-		*/
 		direction = direction.Normalized();
 		if (GetGCVMU() == 0)
 		{
@@ -317,7 +303,15 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 			SubRoom* subroom2 = building->GetRoom(ped2->GetRoomID())->GetSubRoom(ped2->GetSubRoomID());
 			if (ped1->GetUniqueRoomID() == ped2->GetUniqueRoomID() || subroom->IsDirectlyConnectedWith(subroom2))
 			{
-				spacings.push_back(GetSpacing(ped1, ped2, periodic,true));//index
+				if (GetPushing() == 1)
+				{
+					spacings.push_back(GetSpacing(ped1, ped2, periodic, true));
+				}
+				else
+				{
+					spacings.push_back(GetSpacing(ped1, ped2, periodic, false));
+				}
+				
 				spacings_defect.push_back(GetSpacing(ped1, ped2, periodic,true));
 				ttcs.push_back(JudgeCollision(ped1, ped2));
 			}
@@ -426,7 +420,7 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic,
 
 	//Judge conllision
 	double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
-	double l = collision == true ? 2 * core_size : 2 * normal_size;
+	double l = collision == true ? 2 * GetCoreSize() : (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax());
 	double condition2 = ei.Rotate(0, 1).ScalarProduct(ep12); // theta = pi/2. condition2 should <= than l/Distance
 	condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
 	ped2->SetPos(ped2_current);
@@ -471,13 +465,11 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int 
 	}
 	Point ei = ped1->GetMoveDirection();
 	Point ei2 = ped2->GetMoveDirection();
-	double dist = Distance - 2 * normal_size;// Distance between boundaries
-
+	double dist = Distance - (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax());// Distance between boundaries
 	if (push == true)
 	{
 		if (dist <= J_EPS)
 		{
-			double R_dist = dist + 2 * (normal_size - core_size);
 			double R_ij = _aPed * exp((-dist) / _DPed);
 			F_rep = ep12 * (-R_ij);
 			if (ShowInfo == 1)
@@ -639,7 +631,7 @@ Point AGCVMModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& cent
 	}
 
 	Point inf_direction = GetInfDirection(e0, e_iw);
-	double effdis = Distance - normal_size;//Using circle now.
+	double effdis = Distance - ped->GetEllipse().GetBmax();//Using circle now.
 	double R_iw = _aWall * exp((-effdis) / _DWall);
 	if (GetGCVMU() == 1)
 	{
@@ -712,7 +704,11 @@ double AGCVMModel::GetSpacingWall(Pedestrian* ped, const Line& l) const
 	ei_vertical._x = -ei.Normalized()._y;
 	ei_vertical._y = ei.Normalized()._x;
 	//--------------------------------------------------------
-	double b = core_size;
+	double b = ped->GetEllipse().GetBmax();
+	if (GetPushing() == 1)
+	{
+		b = GetCoreSize();
+	}
 	//--------------------------------------------------------
 	Point A1 = pp + ei_vertical * b;
 	Point A2 = pp - ei_vertical * b;
@@ -734,7 +730,7 @@ double AGCVMModel::GetSpacingWall(Pedestrian* ped, const Line& l) const
 	{
 		return spacing;
 	}
-	double effdis = dist.Norm() - core_size;
+	double effdis = dist.Norm() - b;
 	double cosangle = dist.ScalarProduct(ei) / (dist.Norm()*ei.Norm());
 	if (cosangle < 0.00001)
 	{
@@ -938,6 +934,15 @@ double AGCVMModel::GetCoopT() const
 	return _CoopT;
 }
 
+int AGCVMModel::GetPushing() const
+{
+	return _Pushing;
+}
+
+double AGCVMModel::GetCoreSize() const
+{
+	return _CoreSize;
+}
 my_pair AGCVMModel::JudgeCollision(Pedestrian* ped1, Pedestrian* ped2) const
 {
 	double ttc = FLT_MAX;

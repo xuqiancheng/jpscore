@@ -123,6 +123,7 @@ Pedestrian::Pedestrian()
 	 _cooperation = (rand() % 10000)*0.0001;
 	 _defect_speed = Point(0, 0);
 	 _defect_space = 0;
+	 _CoreSize = 0.1;
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -208,13 +209,14 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
 	 _defect_speed = Point(0, 0);
 	 _defect_space = 0;
 	 _MTTC_Person = -1;
+	 _CoreSize = 0.1;
 }
 
 
 Pedestrian::~Pedestrian()
 {
      if ((_id>72) && (_id<81)){
-          std::cout << "Ped destructor" << std::endl;
+          //std::cout << "Ped destructor" << std::endl;
      }
 }
 
@@ -1360,4 +1362,14 @@ void Pedestrian::SetMoveDirection(Point ei)
 	Point e = ei.Normalized();
 	_ellipse.SetCosPhi(e._x);
 	_ellipse.SetSinPhi(e._y);
+}
+
+double Pedestrian::GetCore() const
+{
+	return _CoreSize;
+}
+
+void Pedestrian::SetCore(double cs)
+{
+	_CoreSize = cs;
 }

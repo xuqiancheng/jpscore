@@ -111,6 +111,8 @@ public:
 		  _AttracForce = 1;
 		  _AntiT = 0;
 		  _CoopT = 0;
+		  _Pushing = 0;
+		  _CoreSize = 0.1;
 
 		  //--------  boundary ------
 		  _left_boundary = -100;
@@ -441,6 +443,14 @@ public:
 
 	double GetCoopT() const { return _CoopT; };
 
+	void SetPushing(int Pushing) { _Pushing = Pushing; };
+
+	int GetPushing() const { return _Pushing; };
+
+	void SetCoreSize(double CoreSize) { _CoreSize = CoreSize; };
+
+	double GetCoreSize() const { return _CoreSize; };
+
 #ifdef _JPS_AS_A_SERVICE
 
      const bool GetRunAsService() const { return _runAsService; };
@@ -521,6 +531,8 @@ private:
 	 int _AttracForce;
 	 double _AntiT;
 	 double _CoopT;
+	 int _Pushing;
+	 double _CoreSize;
 
      //ff router quickest
      double _recalc_interval;

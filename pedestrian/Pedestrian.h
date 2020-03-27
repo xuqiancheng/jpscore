@@ -163,6 +163,7 @@ private:
 	 double _defect_space = 0;
 
 	 int _MTTC_Person = -1;
+	 double _CoreSize = 0.1;
 
 public:
      // public member
@@ -542,6 +543,10 @@ public:
 	 Point GetMoveDirection() const;
 
 	 void SetMoveDirection(Point ei);
+
+	 double GetCore() const;
+
+	 void SetCore(double cs);
 };
 
 #endif  /* _PEDESTRIAN_H */

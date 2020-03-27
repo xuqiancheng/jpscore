@@ -90,6 +90,8 @@ private:
 	int _AttracForce = 1;
 	double _AntiT=0;
 	double _CoopT = 0;
+	int _Pushing = 0;
+	double _CoreSize = 0.1;
 
 	// Functions
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
@@ -116,6 +118,8 @@ private:
 	int GetAttracForce() const;
 	double GetAntiT() const;
 	double GetCoopT() const;
+	int GetPushing() const;
+	double GetCoreSize() const;
 
 	my_pair JudgeCollision(Pedestrian* ped1, Pedestrian* ped2) const;
 	Point GetInfDirection(Point e0, Point ep12) const;
@@ -125,7 +129,7 @@ public:
 	AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
 		double awall, double Dwall, double Ts, double Td, int GCVM, 
 		int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co,
-		int Anticipation, int Cooperation, int AttracForce, double AntiT, double CoopT);
+		int Anticipation, int Cooperation, int AttracForce, double AntiT, double CoopT, int Push, double CoreSize);
 	virtual ~AGCVMModel(void);
 
 

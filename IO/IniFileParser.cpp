@@ -2489,8 +2489,21 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 			string CoopT = xModelPara->FirstChildElement("AGCVM")->Attribute("CoopTime");
 			_config->SetCoopT(atof(CoopT.c_str()));
 		}
-		Log->Write("INFO: \tAGCVM anticipation=%d, cooperation=%d, attractive=%d, AntiTime=%0.2f, CoopTime=%0.2f.",
-			_config->GetAnticipation(), _config->GetCooperation(), _config->GetAttracForce(), _config->GetAntiT(), _config->GetCoopT());
+		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("pushing"))
+			_config->SetPushing(0);
+		else {
+			string Pushing = xModelPara->FirstChildElement("AGCVM")->Attribute("pushing");
+			_config->SetPushing(atoi(Pushing.c_str()));
+		}
+		if (!xModelPara->FirstChildElement("AGCVM")->Attribute("CoreSize"))
+			_config->SetCoreSize(0.1);
+		else {
+			string CoreSize = xModelPara->FirstChildElement("AGCVM")->Attribute("CoreSize");
+			_config->SetCoreSize(atof(CoreSize.c_str()));
+		}
+		Log->Write("INFO: \tAGCVM anticipation=%d, cooperation=%d, attractive=%d, AntiTime=%0.2f, CoopTime=%0.2f, pushing=%d, CoreSize=%0.2f.",
+			_config->GetAnticipation(), _config->GetCooperation(), _config->GetAttracForce(), 
+			_config->GetAntiT(), _config->GetCoopT(), _config->GetPushing(), _config->GetCoreSize());
 	}
 	//Parsing the agent parameters
 	TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
@@ -2500,6 +2513,7 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
 		_config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
 		_config->GetUpdate(), _config->GetWaitingTime(),
 		_config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
-		_config->GetAnticipation(), _config->GetCooperation(), _config->GetAttracForce(), _config->GetAntiT(), _config->GetCoopT())));
+		_config->GetAnticipation(), _config->GetCooperation(), _config->GetAttracForce(), _config->GetAntiT(), _config->GetCoopT(),
+		_config->GetPushing(), _config->GetCoreSize())));
 	return true;
 }
