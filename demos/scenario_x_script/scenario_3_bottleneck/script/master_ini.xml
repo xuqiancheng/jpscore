@@ -2,14 +2,14 @@
 
 <!-- <JuPedSim project="JPS-Project" version="0.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ini.xsd"> -->
 <JuPedSim project="JPS-Project" version="0.8" xmlns:xsi="http://xsd.jupedsim.org/jps_ini_core.xsd" xsi:noNamespaceSchemaLocation="ini.xsd">
-  <seed>linspace(1,10000,10)</seed>
+  <seed>linspace(1,10001,11)</seed>
   <!-- <seed>1</seed> -->
   <num_threads>8</num_threads>
-  <max_sim_time unit="sec">200</max_sim_time>
+  <max_sim_time unit="sec">500</max_sim_time>
   <!-- geometry file -->
-  <geometry>../demos/scenario_x_script/scenario_3_bottleneck/diffferent_width/geometries</geometry>
+  <geometry>../demos/scenario_x_script/scenario_3_bottleneck/script/geometries</geometry>
   <!-- traectories file and format -->
-  <trajectories format="xml-plain" embed_mesh="false" fps="20">
+  <trajectories format="xml-plain" embed_mesh="false" fps="20" color_mode ="group">
     <file location="Traj_test_13.xml" />
   </trajectories>
   <!-- where to store the logs -->
@@ -64,12 +64,12 @@
         <linkedcells cell_size="300" enabled="true" />
         <force_ped D="0.1" a="3" />
         <force_wall D="0.05" a="6" />
-		<time_parameters Td="0.3" Ts="0.45" />
+		<time_parameters Td="0.3" Ts="1.06" />
 		<GCVM using="1" />
 		<update_method parallel="1"/>
 		<waiting_time Tw="10000"/>	
 		<boundary left="0" right="26" up="4" down="-4" cutoff="2" />
-		<AGCVM CoopTime="0.1" AntiTime="0.1" anticipation="1" attractive="1" cooperation="1" />
+		<AGCVM pushing="1" CoreSize="0.10" anticipation="1" attractive="1" AntiTime="0.3" cooperation="0" CoopTime="0.0"/>
       </model_parameters>
       <agent_parameters agent_parameter_id="1">
         <v0 mu="1.34" sigma="0.26" />
@@ -78,7 +78,7 @@
         <amin mu="0.20" sigma="0.00000" />
         <atau mu="0.0" sigma="0.00000" />
 		<tau mu="0.5" sigma="0.000" />
-		<shape circle="0" /> 
+		<shape circle="1" /> 
       </agent_parameters>
 	  <agent_parameters agent_parameter_id="2">
         <v0 mu="1.34" sigma="0.26" />
