@@ -362,6 +362,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		// We should save all the relations
 		const Point& pos = ped->GetPos();
 		double distGoal = (ped->GetExitLine()->GetCentre()-pos).Norm();// We use half circle here
+		distGoal=(Point(10,4)-pos).Norm();// To avoid stupid clogging
 		double DRange = GetAreaSize();
 		bool Inrange1=distGoal<DRange?1:0;
 		if (spacing < 0.01) // To use distance patramteres
@@ -383,6 +384,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 							{
 								const Point& pos2 = ped2->GetPos();
 								double distGoal2 = (ped2->GetExitLine()->GetCentre()-pos2).Norm();// We use half circle here
+								distGoal2=(Point(10,4)-pos).Norm();// To avoid stupid clogging
 								Inrange2=distGoal2<DRange?1:0;
 								break;
 							}
