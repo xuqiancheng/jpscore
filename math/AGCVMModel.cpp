@@ -243,10 +243,12 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 
 		Point repWall = ForceRepRoom(ped1, subroom, IniDirection);
 		// the influence from next subroom should be considered
+		/*
 		for (const auto & subr : subroom->GetNeighbors())
 		{
 			repWall = repWall + ForceRepRoom(ped1, subr, IniDirection);
 		}
+		*/
 		Point direction;
 		Point a_direction=ped1->GetMoveDirection();
 		Point d_direction = IniDirection + repPed + repWall+ repPedPush;
