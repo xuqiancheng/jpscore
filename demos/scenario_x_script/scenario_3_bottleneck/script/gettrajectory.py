@@ -11,7 +11,11 @@ import time
 from os import path
 from sys import argv, exit
 
-utestdir='/home/qiancheng/Workspace/Simulations/jpscore/Utest'
+plat=sys.platform
+if plat=='win32':
+    utestdir = 'F:\workspace\GCVM\jpscore\\Utest'
+else:
+    utestdir='/home/qiancheng/Workspace/Simulations/jpscore/Utest'
 sys.path.append(utestdir)
 from utils import SUCCESS, FAILURE
 
@@ -38,7 +42,10 @@ if __name__=="__main__":
     print(TRUNK)
     #get trajectory
     inifiles=glob.glob("inifiles/*.xml")
-    executable="%s/bin/jpscore"%TRUNK
+    if plat == 'win32':
+        executable = "%s/bin/Release/jpscore.exe" % TRUNK
+    else:
+        executable="%s/bin/jpscore"%TRUNK
     if not path.exists(executable):
         exit(FAILURE)
 
