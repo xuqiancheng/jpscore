@@ -62,7 +62,7 @@
 		<update_method parallel="1"/>
 		<waiting_time Tw="1000"/>	
 		<boundary left="0" right="26" up="100" down="-100" cutoff="10" />
-		<AGCVM pushing="1" CoreSize="0.1" anticipation="1" attractive="1" AntiTime="0.1" cooperation="0" CoopTime="0.0"/>
+		<AGCVM pushing="1" CoreSize="0.1" anticipation="1" attractive="1" AntiTime="0.3" cooperation="0" CoopTime="0.0"/>
       </model_parameters>
       <agent_parameters agent_parameter_id="1">
         <v0 mu="1.34" sigma="0.26" />
