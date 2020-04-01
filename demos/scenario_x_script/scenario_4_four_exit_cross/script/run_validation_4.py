@@ -61,7 +61,7 @@ if __name__ == "__main__":
     subprocess.call(["python", "makeini.py", "-f", "%s/master_ini.xml" % DIR])
 
     # Specific the position of jpscore
-    os.chdir("F:\workspace\GCVM\jpscore\\bin\Release")
+    os.chdir("/home/qiancheng/Workspace/Simulations/jpscore/bin")
     TRUNK = os.getcwd()
     logging.info("change directory to %s" % TRUNK)
     executable = "%s/jpscore" % TRUNK
