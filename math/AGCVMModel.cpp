@@ -242,7 +242,11 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 		} //for i
 
 		Point repWall = ForceRepRoom(ped1, subroom, IniDirection);
-
+		// the influence from next subroom should be considered
+		for (const auto & subr : subroom->GetNeighbors())
+		{
+			repWall = repWall + ForceRepRoom(ped1, subr, IniDirection);
+		}
 		Point direction;
 		Point a_direction=ped1->GetMoveDirection();
 		Point d_direction = IniDirection + repPed + repWall+ repPedPush;
@@ -321,6 +325,12 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 		std::sort(spacings.begin(), spacings.end(), sort_pred_agcvm());
 		double spacing = spacings.size() == 0 ? 100 : spacings[0].first;
 		double spacing_wall = GetSpacingRoom(ped1, subroom);
+		// neighbour subroom needs to be considered
+		for (const auto & subr : subroom->GetNeighbors())
+		{
+			double swn = GetSpacingRoom(ped1, subr);
+			spacing_wall = spacing_wall > swn ? swn : spacing_wall;
+		}
 		spacing = spacing < spacing_wall ? spacing : spacing_wall;
 
 		std::sort(spacings_defect.begin(), spacings_defect.end(), sort_pred_agcvm());
