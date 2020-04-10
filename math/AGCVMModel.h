@@ -95,9 +95,9 @@ private:
 
 	// Functions
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
-	Point e0(Pedestrian *ped, Room* room) const;
+	Point DesireDirection(Pedestrian *ped, Room* room) const;
 	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic, bool collision) const;
-	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, int periodic, bool push) const;
+	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Building* building, int periodic, bool push) const;
 	Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
 	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0) const;
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom) const;
