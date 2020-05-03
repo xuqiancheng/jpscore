@@ -122,17 +122,20 @@ TrajectoriesTXT::TrajectoriesTXT() : Trajectories()
         return fmt::format(FMT_STRING("{}\t"), ped->GetGroup());
     };
 
-	// Add header, info and output for covid
-	_optionalOutputHeader[OptionalOutput::covid] = "Inf\tVC\tVG\tPI\t";
-	_optionalOutputInfo[OptionalOutput::covid]   =
-		"#Inf: If the pedestrian is infective\n"
-		"#VC: Amount of virus contacted\n"
-		"#VG: Probability of virus entering the body\n"
-		"#PI: Probability of be infected\n";
-	_optionalOutput[OptionalOutput::covid]       = [](const Pedestrian * ped) {
-		return fmt::format(FMT_STRING("{}\t{:.2f}\t{:.2f}\t{:.2f}\t"), 
-			ped->GetInfection(), ped->GetVirusContact(), ped->GetVirusget(), ped->GetProInfect());
-	};
+    // Add header, info and output for covid
+    _optionalOutputHeader[OptionalOutput::covid] = "Inf\tVC\tVG\tPI\t";
+    _optionalOutputInfo[OptionalOutput::covid]   = "#Inf: If the pedestrian is infective\n"
+                                                 "#VC: Amount of virus contacted\n"
+                                                 "#VG: Probability of virus entering the body\n"
+                                                 "#PI: Probability of be infected\n";
+    _optionalOutput[OptionalOutput::covid] = [](const Pedestrian * ped) {
+        return fmt::format(
+            FMT_STRING("{}\t{:.2f}\t{:.2f}\t{:.2f}\t"),
+            ped->GetInfection(),
+            ped->GetVirusContact(),
+            ped->GetVirusget(),
+            ped->GetProInfect());
+    };
 }
 
 void TrajectoriesTXT::WriteHeader(long nPeds, double fps, Building * building, int, int count)

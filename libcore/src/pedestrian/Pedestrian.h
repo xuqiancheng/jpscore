@@ -147,16 +147,16 @@ private:
     bool _waiting    = false;
     Point _waitingPos;
 
-	//covid_parameters
-	int _infection;
-	double _covid_k;
-	double _covid_D;
-	double _covid_P;
-	double _covid_Q;
-	double _covid_alpha;
-	double _virus_contact;
-	double _virus_get;
-	double _pro_infect;
+    //covid_parameters
+    int _infection;
+    double _covid_k;
+    double _covid_D;
+    double _covid_P;
+    double _covid_Q;
+    double _covid_alpha;
+    double _virus_contact;
+    double _virus_get;
+    double _pro_infect;
 
 public:
     // public member
@@ -554,39 +554,39 @@ public:
 
     const Point GetLastPosition() const;
 
-	void SetInfection(int infection);
+    void SetInfection(int infection);
 
-	int GetInfection() const;
+    int GetInfection() const;
 
-	void SetCovidK(double k);
+    void SetCovidK(double k);
 
-	double GetCovidK() const;
+    double GetCovidK() const;
 
-	void SetCovidD(double D);
+    void SetCovidD(double D);
 
-	double GetCovidD() const;
+    double GetCovidD() const;
 
-	void SetCovidP(double P);
+    void SetCovidP(double P);
 
-	double GetCovidP() const;
+    double GetCovidP() const;
 
-	void SetCovidQ(double Q);
+    void SetCovidQ(double Q);
 
-	double GetCovidQ() const;
+    double GetCovidQ() const;
 
-	void SetCovidAlpha(double alpha);
+    void SetCovidAlpha(double alpha);
 
-	double GetCovidAlpha() const;
+    double GetCovidAlpha() const;
 
-	void SetVirusContact(double vc);
+    void SetVirusContact(double vc);
 
-	double GetVirusContact() const;
+    double GetVirusContact() const;
 
-	void SetVirusGet(double vg);
+    void SetVirusGet(double vg);
 
-	double GetVirusget() const;
+    double GetVirusget() const;
 
-	void SetProInfect(double proi);
+    void SetProInfect(double proi);
 
-	double GetProInfect() const;
+    double GetProInfect() const;
 };

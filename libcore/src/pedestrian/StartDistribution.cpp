@@ -54,7 +54,7 @@ StartDistribution::StartDistribution(int seed)
     _yMin               = -FLT_MAX;
     _yMax               = FLT_MAX;
     _groupParameters    = nullptr;
-	_covidParameters    = nullptr;
+    _covidParameters    = nullptr;
     _positions_dir      = "";
     _unit_traj          = "m";
     static bool _seeded = false; // seed only once, not every time
@@ -230,16 +230,16 @@ StartDistribution::GenerateAgent(Building * building, int * pid, std::vector<Poi
         _groupParameters->GetEscalatorDownStairs(),
         _groupParameters->GetV0IdleEscalatorUpStairs(),
         _groupParameters->GetV0IdleEscalatorDownStairs());
-    
-	//covid parameters
-	ped->SetInfection(_covidParameters->GetInfection());
-	ped->SetCovidK(_covidParameters->Getk());
-	ped->SetCovidD(_covidParameters->GetD());
-	ped->SetCovidP(_covidParameters->GetP());
-	ped->SetCovidQ(_covidParameters->GetQ());
-	ped->SetCovidAlpha(_covidParameters->GetAlpha());
 
-	// first default Position
+    //covid parameters
+    ped->SetInfection(_covidParameters->GetInfection());
+    ped->SetCovidK(_covidParameters->Getk());
+    ped->SetCovidD(_covidParameters->GetD());
+    ped->SetCovidP(_covidParameters->GetP());
+    ped->SetCovidQ(_covidParameters->GetQ());
+    ped->SetCovidAlpha(_covidParameters->GetAlpha());
+
+    // first default Position
     int index = -1;
 
     //in the case a range was specified
@@ -336,7 +336,7 @@ AgentsParameters * StartDistribution::GetGroupParameters()
 
 CovidParameters * StartDistribution::GetCovidParameters()
 {
-	return _covidParameters;
+    return _covidParameters;
 }
 void StartDistribution::SetGroupParameters(AgentsParameters * groupParameters)
 {
@@ -345,7 +345,7 @@ void StartDistribution::SetGroupParameters(AgentsParameters * groupParameters)
 
 void StartDistribution::SetCovidParameters(CovidParameters * covidParameters)
 {
-	_covidParameters = covidParameters;
+    _covidParameters = covidParameters;
 }
 
 void StartDistribution::Getbounds(double bounds[4])

@@ -79,7 +79,7 @@ enum RoutingStrategy {
 };
 
 enum OperativModels {
-    MODEL_GCFM = 1,
+    MODEL_GCFM     = 1,
     MODEL_VELOCITY = 3,
 };
 
@@ -92,7 +92,7 @@ enum AgentColorMode {
     BY_GROUP,
     BY_FINAL_GOAL,
     BY_INTERMEDIATE_GOAL,
-	BY_COVID
+    BY_COVID
 };
 
 enum LineIntersectType {
@@ -143,7 +143,7 @@ enum class OptionalOutput {
     spotlight         = 5,
     router            = 6,
     group             = 7,
-	covid             = 8
+    covid             = 8
 }; // enum class
 
 // Describes the door

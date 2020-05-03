@@ -267,8 +267,8 @@ bool IniFileParser::ParseHeader(TiXmlNode * xHeader)
             Pedestrian::SetColorMode(AgentColorMode::BY_FINAL_GOAL);
         if(color_mode == "intermediate_goal")
             Pedestrian::SetColorMode(AgentColorMode::BY_INTERMEDIATE_GOAL);
-		if (color_mode == "covid")
-			Pedestrian::SetColorMode(AgentColorMode::BY_COVID);
+        if(color_mode == "covid")
+            Pedestrian::SetColorMode(AgentColorMode::BY_COVID);
 
         fs::path trajectoryFile = _config->GetTrajectoriesFile();
         //a file descriptor was given
@@ -407,19 +407,18 @@ bool IniFileParser::ParseHeader(TiXmlNode * xHeader)
                 }
             }
 
-			//check if covid is wanted
-			if (const char * attribute = node->Attribute("covid"); attribute) {
-				std::string in = xmltoa(attribute, "false");
-				std::transform(in.begin(), in.end(), in.begin(), ::tolower);
+            //check if covid is wanted
+            if(const char * attribute = node->Attribute("covid"); attribute) {
+                std::string in = xmltoa(attribute, "false");
+                std::transform(in.begin(), in.end(), in.begin(), ::tolower);
 
-				if (in == "true") {
-					_config->AddOptionalOutputOption(OptionalOutput::covid);
-					LOG_INFO("covid added to output");
-				}
-				else {
-					LOG_INFO("covid not added to output");
-				}
-			}
+                if(in == "true") {
+                    _config->AddOptionalOutputOption(OptionalOutput::covid);
+                    LOG_INFO("covid added to output");
+                } else {
+                    LOG_INFO("covid not added to output");
+                }
+            }
         }
     }
 
@@ -753,87 +752,91 @@ void IniFileParser::ParseAgentParameters(TiXmlElement * operativModel, TiXmlNode
 
 void IniFileParser::ParseCovidParameters(TiXmlElement * operativModel, TiXmlNode * agentsDistri)
 {
-	LOG_INFO("Parsing covid parameters");
-	std::vector<int> usedCovidParams;
-	usedCovidParams.clear();
-	for (TiXmlElement * e = agentsDistri->FirstChildElement("group"); e;
-		e = e->NextSiblingElement("group")) {
-		int CovidParams = -1;
-		if (e->Attribute("covid_parameter_id")) {
-			CovidParams = atoi(e->Attribute("covid_parameter_id"));
-			if (std::find(usedCovidParams.begin(), usedCovidParams.end(), CovidParams) ==
-				usedCovidParams.end()) {
-				usedCovidParams.emplace_back(CovidParams);
-			}
-		}
-	}
-	for (TiXmlElement * xCovidPara = operativModel->FirstChildElement("covid_parameters");
-		xCovidPara;
-		xCovidPara = xCovidPara->NextSiblingElement("covid_parameters")) {
-		int para_id = xmltoi(xCovidPara->Attribute("covid_parameter_id"), -1);
-		if (std::find(usedCovidParams.begin(), usedCovidParams.end(), para_id) !=
-			usedCovidParams.end()) {
-			LOG_INFO("Parsing the covid parameter id [{}]", para_id);
+    LOG_INFO("Parsing covid parameters");
+    std::vector<int> usedCovidParams;
+    usedCovidParams.clear();
+    for(TiXmlElement * e = agentsDistri->FirstChildElement("group"); e;
+        e                = e->NextSiblingElement("group")) {
+        int CovidParams = -1;
+        if(e->Attribute("covid_parameter_id")) {
+            CovidParams = atoi(e->Attribute("covid_parameter_id"));
+            if(std::find(usedCovidParams.begin(), usedCovidParams.end(), CovidParams) ==
+               usedCovidParams.end()) {
+                usedCovidParams.emplace_back(CovidParams);
+            }
+        }
+    }
+    for(TiXmlElement * xCovidPara = operativModel->FirstChildElement("covid_parameters");
+        xCovidPara;
+        xCovidPara = xCovidPara->NextSiblingElement("covid_parameters")) {
+        int para_id = xmltoi(xCovidPara->Attribute("covid_parameter_id"), -1);
+        if(std::find(usedCovidParams.begin(), usedCovidParams.end(), para_id) !=
+           usedCovidParams.end()) {
+            LOG_INFO("Parsing the covid parameter id [{}]", para_id);
 
-			auto covidParameters = std::shared_ptr<CovidParameters>(
-				new CovidParameters(para_id, _config->GetSeed()));
-			_config->AddCovidParameters(covidParameters, para_id);
+            auto covidParameters =
+                std::shared_ptr<CovidParameters>(new CovidParameters(para_id, _config->GetSeed()));
+            _config->AddCovidParameters(covidParameters, para_id);
 
-			//infection status
-			if (xCovidPara->FirstChild("infective")) {
-				std::string infective = xCovidPara->FirstChild("infective")->FirstChild()->Value();
-				if (!xCovidPara->FirstChild("infective")->FirstChild()->Value())
-					covidParameters->SetInfection(0);
-				else {
-					std::string infective = xCovidPara->FirstChild("infective")->FirstChild()->Value();
-					covidParameters->SetInfection(std::stod(infective));
-				}
-				LOG_INFO("Infective <{}>", covidParameters->GetInfection());
-			}
-			
-			//Fitting parameters
-			if (xCovidPara->FirstChild("Model_param")) {
-				if (!xCovidPara->FirstChildElement("Model_param")->Attribute("k"))
-					covidParameters->Setk(1); // default value
-				else {
-					std::string k = xCovidPara->FirstChildElement("Model_param")->Attribute("k");
-					covidParameters->Setk(std::stod(k));
-				}
+            //infection status
+            if(xCovidPara->FirstChild("infective")) {
+                std::string infective = xCovidPara->FirstChild("infective")->FirstChild()->Value();
+                if(!xCovidPara->FirstChild("infective")->FirstChild()->Value())
+                    covidParameters->SetInfection(0);
+                else {
+                    std::string infective =
+                        xCovidPara->FirstChild("infective")->FirstChild()->Value();
+                    covidParameters->SetInfection(std::stod(infective));
+                }
+                LOG_INFO("Infective <{}>", covidParameters->GetInfection());
+            }
 
-				if (!xCovidPara->FirstChildElement("Model_param")->Attribute("D"))
-					covidParameters->SetD(1); // default value in [m]
-				else {
-					std::string D = xCovidPara->FirstChildElement("Model_param")->Attribute("D");
-					covidParameters->SetD(std::stod(D));
-				}
-				LOG_INFO("Model_param k={:.2f}, D={:.2f}", covidParameters->Getk(), covidParameters->GetD());
-			}
+            //Fitting parameters
+            if(xCovidPara->FirstChild("Model_param")) {
+                if(!xCovidPara->FirstChildElement("Model_param")->Attribute("k"))
+                    covidParameters->Setk(1); // default value
+                else {
+                    std::string k = xCovidPara->FirstChildElement("Model_param")->Attribute("k");
+                    covidParameters->Setk(std::stod(k));
+                }
 
-			//P: the probability of releasing virus
-			if (xCovidPara->FirstChild("P")) {
-				double mu = xmltof(xCovidPara->FirstChildElement("P")->Attribute("mu"));
-				double sigma = xmltof(xCovidPara->FirstChildElement("P")->Attribute("sigma"));
-				covidParameters->InitP(mu, sigma);
-				LOG_INFO("P mu={} , sigma={}", mu, sigma);
-			}
+                if(!xCovidPara->FirstChildElement("Model_param")->Attribute("D"))
+                    covidParameters->SetD(1); // default value in [m]
+                else {
+                    std::string D = xCovidPara->FirstChildElement("Model_param")->Attribute("D");
+                    covidParameters->SetD(std::stod(D));
+                }
+                LOG_INFO(
+                    "Model_param k={:.2f}, D={:.2f}",
+                    covidParameters->Getk(),
+                    covidParameters->GetD());
+            }
 
-			//Q: the probability of infection after the virus entering the body
-			if (xCovidPara->FirstChild("Q")) {
-				double mu = xmltof(xCovidPara->FirstChildElement("Q")->Attribute("mu"));
-				double sigma = xmltof(xCovidPara->FirstChildElement("Q")->Attribute("sigma"));
-				covidParameters->InitQ(mu, sigma);
-				LOG_INFO("Q mu={} , sigma={}", mu, sigma);
-			}
+            //P: the probability of releasing virus
+            if(xCovidPara->FirstChild("P")) {
+                double mu    = xmltof(xCovidPara->FirstChildElement("P")->Attribute("mu"));
+                double sigma = xmltof(xCovidPara->FirstChildElement("P")->Attribute("sigma"));
+                covidParameters->InitP(mu, sigma);
+                LOG_INFO("P mu={} , sigma={}", mu, sigma);
+            }
 
-			//alpha: the protecting measurement taken by the pedestrian
-			if (xCovidPara->FirstChild("alpha")) {
-				double mu = xmltof(xCovidPara->FirstChildElement("alpha")->Attribute("mu"));
-				double sigma = xmltof(xCovidPara->FirstChildElement("alpha")->Attribute("sigma"));
-				covidParameters->InitAlpha(mu, sigma);
-				LOG_INFO("alpha mu={} , sigma={}", mu, sigma);
-			}
-		}
-	}
+            //Q: the probability of infection after the virus entering the body
+            if(xCovidPara->FirstChild("Q")) {
+                double mu    = xmltof(xCovidPara->FirstChildElement("Q")->Attribute("mu"));
+                double sigma = xmltof(xCovidPara->FirstChildElement("Q")->Attribute("sigma"));
+                covidParameters->InitQ(mu, sigma);
+                LOG_INFO("Q mu={} , sigma={}", mu, sigma);
+            }
+
+            //alpha: the protecting measurement taken by the pedestrian
+            if(xCovidPara->FirstChild("alpha")) {
+                double mu    = xmltof(xCovidPara->FirstChildElement("alpha")->Attribute("mu"));
+                double sigma = xmltof(xCovidPara->FirstChildElement("alpha")->Attribute("sigma"));
+                covidParameters->InitAlpha(mu, sigma);
+                LOG_INFO("alpha mu={} , sigma={}", mu, sigma);
+            }
+        }
+    }
 }
 
 bool IniFileParser::ParseRoutingStrategies(TiXmlNode * routingNode, TiXmlNode * agentsDistri)

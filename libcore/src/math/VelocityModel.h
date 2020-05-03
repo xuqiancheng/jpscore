@@ -130,13 +130,14 @@ private:
       */
     Point ForceRepWall(Pedestrian * ped, const Line & l, const Point & centroid, bool inside) const;
 
-	NavLine * RandomExitLine(Pedestrian * ped, Room * room) const;
+    NavLine * RandomExitLine(Pedestrian * ped, Room * room) const;
 
-	double VirusContactAmount(Pedestrian * ped1, Pedestrian * ped2) const;
+    double VirusContactAmount(Pedestrian * ped1, Pedestrian * ped2) const;
 
-	double VirusGetAmount(Pedestrian * ped) const;
+    double VirusGetAmount(Pedestrian * ped) const;
 
-	double ProbInfect(Pedestrian *ped) const;
+    double ProbInfect(Pedestrian * ped) const;
+
 public:
     VelocityModel(
         std::shared_ptr<DirectionManager> dir,

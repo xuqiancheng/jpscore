@@ -32,97 +32,97 @@
 class CovidParameters
 {
 public:
-	/**
+    /**
 	 * Constructor
 	 */
-	CovidParameters(int id, int seed = 1234);
+    CovidParameters(int id, int seed = 1234);
 
-	/**
+    /**
 	 * Destructor
 	 */
-	virtual ~CovidParameters();
+    virtual ~CovidParameters();
 
-	/**
+    /**
 	 * @return the ID of the covid parameters sets.
 	 */
-	int GetID();
+    int GetID();
 
-	/**
+    /**
 	 * Set the status of infection
 	 * @param infection, the status of infection
 	 */
-	void SetInfection(int infection);
+    void SetInfection(int infection);
 
-	/**
+    /**
 	 * Set the value of parameter k
 	 */
-	void Setk(double k);
+    void Setk(double k);
 
-	/**
+    /**
 	 * Set the value of parameter D
 	 */
-	void SetD(double D);
+    void SetD(double D);
 
-	/**
+    /**
 	 * Initialize the probability of releasing virus
 	 * @param mean, mean value
 	 * @param stv, standard deviation
 	 */
-	void InitP(double mean, double stdv);
+    void InitP(double mean, double stdv);
 
-	/**
+    /**
 	 * Initialize the probability of infection after the virus entering the body
 	 * @param mean, mean value
 	 * @param stv, standard deviation
 	 */
-	void InitQ(double mean, double stdv);
-	
-	/**
+    void InitQ(double mean, double stdv);
+
+    /**
 	 * Initialize the protecting measurement taken by the pedestrian
 	 * @param mean, mean value
 	 * @param stv, standard deviation
 	 */
-	void InitAlpha(double mean, double stdv);
+    void InitAlpha(double mean, double stdv);
 
-	/**
+    /**
 	 * @return the status of infection
 	 */
-	int GetInfection();
+    int GetInfection();
 
-	/**
+    /**
 	 * @return the value of parameter k
 	 */
-	double Getk();
+    double Getk();
 
-	/**
+    /**
 	 * @return the value of parameter D
 	 */
-	double GetD();
+    double GetD();
 
 
-	/**
+    /**
 	 * @return a random number following the distribution
 	 */
-	double GetP();
+    double GetP();
 
-	/**
+    /**
 	 * @return a random number following the distribution
 	 */
-	double GetQ();
+    double GetQ();
 
-	/**
+    /**
 	 * @return a random number following the distribution
 	 */
-	double GetAlpha();
+    double GetAlpha();
+
 private:
-	int _id;
-	int _infective = 0;
-	double _fitting_k = 1;
-	double _fitting_D = 1;
-	std::default_random_engine _generator;
-	std::normal_distribution<double> _P;
-	std::normal_distribution<double> _Q;
-	std::normal_distribution<double> _alpha;
-	const double _judge = 10000;
+    int _id;
+    int _infective    = 0;
+    double _fitting_k = 1;
+    double _fitting_D = 1;
+    std::default_random_engine _generator;
+    std::normal_distribution<double> _P;
+    std::normal_distribution<double> _Q;
+    std::normal_distribution<double> _alpha;
+    const double _judge = 10000;
 };
-

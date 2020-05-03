@@ -49,7 +49,7 @@ private:
 
     void ParseAgentParameters(TiXmlElement * operativModel, TiXmlNode * agentDistri);
 
-	void ParseCovidParameters(TiXmlElement * operativModel, TiXmlNode * agentDistri);
+    void ParseCovidParameters(TiXmlElement * operativModel, TiXmlNode * agentDistri);
 
     bool ParseRoutingStrategies(TiXmlNode * routingNode, TiXmlNode * agentDistri);
 

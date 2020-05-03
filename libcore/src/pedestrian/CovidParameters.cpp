@@ -32,78 +32,76 @@
 
 CovidParameters::CovidParameters(int id, int seed)
 {
-	_id = id;
-	_generator = std::default_random_engine(seed);
+    _id        = id;
+    _generator = std::default_random_engine(seed);
 }
 
 CovidParameters::~CovidParameters() {}
 
 int CovidParameters::GetID()
 {
-	return _id;
+    return _id;
 }
 
 void CovidParameters::SetInfection(int infection)
 {
-	_infective = infection;
+    _infective = infection;
 }
 
 void CovidParameters::Setk(double k)
 {
-	_fitting_k = k;
+    _fitting_k = k;
 }
 
 void CovidParameters::SetD(double D)
 {
-	_fitting_D = D;
+    _fitting_D = D;
 }
 
 int CovidParameters::GetInfection()
 {
-	return _infective;
+    return _infective;
 }
 
 void CovidParameters::InitP(double mean, double stdv)
 {
-	stdv = stdv == 0 ? _judge : stdv;
-	_P = std::normal_distribution<double>(mean, stdv);
+    stdv = stdv == 0 ? _judge : stdv;
+    _P   = std::normal_distribution<double>(mean, stdv);
 }
 
 void CovidParameters::InitQ(double mean, double stdv)
 {
-	stdv = stdv == 0 ? _judge : stdv;
-	_Q = std::normal_distribution<double>(mean, stdv);
+    stdv = stdv == 0 ? _judge : stdv;
+    _Q   = std::normal_distribution<double>(mean, stdv);
 }
 
 void CovidParameters::InitAlpha(double mean, double stdv)
 {
-	stdv = stdv == 0 ? _judge : stdv;
-	_alpha = std::normal_distribution<double>(mean, stdv);
+    stdv   = stdv == 0 ? _judge : stdv;
+    _alpha = std::normal_distribution<double>(mean, stdv);
 }
 
 double CovidParameters::GetP()
 {
-	return _P.stddev() == _judge ? _P.mean() : _P(_generator);
+    return _P.stddev() == _judge ? _P.mean() : _P(_generator);
 }
 
 double CovidParameters::GetQ()
 {
-	return _Q.stddev() == _judge ? _Q.mean() : _Q(_generator);
+    return _Q.stddev() == _judge ? _Q.mean() : _Q(_generator);
 }
 
 double CovidParameters::GetAlpha()
 {
-	return _alpha.stddev() == _judge ? _alpha.mean() : _alpha(_generator);
+    return _alpha.stddev() == _judge ? _alpha.mean() : _alpha(_generator);
 }
 
 double CovidParameters::Getk()
 {
-	return _fitting_k;
+    return _fitting_k;
 }
 
 double CovidParameters::GetD()
 {
-	return _fitting_D;
+    return _fitting_D;
 }
-
-
