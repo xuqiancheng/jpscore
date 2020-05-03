@@ -91,7 +91,8 @@ enum AgentColorMode {
     BY_SPOTLIGHT,
     BY_GROUP,
     BY_FINAL_GOAL,
-    BY_INTERMEDIATE_GOAL
+    BY_INTERMEDIATE_GOAL,
+	BY_COVID
 };
 
 enum LineIntersectType {
@@ -142,6 +143,7 @@ enum class OptionalOutput {
     spotlight         = 5,
     router            = 6,
     group             = 7,
+	covid             = 8
 }; // enum class
 
 // Describes the door

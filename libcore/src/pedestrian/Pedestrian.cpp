@@ -109,6 +109,17 @@ Pedestrian::Pedestrian()
     _WalkingSpeed     = nullptr;
     _ToxicityAnalysis = nullptr;
     _waitingPos = Point(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+
+	//covid parameters
+	_infection = 0;
+	_covid_k = 1.0;
+	_covid_D = 1.0;
+	_covid_P = 0.3;
+	_covid_Q = 0.3;
+	_covid_alpha = 1.0;
+	_virus_contact = 0;
+	_virus_get = 0;
+	_pro_infect = 0;
 }
 
 Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & building) :
@@ -183,6 +194,17 @@ Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & bu
     _ToxicityAnalysis = nullptr;
     _WalkingSpeed     = nullptr;
     _waitingPos = Point(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+	
+	//covid parameters
+	_infection = 0;
+	_covid_k = 1.0;
+	_covid_D = 1.0;
+	_covid_P = 0.3;
+	_covid_Q = 0.3;
+	_covid_alpha = 1.0;
+	_virus_contact = 0;
+	_virus_get = 0;
+	_pro_infect = 0;
 }
 
 
@@ -1132,6 +1154,16 @@ int Pedestrian::GetColor() const
             key = std::to_string(_exitIndex);
         } break;
 
+		case BY_COVID: {
+			int color = -1;
+			if (_infection == 1)
+				color = 0;
+			else {
+				color = (int)((1-_virus_get) * 255);
+			}
+			return color;
+		} break;
+
         default:
             break;
     }
@@ -1274,4 +1306,94 @@ const std::queue<Point> & Pedestrian::GetLastPositions() const
 const Point Pedestrian::GetLastPosition() const
 {
     return _lastPosition;
+}
+
+void Pedestrian::SetInfection(int infection)
+{
+	_infection = infection;
+}
+
+int Pedestrian::GetInfection() const
+{
+	return _infection;
+}
+
+void Pedestrian::SetCovidK(double k)
+{
+	_covid_k = k;
+}
+
+double Pedestrian::GetCovidK() const
+{
+	return _covid_k;
+}
+
+void Pedestrian::SetCovidD(double D)
+{
+	_covid_D = D;
+}
+
+double Pedestrian::GetCovidD() const
+{
+	return _covid_D;
+}
+
+void Pedestrian::SetCovidP(double P)
+{
+	_covid_P = P;
+}
+
+double Pedestrian::GetCovidP() const
+{
+	return _covid_P;
+}
+
+void Pedestrian::SetCovidQ(double Q)
+{
+	_covid_Q = Q;
+}
+
+double Pedestrian::GetCovidQ() const
+{
+	return _covid_Q;
+}
+
+void Pedestrian::SetCovidAlpha(double alpha)
+{
+	_covid_alpha = alpha;
+}
+
+double Pedestrian::GetCovidAlpha() const
+{
+	return _covid_alpha;
+}
+
+void Pedestrian::SetVirusContact(double vc)
+{
+	_virus_contact = vc;
+}
+
+double Pedestrian::GetVirusContact() const
+{
+	return _virus_contact;
+}
+
+void Pedestrian::SetVirusGet(double vg)
+{
+	_virus_get = vg;
+}
+
+double Pedestrian::GetVirusget() const
+{
+	return _virus_get;
+}
+
+void Pedestrian::SetProInfect(double proi)
+{
+	_pro_infect = proi;
+}
+
+double Pedestrian::GetProInfect() const
+{
+	return _pro_infect;
 }

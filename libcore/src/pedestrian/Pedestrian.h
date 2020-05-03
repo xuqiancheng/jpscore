@@ -147,6 +147,17 @@ private:
     bool _waiting    = false;
     Point _waitingPos;
 
+	//covid_parameters
+	int _infection;
+	double _covid_k;
+	double _covid_D;
+	double _covid_P;
+	double _covid_Q;
+	double _covid_alpha;
+	double _virus_contact;
+	double _virus_get;
+	double _pro_infect;
+
 public:
     // public member
     int _ticksInThisRoom;
@@ -542,4 +553,40 @@ public:
     const std::queue<Point> & GetLastPositions() const;
 
     const Point GetLastPosition() const;
+
+	void SetInfection(int infection);
+
+	int GetInfection() const;
+
+	void SetCovidK(double k);
+
+	double GetCovidK() const;
+
+	void SetCovidD(double D);
+
+	double GetCovidD() const;
+
+	void SetCovidP(double P);
+
+	double GetCovidP() const;
+
+	void SetCovidQ(double Q);
+
+	double GetCovidQ() const;
+
+	void SetCovidAlpha(double alpha);
+
+	double GetCovidAlpha() const;
+
+	void SetVirusContact(double vc);
+
+	double GetVirusContact() const;
+
+	void SetVirusGet(double vg);
+
+	double GetVirusget() const;
+
+	void SetProInfect(double proi);
+
+	double GetProInfect() const;
 };

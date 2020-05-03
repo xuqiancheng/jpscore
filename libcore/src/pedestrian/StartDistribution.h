@@ -33,6 +33,7 @@
 
 //Forward declarations
 class AgentsParameters;
+class CovidParameters;
 class Pedestrian;
 class Building;
 class Point;
@@ -59,7 +60,7 @@ private:
 
     //force model parameters
     AgentsParameters * _groupParameters;
-
+	CovidParameters * _covidParameters;
     //string motivation;// low, normal, high
     double _startX; //only valid when _nPeds=1
     double _startY; //only valid when _nPeds=1
@@ -120,7 +121,9 @@ public:
     void Getbounds(double bounds[4]);
     void Setbounds(double bounds[4]);
     AgentsParameters * GetGroupParameters();
+	CovidParameters * GetCovidParameters();
     void SetGroupParameters(AgentsParameters * groupParameters);
+	void SetCovidParameters(CovidParameters * covidParameters);
     void InitPremovementTime(double mean, double stdv);
     double GetPremovementTime() const;
     void InitRiskTolerance(std::string distribution_type, double para1, double para2);

@@ -51,6 +51,7 @@ set(source_files
     src/math/VelocityModel.cpp
     src/neighborhood/NeighborhoodSearch.cpp
     src/pedestrian/AgentsParameters.cpp
+	src/pedestrian/CovidParameters.cpp
     src/pedestrian/AgentsQueue.cpp
     src/pedestrian/AgentsSource.cpp
     src/pedestrian/AgentsSourcesManager.cpp
@@ -141,6 +142,7 @@ set(header_files
     src/neighborhood/NeighborhoodSearch.h
     src/neighborhood/Grid2D.h
     src/pedestrian/AgentsParameters.h
+	src/pedestrian/CovidParameters.h
     src/pedestrian/AgentsQueue.h
     src/pedestrian/AgentsSource.h
     src/pedestrian/AgentsSourcesManager.h

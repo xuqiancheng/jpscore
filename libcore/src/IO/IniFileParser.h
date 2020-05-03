@@ -49,6 +49,8 @@ private:
 
     void ParseAgentParameters(TiXmlElement * operativModel, TiXmlNode * agentDistri);
 
+	void ParseCovidParameters(TiXmlElement * operativModel, TiXmlNode * agentDistri);
+
     bool ParseRoutingStrategies(TiXmlNode * routingNode, TiXmlNode * agentDistri);
 
     bool ParseFfRouterOps(TiXmlNode * routingNode, RoutingStrategy s);

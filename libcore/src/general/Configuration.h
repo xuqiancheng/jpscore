@@ -27,6 +27,7 @@
 #include "general/Filesystem.h"
 #include "math/OperationalModel.h"
 #include "pedestrian/AgentsParameters.h"
+#include "pedestrian/CovidParameters.h"
 #include "randomnumbergenerator.h"
 #include "routing/RoutingEngine.h"
 
@@ -87,6 +88,7 @@ public:
         _showStatistics           = false;
         _fileFormat               = FileFormat::TXT;
         _agentsParameters         = std::map<int, std::shared_ptr<AgentsParameters>>();
+		_covidParameters          = std::map<int, std::shared_ptr<CovidParameters>>();
         // ---------- floorfield
         _deltaH              = 0.0625;
         _wall_avoid_distance = 0.4;
@@ -377,6 +379,16 @@ public:
         _agentsParameters[id] = agentsParameters;
     };
 
+	const std::map<int, std::shared_ptr<CovidParameters>> & GetCovidParameters() const
+	{
+		return _covidParameters;
+	};
+
+	void AddCovidParameters(std::shared_ptr<CovidParameters> covidParameters, int id)
+	{
+		_covidParameters[id] = covidParameters;
+	};
+
     RandomNumberGenerator * GetRandomNumberGenerator() const { return &_rdGenerator; };
 
     void AddOptionalOutputOption(OptionalOutput option) { _optionalOutput.insert(option); };
@@ -453,6 +465,6 @@ private:
 
     FileFormat _fileFormat;
     std::map<int, std::shared_ptr<AgentsParameters>> _agentsParameters;
-
+	std::map<int, std::shared_ptr<CovidParameters>> _covidParameters;
     std::set<OptionalOutput> _optionalOutput;
 };

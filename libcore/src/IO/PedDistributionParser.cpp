@@ -62,6 +62,7 @@ bool PedDistributionParser::LoadPedDistribution(
         int subroom_id    = xmltoi(e->Attribute("subroom_id"), -1);
         int number        = xmltoi(e->Attribute("number"), 0);
         int agent_para_id = xmltoi(e->Attribute("agent_parameter_id"), -1);
+		int covid_para_id = xmltoi(e->Attribute("covid_parameter_id"), -1);
 
         int goal_id               = xmltoi(e->Attribute("goal_id"), FINAL_DEST_OUT);
         int router_id             = xmltoi(e->Attribute("router_id"), -1);
@@ -162,6 +163,21 @@ bool PedDistributionParser::LoadPedDistribution(
             return false;
         }
         dis->SetGroupParameters(_configuration->GetAgentsParameters().at(agent_para_id).get());
+
+		if (_configuration->GetCovidParameters().count(covid_para_id) == 0) {
+			LOG_ERROR(
+				"Please specify which set of covid parameters (covid_parameter_id) to "
+				"use for the group [{}].",
+				group_id);
+			LOG_ERROR("Default values are not implemented yet");
+
+			LOG_ERROR(
+				"Exit with failure. See <{}> for details",
+				_configuration->GetErrorLogFile().string());
+			exit(EXIT_FAILURE);
+			return false;
+		}
+		dis->SetCovidParameters(_configuration->GetCovidParameters().at(covid_para_id).get());
 
         if(e->Attribute("startX") && e->Attribute("startY")) {
             double startX = xmltof(e->Attribute("startX"), NAN);

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<geometry version="0.8" caption="corner" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" unit="m">
+	<rooms>
+		<room id="0" caption="hall">
+			<subroom id="0" class="subroom" >
+				<polygon capation="wall">
+					<vertex px="2.0" py="0.0"/>
+					<vertex px="0.0" py="0.0"/>
+					<vertex px="0.0" py="2.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="0.0" py="6.0"/>
+					<vertex px="0.0" py="8.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="0.0" py="12.0"/>
+					<vertex px="0.0" py="14.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="0.0" py="18.0"/>
+					<vertex px="0.0" py="20.0"/>
+					<vertex px="2.0" py="20.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="6.0" py="20.0"/>
+					<vertex px="8.0" py="20.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="12.0" py="20.0"/>
+					<vertex px="14.0" py="20.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="18.0" py="20.0"/>
+					<vertex px="20.0" py="20.0"/>
+					<vertex px="20.0" py="18.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="20.0" py="14.0"/>
+					<vertex px="20.0" py="12.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="20.0" py="8.0"/>
+					<vertex px="20.0" py="6.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="20.0" py="2.0"/>
+					<vertex px="20.0" py="0.0"/>
+					<vertex px="18.0" py="0.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="14.0" py="0.0"/>
+					<vertex px="12.0" py="0.0"/>
+				</polygon>
+				<polygon capation="wall">
+					<vertex px="8.0" py="0.0"/>
+					<vertex px="6.0" py="0.0"/>
+				</polygon>
+			</subroom>
+		</room>
+	</rooms>
+	
+	<transitions>
+		<transition id="1" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="0.0" py="2.0" />
+			<vertex px="0.0" py="6.0" />
+		</transition>
+		<transition id="2" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="0.0" py="8.0" />
+			<vertex px="0.0" py="12.0" />
+		</transition>
+		<transition id="3" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="0.0" py="14.0" />
+			<vertex px="0.0" py="18.0" />
+		</transition>
+		<transition id="4" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="2.0" py="20.0" />
+			<vertex px="6.0" py="20.0" />
+		</transition>
+		<transition id="5" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="8.0" py="20.0" />
+			<vertex px="12.0" py="20.0" />
+		</transition>
+		<transition id="6" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="14.0" py="20.0" />
+			<vertex px="18.0" py="20.0" />
+		</transition>
+		<transition id="7" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="20.0" py="18.0" />
+			<vertex px="20.0" py="14.0" />
+		</transition>
+		<transition id="8" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="20.0" py="12.0" />
+			<vertex px="20.0" py="8.0" />
+		</transition>
+		<transition id="9" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="20.0" py="6.0" />
+			<vertex px="20.0" py="2.0" />
+		</transition>
+		<transition id="10" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="2.0" py="0.0" />
+			<vertex px="6.0" py="0.0" />
+		</transition>
+		<transition id="11" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="8.0" py="0.0" />
+			<vertex px="12.0" py="0.0" />
+		</transition>
+		<transition id="12" captaion="main exit" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="14.0" py="0.0" />
+			<vertex px="18.0" py="0.0" />
+		</transition>
+	</transitions>
+</geometry>
