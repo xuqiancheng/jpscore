@@ -123,7 +123,9 @@ Pedestrian::Pedestrian()
 	 _cooperation = (rand() % 10000)*0.0001;
 	 _defect_speed = Point(0, 0);
 	 _defect_space = 0;
+	 _MTTC_Person = -1;
 	 _CoreSize = 0.1;
+	 _try_coop = 0;
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -210,6 +212,7 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
 	 _defect_space = 0;
 	 _MTTC_Person = -1;
 	 _CoreSize = 0.1;
+	 _try_coop = 0;
 }
 
 
@@ -1372,4 +1375,14 @@ double Pedestrian::GetCore() const
 void Pedestrian::SetCore(double cs)
 {
 	_CoreSize = cs;
+}
+
+int Pedestrian::GetTryCoop() const
+{
+	return _try_coop;
+}
+
+void Pedestrian::SetTryCoop(int tc)
+{
+	_try_coop = tc;
 }

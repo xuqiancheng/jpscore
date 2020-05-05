@@ -164,6 +164,7 @@ private:
 
 	 int _MTTC_Person = -1;
 	 double _CoreSize = 0.1;
+	 int _try_coop = 0;
 
 public:
      // public member
@@ -547,6 +548,10 @@ public:
 	 double GetCore() const;
 
 	 void SetCore(double cs);
+
+	 int GetTryCoop() const;
+
+	 void SetTryCoop(int tc);
 };
 
 #endif  /* _PEDESTRIAN_H */

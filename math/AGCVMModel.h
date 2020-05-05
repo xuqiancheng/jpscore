@@ -121,11 +121,12 @@ private:
 	int GetPushing() const;
 	double GetCoreSize() const;
 
-	my_pair JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
+	my_pair JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
 	Point GetInfDirection(Point e0, Point ep12) const;
 	Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;
 
 	bool Drill(Pedestrian* ped, vector<Pedestrian*> neighbours, Building* building, SubRoom* subroom, Point e0, int periodic) const;
+	bool DrillRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
 	bool DrillWall(Pedestrian* ped, Point e0, const Line& l) const;
 	Point CorrectD(Pedestrian *ped, Point d_direction, SubRoom* subroom) const;
 	Point CorrectDWall(Pedestrian *ped, Point d_direction, const Line& l) const;
