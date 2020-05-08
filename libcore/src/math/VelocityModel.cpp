@@ -39,14 +39,14 @@
 double xRight = 26.0;
 double xLeft  = 0.0;
 double cutoff = 2.0;
-int covid19   = 1;
 
 VelocityModel::VelocityModel(
     std::shared_ptr<DirectionManager> dir,
     double aped,
     double Dped,
     double awall,
-    double Dwall)
+    double Dwall,
+    int covid)
 {
     _direction = dir;
     // Force_rep_PED Parameter
@@ -55,6 +55,8 @@ VelocityModel::VelocityModel(
     // Force_rep_WALL Parameter
     _aWall = awall;
     _DWall = Dwall;
+    // Covid
+    _isCovid = covid;
 }
 
 
@@ -101,7 +103,7 @@ bool VelocityModel::Init(Building * building)
         else {
             std::cout << "Ped " << ped->GetID() << " has no exit line in INIT\n";
         }
-        if(covid19) {
+        if(_isCovid) {
             Room * room       = building->GetRoom(ped->GetRoomID());
             NavLine * NewExit = RandomExitLine(ped, room);
             ped->SetExitLine(NewExit);
@@ -191,7 +193,7 @@ void VelocityModel::ComputeNextTimeStep(
                     continue;
                 if(ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
                     repPed += ForceRepPed(ped, ped1, periodic);
-                    if(covid19) {
+                    if(_isCovid) {
                         virus += VirusContactAmount(ped, ped1);
                     }
 
@@ -201,14 +203,14 @@ void VelocityModel::ComputeNextTimeStep(
                         building->GetRoom(ped1->GetRoomID())->GetSubRoom(ped1->GetSubRoomID());
                     if(subroom->IsDirectlyConnectedWith(sb2)) {
                         repPed += ForceRepPed(ped, ped1, periodic);
-                        if(covid19) {
+                        if(_isCovid) {
                             virus += VirusContactAmount(ped, ped1);
                         }
                     }
                 }
             } // for i
-            if(covid19 == 1) {
-                virus += ped->GetVirusContact();
+            if(_isCovid) {
+                virus = ped->GetVirusContact() + virus * deltaT;
                 ped->SetVirusContact(virus);
                 ped->SetVirusGet(VirusGetAmount(ped));
                 ped->SetProInfect(ProbInfect(ped));
@@ -348,7 +350,7 @@ Point VelocityModel::e0(Pedestrian * ped, Room * room) const
     Point lastE0 = ped->GetLastE0();
     ped->SetLastE0(target - pos);
 
-    if(covid19 && dist < 1) {
+    if(_isCovid && dist < 1) {
         NavLine * NewExit = RandomExitLine(ped, room);
         ped->SetExitLine(NewExit);
         ped->SetExitIndex(NewExit->GetUniqueID());
@@ -498,7 +500,7 @@ Point VelocityModel::ForceRepRoom(Pedestrian * ped, SubRoom * subroom) const
 
     // and finally the closed doors
     for(const auto & trans : subroom->GetAllTransitions()) {
-        if(!trans->IsOpen() || covid19) {
+        if(!trans->IsOpen() || _isCovid) {
             f += ForceRepWall(ped, *(static_cast<Line *>(trans)), centroid, inside);
         }
     }

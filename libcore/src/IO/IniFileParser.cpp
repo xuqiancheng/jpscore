@@ -556,6 +556,10 @@ bool IniFileParser::ParseVelocityModel(TiXmlElement * xVelocity, TiXmlElement * 
     if(!ParsePeriodic(*xModelPara))
         return false;
 
+    //covid
+    if(!ParseCovid(*xModelPara))
+        return false;
+
     //force_ped
     if(xModelPara->FirstChild("force_ped")) {
         if(!xModelPara->FirstChildElement("force_ped")->Attribute("a"))
@@ -599,7 +603,8 @@ bool IniFileParser::ParseVelocityModel(TiXmlElement * xVelocity, TiXmlElement * 
         _config->GetaPed(),
         _config->GetDPed(),
         _config->GetaWall(),
-        _config->GetDWall())));
+        _config->GetDWall(),
+        _config->IsCovid())));
 
     //Parsing the covid parameters
     ParseCovidParameters(xVelocity, xAgentDistri);
@@ -1399,4 +1404,18 @@ bool IniFileParser::ParseExternalFiles(const TiXmlNode & mainNode)
     }
 
     return true;
+}
+
+bool IniFileParser::ParseCovid(TiXmlNode & Node)
+{
+    if(Node.FirstChild("covid")) {
+        const char * covid = Node.FirstChild("covid")->FirstChild()->Value();
+        if(covid)
+            _config->SetIsCovid(atoi(covid));
+        LOG_INFO("Covid <{}>", _config->IsCovid());
+        return true;
+    } else {
+        _config->SetIsCovid(0);
+    }
+    return true; //default is periodic=0. If not specified than is OK
 }

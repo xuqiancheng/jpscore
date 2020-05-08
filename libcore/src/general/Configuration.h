@@ -54,6 +54,7 @@ public:
         _tMax             = 500;     // seconds
         _dT               = 0.01;
         _isPeriodic       = 0; // use only for Tordeux2015 with "trivial" geometries
+        _isCovid          = 0; //use onlt for covid simulation
         // ----------- GCFM repulsive force ------
         _nuPed  = 0.4;
         _nuWall = 0.2;
@@ -154,6 +155,10 @@ public:
     int IsPeriodic() const { return _isPeriodic; };
 
     void SetIsPeriodic(int isPeriodic) { _isPeriodic = isPeriodic; };
+
+    int IsCovid() const { return _isCovid; };
+
+    void SetIsCovid(int isCovid) { _isCovid = isCovid; };
 
     double GetNuPed() const { return _nuPed; };
 
@@ -407,6 +412,7 @@ private:
     double _tMax;
     double _dT;
     int _isPeriodic;
+    int _isCovid;
     double _nuPed;
     double _nuWall;
     double _aPed;

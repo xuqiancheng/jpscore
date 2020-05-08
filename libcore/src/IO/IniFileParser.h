@@ -75,4 +75,6 @@ private:
     std::shared_ptr<WaitingStrategy> _waitingStrategy;
     std::shared_ptr<DirectionManager> _directionManager;
     int _exit_strat_number;
+
+    bool ParseCovid(TiXmlNode & Node);
 };
