@@ -169,11 +169,10 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	unsigned long nSize;
 	nSize = allPeds_ini.size();
 
-    //Rearrange pedestrians according to the distance to exit (Using new function ReArrange)
-	//printf("\ntime=%f\n", current);
+	//Rearrange pedestrians according to the distance to exit (Using new function ReArrange)
 	vector<Pedestrian*> allPeds = vector<Pedestrian*>();
 	allPeds.reserve(nSize);
-	ReArrange(allPeds_ini,allPeds,building);
+	ReArrange(allPeds_ini, allPeds, building);
 
 	vector< Point > result_acc = vector<Point >();
 	result_acc.reserve(nSize);
@@ -184,22 +183,12 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	vector< my_pair > spacings = vector<my_pair >();
 	spacings.reserve(nSize); // larger than needed
 
-	vector<Point> f_pos = vector<Point>();
-	f_pos.reserve(nSize);
-
 	vector< ID_pair > relations = vector<ID_pair>();
 	relations.reserve(nSize);
-
-	vector<int> stoppings = vector<int>();
-	stoppings.reserve(nSize);
-
-	vector<bool>  RealCloggings= vector<bool>();
-	RealCloggings.reserve(nSize);
 
 	int start = 0;
 	int end = nSize - 1;
 	for (int p = start; p <= end; ++p) {
-		//printf("\ID=%d\n", allPeds[p]->GetID());
 		Pedestrian* ped = allPeds[p];
 		Room* room = building->GetRoom(ped->GetRoomID());
 		SubRoom* subroom = room->GetSubRoom(ped->GetSubRoomID());
@@ -223,8 +212,8 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			//using a new method calculate the influence of pedestrian (the value of influence id decided by distance and the direction is vertical with desired direction)
 			Point inf_direction;// left side of pedestrian
 
-			 // If using GCVM or CVM?
-			if (GetGCVMU()) 
+			// If using GCVM or CVM?
+			if (GetGCVMU())
 			{
 				inf_direction._x = -inid_direction._y;
 				inf_direction._y = inid_direction._x;
@@ -245,29 +234,30 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				{
 					double result1 = inid_direction.CrossProduct(ep12);
 					Point zero = Point(0, 0);
-					if (bool equal = almostEqual(result1, 0, 0.00001)) 
+					if (bool equal = almostEqual(result1, 0, 0.00001))
 					{
 						int random = rand() % 1000;//choose one direciton by random
-						if (random < 500) 
+						if (random < 500)
 						{
 							inf_direction = zero - inf_direction;
 						}
 					}
-					else 
+					else
 					{
 						double result2 = inid_direction.CrossProduct(inf_direction);
-						if (result1*result2 > 0) 
+						if (result1*result2 > 0)
 						{
 							inf_direction = zero - inf_direction;
 						}
 					}
 				}
+
 				//----------------------------------------------------------------------------------------------------
 				//subrooms to consider when looking for neighbour for the 3d visibility
 				vector<SubRoom*> emptyVector;
 				emptyVector.push_back(subroom);
 				emptyVector.push_back(building->GetRoom(ped1->GetRoomID())->GetSubRoom(ped1->GetSubRoomID()));
-				
+
 				//This part is not my work, may be have to read it. But in my simple case, may be no influence.
 				bool isVisible = building->IsVisible(p1, p2, emptyVector, false);
 				if (!isVisible) {
@@ -303,11 +293,11 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 
 			// Calculating influence of walls-------------------------------------------------------------------------
 			Point repWall = ForceRepRoom(ped, subroom, inid_direction);
-			if (ped->GetExitLine()->DistTo(ped->GetPos())<0.2)
+			if (ped->GetExitLine()->DistTo(ped->GetPos()) < 0.2)
 			{
-				std::vector<SubRoom*> Nsubrooms= subroom->GetNeighbors();
-				for (int i=0;i<Nsubrooms.size();i++)
-					repWall+=ForceRepRoom(ped,Nsubrooms[i],inid_direction);
+				std::vector<SubRoom*> Nsubrooms = subroom->GetNeighbors();
+				for (int i = 0; i < Nsubrooms.size(); i++)
+					repWall += ForceRepRoom(ped, Nsubrooms[i], inid_direction);
 			}
 			//-----------------------------------------------------------------------------------------------------------
 
@@ -341,14 +331,12 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			// calculate spacing
 			if (ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
 				spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
-				RealCloggings.push_back(RealClogging(ped, ped1, inid_direction, periodic));
 			}
 			else {
 				// or in neighbour subrooms
 				SubRoom* sb2 = building->GetRoom(ped1->GetRoomID())->GetSubRoom(ped1->GetSubRoomID());
 				if (subroom->IsDirectlyConnectedWith(sb2)) {
 					spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
-					RealCloggings.push_back(RealClogging(ped, ped1, inid_direction, periodic));
 				}
 			}
 		}
@@ -358,78 +346,10 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		std::sort(spacings.begin(), spacings.end(), sort_pred_Simplest());
 		double spacing = spacings.size() == 0 ? 100 : spacings[0].first;
 		double first_ID = spacings.size() == 0 ? -1 : spacings[0].second;
-		
-		// We should save all the relations
-		const Point& pos = ped->GetPos();
-		double distGoal = (ped->GetExitLine()->GetCentre()-pos).Norm();// We use half circle here
-		distGoal=(Point(10,4)-pos).Norm();// To avoid stupid clogging
-		double DRange = GetAreaSize();
-		bool Inrange1=distGoal<DRange?1:0;
-		if (spacing < 0.01) // To use distance patramteres
-		{
-			vector<bool>::iterator RC = std::find(RealCloggings.begin(), RealCloggings.end(), false);
-			//if (RC == RealCloggings.end())
-			if(1)
-			{
-				for (int i = 0; i < spacings.size(); i++)
-				{
-					if (spacings[i].first < 0.01)
-					{
-						//
-						bool Inrange2=0;
-						for (int j = 0; j < size; j++)
-						{
-							Pedestrian* ped2 = neighbours[j];
-							if (ped2->GetID()==spacings[i].second)
-							{
-								const Point& pos2 = ped2->GetPos();
-								double distGoal2 = (ped2->GetExitLine()->GetCentre()-pos2).Norm();// We use half circle here
-								distGoal2=(Point(10,4)-pos).Norm();// To avoid stupid clogging
-								Inrange2=distGoal2<DRange?1:0;
-								break;
-							}
-							
-						}
-						//
-						if (Inrange1==1||Inrange2==1)
-						{
-							my_pair relation = my_pair(ped->GetID(), spacings[i].second);
-							relations.push_back(relation);
-						}
-					}
-				}
-			}
-			/*
-			// Only save real clogging
-			for (int i = spacings.size()-1; i >= 0; i--)
-			{
-				double limitation = 1; // May be bigger or smaller ?
-				if (spacings[i].first < limitation)
-				{
-					if (spacings[i].first > 0.01)
-					{
-						break;
-					}
-					else
-					{
-						my_pair relation = my_pair(ped->GetID(), spacings[i].second);
-						relations.push_back(relation);
-					}
-				}
-			}
-			*/
 
-		}
-		RealCloggings.clear();
 		// add this part to avoid pedestrian cross the wall directly
 		// some pedestrian are blocked by wall
 		double spacing_wall = GetSpacingRoom(ped, subroom, direction);
-		if ( spacing_wall < 0.01)
-		{
-			my_pair relation_wall = my_pair(ped->GetID(), -100);
-			relations.push_back(relation_wall);
-		}
-
 		spacing = spacing > spacing_wall ? spacing_wall : spacing;
 
 		//optimal speed function
@@ -439,14 +359,11 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		spacings.clear(); //clear for ped p
 		//unparallel update
 		if (_Parallel != 1) {
-			if (speed.Norm() < 0.01) {
-				stoppings.push_back(ped->GetID());
-			}
-			else
+			Point pos_neu = ped->GetPos() + speed * deltaT;
+			if (speed.Norm() > 0.01)
 			{
 				ped->SetInCloggingTime(0);
 			}
-			Point pos_neu = ped->GetPos() + speed * deltaT;
 			//calculate ellipse orientation
 			double normdir = direction.Norm();
 			double cosPhi = direction._x / normdir;
@@ -456,9 +373,9 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			e.SetSinPhi(sinPhi);
 			ped->SetEllipse(e);
 			ped->SetV(speed);
-			
+
 			if (periodic) {
-				if ((ped->GetPos()._x < xRight_simplest)&&(pos_neu._x>=xRight_simplest)) {
+				if ((ped->GetPos()._x < xRight_simplest) && (pos_neu._x >= xRight_simplest)) {
 					ped->SetPos(Point(pos_neu._x - (xRight_simplest - xLeft_simplest), pos_neu._y));
 				}
 				else if ((ped->GetPos()._x > xLeft_simplest) && (pos_neu._x <= xLeft_simplest)) {
@@ -479,10 +396,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		for (int p = start; p <= end; ++p) {
 			Pedestrian* ped = allPeds[p];
 			Point v_neu = result_acc[p - start];
-			if (v_neu.Norm() < 0.01) {
-				stoppings.push_back(ped->GetID());
-			}
-			else
+			if (v_neu.Norm() > 0.01)
 			{
 				ped->SetInCloggingTime(0);
 			}
@@ -499,7 +413,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			ped->SetV(v_neu);
 
 			if (periodic) {
-				if ((ped->GetPos()._x < xRight_simplest)&&(pos_neu._x>=xRight_simplest)) {
+				if ((ped->GetPos()._x < xRight_simplest) && (pos_neu._x >= xRight_simplest)) {
 					ped->SetPos(Point(pos_neu._x - (xRight_simplest - xLeft_simplest), pos_neu._y));
 				}
 				else if ((ped->GetPos()._x > xLeft_simplest) && (pos_neu._x <= xLeft_simplest)) {
@@ -514,56 +428,80 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			}
 		}
 	}
-	
 
-	for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter) {
-		int first_ID = iter->first;
-		vector<int>::iterator stopping = std::find(stoppings.begin(), stoppings.end(), first_ID);
-		if (stopping == stoppings.end()) {
-			continue;
-		}
-		int second_ID = iter->second;
-		stopping = std::find(stoppings.begin(), stoppings.end(), second_ID);
-		if (stopping == stoppings.end()) {
-			continue;
-		}
-		vector<ID_pair>::iterator converse = std::find(relations.begin(), relations.end(), ID_pair(second_ID, first_ID));
-		vector<ID_pair>::iterator converse_wall = std::find(relations.begin(), relations.end(), ID_pair(second_ID, -100));
-		if (converse == relations.end() && converse_wall == relations.end())
+	// Save all the couples in clogging into relations
+	for (int p = start; p <= end; ++p)
+	{
+		Pedestrian* ped1 = allPeds[p];
+		Room* room = building->GetRoom(ped1->GetRoomID());
+		SubRoom* subroom = room->GetSubRoom(ped1->GetSubRoomID());
+		vector<Pedestrian*> neighbours;
+		building->GetGrid()->GetNeighbourhood(ped1, neighbours);
+		int size = (int)neighbours.size();
+		for (int i = 0; i < size; i++)
 		{
-			continue;
-		}
-
-		// Every pedestrian only once
-		for (vector<ID_pair>::iterator iter1 = relations.begin(); iter1 < relations.end(); ++iter1)
-		{
-			if (iter1->second == first_ID || iter->first ==first_ID || iter->second == second_ID || iter->second == first_ID)
+			Pedestrian* ped2 = neighbours[i];
+			bool InClogging = NewClogging(ped1, ped2);
+			if (InClogging)
 			{
-				*iter1 = ID_pair(first_ID, second_ID);
+				relations.push_back(ID_pair(ped1->GetID(), ped2->GetID()));
 			}
 		}
 
-		for (int p = start; p <= end; ++p) {
+	}
+
+
+	//update the clogging time
+	for (int p = start; p <= end; ++p)
+	{
+		Pedestrian* ped = allPeds[p];
+		int ID = ped->GetID();
+		bool InClogging = false;
+		for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter)
+		{
+			if (iter->first == ID || iter->second == ID)
+			{
+				InClogging = true;
+				break;
+			}
+		}
+		if (InClogging)
+		{
+			double InCloggingTime = ped->GetInCloggingTime() + deltaT;
+			ped->SetInCloggingTime(InCloggingTime);
+		}
+		else
+		{
+			ped->SetInCloggingTime(0);
+		}
+	}
+
+	for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter) {
+		int first_ID = iter->first;
+		int second_ID = iter->second;
+
+		for (int p = start; p <= end; ++p)
+		{
 			Pedestrian* ped = allPeds[p];
-			if (ped->GetID() == first_ID) {
-				double InCloggingTime = ped->GetInCloggingTime()+deltaT;
+			if (ped->GetID() == first_ID)
+			{
+				double InCloggingTime = ped->GetInCloggingTime();
 				//setting waiting time before delete
-				if (InCloggingTime <= _WaitingTime) {
-					ped->SetInCloggingTime(InCloggingTime);
-				}
-				else {
+				if (InCloggingTime >= _WaitingTime)
+				{
 					ped->SetInCloggingTime(0);
-					if (ped->GetPos()._x>=0){
+					if (ped->GetPos()._x >= 0)
+					{
 						clogging_times++;
 						std::ofstream ofile;
 						string ProjectFileName = building->GetProjectFilename();
-						int start= ProjectFileName.find_last_of("\\");
+						int start = ProjectFileName.find_last_of("\\");
 						start = start == -1 ? ProjectFileName.find_last_of("/") : start;
 						int end = ProjectFileName.find(".xml");
-						string InifileName = ProjectFileName.substr(start+1,end-start-1);
+						string InifileName = ProjectFileName.substr(start + 1, end - start - 1);
 						if (clogging_times == 1) {
-							ofile.open(building->GetProjectRootDir() + "CloggingLog_"+InifileName+".txt", std::ofstream::trunc);
-							ofile <<"#inifile: "<< building->GetProjectFilename()<<"\n";
+							ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::trunc);
+							ofile << "#inifile: " << building->GetProjectFilename() << "\n";
 							ofile << "#Commit date: " << GIT_COMMIT_DATE << "\n";
 							ofile << "#Branch: " << GIT_BRANCH << "\n";
 							ofile << "#Timestep: " << deltaT << " (s)\n";
@@ -575,57 +513,35 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 							ofile << "#ID\ttime(s)\tamount\tposition_x\tpostion_y\n";
 						}
 						else {
-							ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName+".txt", std::ofstream::app);
+							ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::app);
 						}
 						//ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
-						ofile  << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
+						ofile << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
 						ofile.close();
 					}
-					/*
-					// Todo: Cooperation-----------------------------------------------------------
-					double velocity_x=ped->GetEllipse().GetCosPhi();
-					double velocity_y=ped->GetEllipse().GetSinPhi();
-					Point position=ped->GetPos();
-					int random = rand() % 10000;
-					if (random<2500)
-					{
-						// moving forward
-						Point velocity(velocity_x,velocity_y);
-						ped->SetPos(position+velocity*1.34*deltaT);
-					}
-					else if (random < 5000)
-					{
-						// Moving backward
-						Point velocity(velocity_x,velocity_y);
-						ped->SetPos(position+velocity*-1.34*deltaT);
-					}
-					else if (random < 7500)
-					{
-						// Moving left
-						Point velocity(velocity_y,velocity_x);
-						ped->SetPos(position+velocity*1.34*deltaT);
-					}
-					else
-					{
-						// moving right
-						Point velocity(velocity_y,velocity_x);
-						ped->SetPos(position+velocity*-1.34*deltaT);
-					}
-					//---------------------------------------------------------------------------
-					*/
-					// Clogging experiment
-					// Delete
-					//pedsToRemove.push_back(ped);
-					// Moving to waiting area
-					Point position=ped->GetPos();
-					double position_wx=position._x>-8?position._x-18:position._x-2;
-					Point position_w(position_wx,position._y);
-					ped->SetPos(position_w,true);
+					Point position = ped->GetPos();
+					double position_wx = position._x > -8 ? position._x - 18 : position._x - 2;
+					Point position_w(position_wx, position._y);
+					ped->SetPos(position_w, true);
 					ped->SetmoveManually(true);
 
+					for (int i = start; i <= end; ++i)
+					{
+						Pedestrian* ped1 = allPeds[i];
+						ped1->SetInCloggingTime(0);
+					}
+					/*
+					// Every pedestrian only once
+					for (vector<ID_pair>::iterator iter1 = relations.begin(); iter1 < relations.end(); ++iter1)
+					{
+						if (iter1->second == first_ID || iter1->first == first_ID || iter1->first == second_ID || iter1->second == second_ID)
+						{
+							*iter1 = ID_pair(-100, -100);
+						}
+					}
+					*/
 					//Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), clogging_times);
 					break;
-
 				}
 			}
 		}
@@ -898,7 +814,7 @@ Point SimplestModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, i
 	JEllipse Eped1 = ped1->GetEllipse();
 	ei._x = Eped1.GetCosPhi();
 	ei._y = Eped1.GetSinPhi();
-	
+
 	//Vision area-----------------------------------
 	double condition1 = e0.ScalarProduct(ep12); // < e_i , e_ij > should be positive
 	double condition2 = ei.ScalarProduct(ep12);
@@ -966,7 +882,7 @@ Point SimplestModel::ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) c
 			f +=  ForceRepWall(ped,*(static_cast<Line*>(goal)), centroid, inside, e0);
 		}
 		*/
-		
+
 	}
 	return f;
 }
@@ -1073,7 +989,7 @@ Point SimplestModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& c
 			return F_wrep;
 		}
 	}
-	
+
 	//rules end------------------------------------------------------------------------------
 
 	//------------------------------------------------------
@@ -1311,18 +1227,18 @@ bool SimplestModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< 
 	int nsize = allPeds_ini.size();
 	vector<inf_pair> inf_ped = vector<inf_pair>();
 	inf_ped.reserve(nsize);
-	for (int p = 0; p < nsize; p++) 
+	for (int p = 0; p < nsize; p++)
 	{
 		Pedestrian* ped = allPeds_ini[p];
 		Room* room = building->GetRoom(ped->GetRoomID());
-		const Point target = _direction->GetTarget(room, ped); 
-		double distance = (target-ped->GetPos()).Norm();
+		const Point target = _direction->GetTarget(room, ped);
+		double distance = (target - ped->GetPos()).Norm();
 		double position = target._x - distance;
 		inf_ped.push_back(inf_pair(p, position));
 	}
 	for (int p = 0; p < nsize; p++)
 	{
-		for (int q = 0; q < nsize-1; q++)
+		for (int q = 0; q < nsize - 1; q++)
 		{
 			if (std::get<1>(inf_ped[q]) < std::get<1>(inf_ped[q + 1]))
 			{
@@ -1387,7 +1303,7 @@ bool SimplestModel::RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, i
 		double condition2 = ei.Rotate(0, 1).ScalarProduct(ep12); // theta = pi/2. condition2 should <= than l/Distance
 		condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
 		ped2->SetPos(ped2_current);
-		if ((condition1 >= 0) && (condition2 <= r / Distance) && (distp12.Norm() - l>0.01) && (distp12.Norm() - l<limitation))
+		if ((condition1 >= 0) && (condition2 <= r / Distance) && (distp12.Norm() - l > 0.01) && (distp12.Norm() - l < limitation))
 			// return a pair <dist, condition1>. Then take the smallest dist. In case of equality the biggest condition1
 			return  false;
 		else
@@ -1492,4 +1408,46 @@ bool SimplestModel::RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, i
 		}
 	}
 
+}
+
+bool SimplestModel::NewClogging(Pedestrian* ped1, Pedestrian* ped2)
+{
+	JEllipse eped1 = ped1->GetEllipse();
+	JEllipse eped2 = ped2->GetEllipse();
+	double dist;
+	double eff_dist = eped1.EffectiveDistanceToEllipse(eped2, &dist);
+
+	Point e1;
+	e1._x = eped1.GetCosPhi();
+	e1._y = eped1.GetSinPhi();
+	Point p1 = ped1->GetPos();
+
+	Point e2;
+	e2._x = eped2.GetCosPhi();
+	e2._y = eped2.GetSinPhi();
+	Point p2 = ped2->GetPos();
+	Point ep12 = p2 - p1;
+
+	//condition1 : s<0
+	double d12 = GetAreaSize();
+	int condition1 = eff_dist < d12 ? 1 : 0;
+
+	//condition2
+	double res1 = e1.ScalarProduct(ep12);
+	double res2 = e2.ScalarProduct(ep12);
+
+	//condition3
+	Point speed1 = ped1->GetV();
+	Point speed2 = ped2->GetV();
+	double v01 = ped1->GetV0Norm();
+	double v02 = ped2->GetV0Norm();
+	double epsi = (v01 + v02) / 10000;
+	int condition3 = (speed1.Norm() + speed2.Norm()) < epsi ? 1 : 0;
+
+	bool clogging = false;
+	if (condition1 == 1 && condition3 == 1 && res1 > 0 && res2 < 0)
+	{
+		clogging = true;
+	}
+	return clogging;
 }

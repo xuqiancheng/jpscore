@@ -133,6 +133,7 @@ private:
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom, Point ei) const;
 	double GetSpacingWall(Pedestrian* ped, const Line& l, Point ei) const;
 	bool RealClogging(Pedestrian* ped1, Pedestrian* ped2, Point ei, int periodic) const;
+	bool NewClogging(Pedestrian* ped1, Pedestrian* ped2);
 
 public:
 
