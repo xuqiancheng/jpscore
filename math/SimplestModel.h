@@ -82,6 +82,8 @@ private:
 
 	int _GCVMUsing;
 
+	double _blocktime = 0;
+
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
 	/**

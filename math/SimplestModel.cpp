@@ -421,7 +421,8 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		}
 	}
 
-	// Save all the couples in clogging into relations
+	// Save all the couples in clogging into relations and update blockage time
+	int blockage = 1;
 	for (int p = start; p <= end; ++p)
 	{
 		Pedestrian* ped1 = allPeds[p];
@@ -430,6 +431,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		vector<Pedestrian*> neighbours;
 		building->GetGrid()->GetNeighbourhood(ped1, neighbours);
 		int size = (int)neighbours.size();
+		int updateTime = 0;
 		for (int i = 0; i < size; i++)
 		{
 			Pedestrian* ped2 = neighbours[i];
@@ -437,87 +439,97 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			if (InClogging)
 			{
 				relations.push_back(ID_pair(ped1->GetID(), ped2->GetID()));
+				updateTime = 1;
 			}
 		}
-
-	}
-
-	//Find the closest clogging and update the clogging time
-	int ID_closest = -1;
-	double dis_closest = FLT_MAX;
-	for (int p = start; p <= end; ++p)
-	{
-		Pedestrian* ped = allPeds[p];
-		int ID = ped->GetID();
-		bool InClogging = false;
-		for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter)
+		if (updateTime)
 		{
-			if (iter->first == ID || iter->second == ID)
-			{
-				InClogging = true;
-				double distGoal = (ped->GetExitLine()->GetCentre() - ped->GetPos()).Norm();
-				if (distGoal < dis_closest&&ped->GetPos()._x >= 0)
-				{
-					ID_closest = ID;
-					dis_closest = distGoal;
-				}
-				break;
-			}
-		}
-
-		if (InClogging)
-		{
-			//double InCloggingTime = ped->GetInCloggingTime() + deltaT;
-			//ped->SetInCloggingTime(InCloggingTime);
+			double InCloggingTime = ped1->GetInCloggingTime() + deltaT;
+			ped1->SetInCloggingTime(InCloggingTime);
 		}
 		else
 		{
-			ped->SetInCloggingTime(0);
+			ped1->SetInCloggingTime(0);
 		}
 
+		//if blockage happens
+		double xpos = ped1->GetPos()._x;
+		double xlimit = 10;
+		if (xpos > xlimit)
+		{
+			blockage = 0;
+		}
+	}
+	if (blockage)
+	{
+		_blocktime = _blocktime + deltaT;
+	}
+	else
+	{
+		_blocktime = 0;
 	}
 
-	for (int p = start; p <= end; ++p)
+	//if clogging should be solved, then find the closest stable clogging and remove one pedestrian from it.
+	if (_blocktime > _WaitingTime)
 	{
-		Pedestrian* ped = allPeds[p];
-		if (ped->GetID() == ID_closest)
+		// find the closest pedestrian who satisfy
+		int ID_closest = -1;
+		double dis_closest = FLT_MAX;
+		for (int p = start; p <= end; ++p)
 		{
-			double InCloggingTime = ped->GetInCloggingTime() + deltaT;
-			ped->SetInCloggingTime(InCloggingTime);
-			InCloggingTime = ped->GetInCloggingTime();
-			//setting waiting time before delete
-			if (InCloggingTime >= _WaitingTime)
+			Pedestrian* ped = allPeds[p];
+			if (ped->GetInCloggingTime() < _WaitingTime)
 			{
-				ped->SetInCloggingTime(0);
-				if (ped->GetPos()._x >= 0)
+				continue;
+			}
+			int ID = ped->GetID();
+			for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter)
+			{
+				if (iter->first == ID || iter->second == ID)
 				{
-					clogging_times++;
-					std::ofstream ofile;
-					string ProjectFileName = building->GetProjectFilename();
-					int start = ProjectFileName.find_last_of("\\");
-					start = start == -1 ? ProjectFileName.find_last_of("/") : start;
-					int end = ProjectFileName.find(".xml");
-					string InifileName = ProjectFileName.substr(start + 1, end - start - 1);
-					if (clogging_times == 1) {
-						ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::trunc);
-						ofile << "#inifile: " << building->GetProjectFilename() << "\n";
-						ofile << "#Commit date: " << GIT_COMMIT_DATE << "\n";
-						ofile << "#Branch: " << GIT_BRANCH << "\n";
-						ofile << "#Timestep: " << deltaT << " (s)\n";
-						ofile << "#Waiting time: " << _WaitingTime << " (s)\n";
-						ofile << "#Parallel: " << _Parallel << " (1:parallel,0:unparallel)\n";
-						ofile << "#Direction: " << _SubmodelDirection << " (1:Using direction submodel,0:Not using direction submodel)\n";
-						ofile << "#Speed: " << _SubmodelSpeed << " (1:Using speed submodel,0:Not using speed submodel)\n";
-						ofile << "#GCVM: " << _GCVMUsing << " (1:Using GCVM instead of simplest model,0:Using simplest model)\n";
-						ofile << "#ID\ttime(s)\tamount\tposition_x\tpostion_y\n";
+					double distGoal = (ped->GetExitLine()->GetCentre() - ped->GetPos()).Norm();
+					if (distGoal < dis_closest&&ped->GetPos()._x >= 0)
+					{
+						ID_closest = ID;
+						dis_closest = distGoal;
 					}
-					else {
-						ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::app);
-					}
-					//ofile << "\nDELETE: \tPed " << ped->GetID() << " is deleted at time " << current << " to slove clogging, clogging times: " << clogging_times << " !\n";
-					ofile << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
-					ofile.close();
+					break;
 				}
+			}
+		}
+
+		//remove it
+		for (int p = start; p <= end; ++p)
+		{
+			Pedestrian* ped = allPeds[p];
+			if (ped->GetID() == ID_closest)
+			{
+				//printf("\nTest:ID=%d time=%f", ID_closest, current);
+				clogging_times++;
+				std::ofstream ofile;
+				string ProjectFileName = building->GetProjectFilename();
+				int startN = ProjectFileName.find_last_of("\\");
+				startN = startN == -1 ? ProjectFileName.find_last_of("/") : startN;
+				int endN = ProjectFileName.find(".xml");
+				string InifileName = ProjectFileName.substr(startN + 1, endN - startN - 1);
+				if (clogging_times == 1) {
+					ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::trunc);
+					ofile << "#inifile: " << building->GetProjectFilename() << "\n";
+					ofile << "#Commit date: " << GIT_COMMIT_DATE << "\n";
+					ofile << "#Branch: " << GIT_BRANCH << "\n";
+					ofile << "#Timestep: " << deltaT << " (s)\n";
+					ofile << "#Waiting time: " << _WaitingTime << " (s)\n";
+					ofile << "#Parallel: " << _Parallel << " (1:parallel,0:unparallel)\n";
+					ofile << "#Direction: " << _SubmodelDirection << " (1:Using direction submodel,0:Not using direction submodel)\n";
+					ofile << "#Speed: " << _SubmodelSpeed << " (1:Using speed submodel,0:Not using speed submodel)\n";
+					ofile << "#GCVM: " << _GCVMUsing << " (1:Using GCVM instead of simplest model,0:Using simplest model)\n";
+					ofile << "#ID\ttime(s)\tamount\tposition_x\tpostion_y\n";
+				}
+				else {
+					ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::app);
+				}
+				ofile << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
+				ofile.close();
 				Point position = ped->GetPos();
 				double position_wx = position._x > -8 ? position._x - 18 : position._x - 2;
 				Point position_w(position_wx, position._y);
@@ -530,28 +542,11 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					ped1->SetInCloggingTime(0);
 				}
 
-				/*
-				// Every pedestrian only once
-				for (vector<ID_pair>::iterator iter1 = relations.begin(); iter1 < relations.end(); ++iter1)
-				{
-					if (iter1->second == first_ID || iter1->first == first_ID || iter1->first == second_ID || iter1->second == second_ID)
-					{
-						*iter1 = ID_pair(-100, -100);
-					}
-				}
-				*/
-				//Log->Write("\nDELETE: \tPed (ID %d) is deleted to slove clogging, Clogging times = %d !", ped->GetID(), clogging_times);
+				_blocktime = 0;
 				break;
 			}
 		}
 	}
-	/*
-	for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter) {
-		int first_ID = iter->first;
-		int second_ID = iter->second;
-	}
-	*/
-
 	// remove the pedestrians that have left the building
 	for (unsigned int p = 0; p < pedsToRemove.size(); p++) {
 		building->DeletePedestrian(pedsToRemove[p]);
@@ -1434,7 +1429,7 @@ bool SimplestModel::NewClogging(Pedestrian* ped1, Pedestrian* ped2)
 	Point ep12 = p2 - p1;
 
 	//condition1 : s<0
-	double d12 = GetAreaSize();
+	double d12 = _AreaSize;
 	int condition1 = eff_dist < d12 ? 1 : 0;
 
 	//condition2
