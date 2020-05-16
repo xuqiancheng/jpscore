@@ -560,6 +560,9 @@ bool IniFileParser::ParseVelocityModel(TiXmlElement * xVelocity, TiXmlElement * 
     if(!ParseCovid(*xModelPara))
         return false;
 
+    if(!ParsefType(*xModelPara))
+        return false;
+
     //force_ped
     if(xModelPara->FirstChild("force_ped")) {
         if(!xModelPara->FirstChildElement("force_ped")->Attribute("a"))
@@ -577,6 +580,7 @@ bool IniFileParser::ParseVelocityModel(TiXmlElement * xVelocity, TiXmlElement * 
         }
         LOG_INFO("Frep_ped a={:.2f}, D={:.2f}", _config->GetaPed(), _config->GetDPed());
     }
+
     //force_wall
     if(xModelPara->FirstChild("force_wall")) {
         if(!xModelPara->FirstChildElement("force_wall")->Attribute("a"))
@@ -604,7 +608,8 @@ bool IniFileParser::ParseVelocityModel(TiXmlElement * xVelocity, TiXmlElement * 
         _config->GetDPed(),
         _config->GetaWall(),
         _config->GetDWall(),
-        _config->IsCovid())));
+        _config->IsCovid(),
+        _config->IsfType())));
 
     //Parsing the covid parameters
     ParseCovidParameters(xVelocity, xAgentDistri);
@@ -1417,5 +1422,19 @@ bool IniFileParser::ParseCovid(TiXmlNode & Node)
     } else {
         _config->SetIsCovid(0);
     }
-    return true; //default is periodic=0. If not specified than is OK
+    return true; //default is covid=0. If not specified than is OK
+}
+
+bool IniFileParser::ParsefType(TiXmlNode & Node)
+{
+    if(Node.FirstChild("fType")) {
+        const char * fType = Node.FirstChild("fType")->FirstChild()->Value();
+        if(fType)
+            _config->SetIsfType(atoi(fType));
+        LOG_INFO("fType <{}>", _config->IsfType());
+        return true;
+    } else {
+        _config->SetIsfType(1);
+    }
+    return true; //default is fType=1. If not specified than is OK
 }

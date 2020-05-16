@@ -158,6 +158,8 @@ private:
     double _virus_get;
     double _pro_infect;
 
+    double _contact_degree;
+
 public:
     // public member
     int _ticksInThisRoom;
@@ -589,4 +591,8 @@ public:
     void SetProInfect(double proi);
 
     double GetProInfect() const;
+
+    void SetContactDegree(double cdeg);
+
+    double GetContactDegree() const;
 };

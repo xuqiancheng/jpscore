@@ -77,4 +77,6 @@ private:
     int _exit_strat_number;
 
     bool ParseCovid(TiXmlNode & Node);
+
+    bool ParsefType(TiXmlNode & Node);
 };

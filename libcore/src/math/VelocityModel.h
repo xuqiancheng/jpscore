@@ -71,6 +71,8 @@ private:
 
     int _isCovid;
 
+    int _fType;
+
     /**
       * Optimal velocity function \f$ V(spacing) =\min{v_0, \max{0, (s-l)/T}}  \f$
       *
@@ -140,6 +142,8 @@ private:
 
     double ProbInfect(Pedestrian * ped) const;
 
+    double ContactDegree(Pedestrian * ped1, Pedestrian * ped2, int func) const;
+
 public:
     VelocityModel(
         std::shared_ptr<DirectionManager> dir,
@@ -147,7 +151,8 @@ public:
         double Dped,
         double awall,
         double Dwall,
-        int covid);
+        int covid,
+        int fType);
     virtual ~VelocityModel(void);
 
     /**

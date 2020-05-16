@@ -123,18 +123,20 @@ TrajectoriesTXT::TrajectoriesTXT() : Trajectories()
     };
 
     // Add header, info and output for covid
-    _optionalOutputHeader[OptionalOutput::covid] = "Inf\tVC\tVG\tPI\t";
+    _optionalOutputHeader[OptionalOutput::covid] = "Inf\tVC\tVG\tPI\tCD\t";
     _optionalOutputInfo[OptionalOutput::covid]   = "#Inf: If the pedestrian is infective\n"
                                                  "#VC: Amount of virus contacted\n"
                                                  "#VG: Probability of virus entering the body\n"
-                                                 "#PI: Probability of be infected\n";
+                                                 "#PI: Probability of be infected\n"
+                                                 "#CD: The value to measure the contact degree\n";
     _optionalOutput[OptionalOutput::covid] = [](const Pedestrian * ped) {
         return fmt::format(
-            FMT_STRING("{}\t{:.2f}\t{:.2f}\t{:.2f}\t"),
+            FMT_STRING("{}\t{:.2f}\t{:.2f}\t{:.2f}\t{:.2f}\t"),
             ped->GetInfection(),
             ped->GetVirusContact(),
             ped->GetVirusget(),
-            ped->GetProInfect());
+            ped->GetProInfect(),
+            ped->GetContactDegree());
     };
 }
 

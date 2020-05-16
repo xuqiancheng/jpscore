@@ -111,15 +111,16 @@ Pedestrian::Pedestrian()
     _waitingPos = Point(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
 
     //covid parameters
-    _infection     = 0;
-    _covid_k       = 1.0;
-    _covid_D       = 1.0;
-    _covid_P       = 0.3;
-    _covid_Q       = 0.3;
-    _covid_alpha   = 1.0;
-    _virus_contact = 0;
-    _virus_get     = 0;
-    _pro_infect    = 0;
+    _infection      = 0;
+    _covid_k        = 1.0;
+    _covid_D        = 1.0;
+    _covid_P        = 0.3;
+    _covid_Q        = 0.3;
+    _covid_alpha    = 1.0;
+    _virus_contact  = 0;
+    _virus_get      = 0;
+    _pro_infect     = 0;
+    _contact_degree = 0;
 }
 
 Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & building) :
@@ -196,15 +197,16 @@ Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & bu
     _waitingPos = Point(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
 
     //covid parameters
-    _infection     = 0;
-    _covid_k       = 1.0;
-    _covid_D       = 1.0;
-    _covid_P       = 0.3;
-    _covid_Q       = 0.3;
-    _covid_alpha   = 1.0;
-    _virus_contact = 0;
-    _virus_get     = 0;
-    _pro_infect    = 0;
+    _infection      = 0;
+    _covid_k        = 1.0;
+    _covid_D        = 1.0;
+    _covid_P        = 0.3;
+    _covid_Q        = 0.3;
+    _covid_alpha    = 1.0;
+    _virus_contact  = 0;
+    _virus_get      = 0;
+    _pro_infect     = 0;
+    _contact_degree = 0;
 }
 
 
@@ -1396,4 +1398,14 @@ void Pedestrian::SetProInfect(double proi)
 double Pedestrian::GetProInfect() const
 {
     return _pro_infect;
+}
+
+void Pedestrian::SetContactDegree(double cdeg)
+{
+    _contact_degree = cdeg;
+}
+
+double Pedestrian::GetContactDegree() const
+{
+    return _contact_degree;
 }

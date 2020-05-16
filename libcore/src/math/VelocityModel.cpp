@@ -46,7 +46,8 @@ VelocityModel::VelocityModel(
     double Dped,
     double awall,
     double Dwall,
-    int covid)
+    int covid,
+    int fType)
 {
     _direction = dir;
     // Force_rep_PED Parameter
@@ -57,6 +58,7 @@ VelocityModel::VelocityModel(
     _DWall = Dwall;
     // Covid
     _isCovid = covid;
+    _fType   = fType;
 }
 
 
@@ -103,7 +105,7 @@ bool VelocityModel::Init(Building * building)
         else {
             std::cout << "Ped " << ped->GetID() << " has no exit line in INIT\n";
         }
-        if(_isCovid) {
+        if(_isCovid == 1) {
             Room * room       = building->GetRoom(ped->GetRoomID());
             NavLine * NewExit = RandomExitLine(ped, room);
             ped->SetExitLine(NewExit);
@@ -170,6 +172,7 @@ void VelocityModel::ComputeNextTimeStep(
             SubRoom * subroom = room->GetSubRoom(ped->GetSubRoomID());
             Point repPed      = Point(0, 0);
             double virus      = 0;
+            double contact    = 0;
             std::vector<Pedestrian *> neighbours =
                 building->GetNeighborhoodSearch().GetNeighbourhood(ped);
 
@@ -193,8 +196,9 @@ void VelocityModel::ComputeNextTimeStep(
                     continue;
                 if(ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
                     repPed += ForceRepPed(ped, ped1, periodic);
-                    if(_isCovid) {
+                    if(_isCovid > 0) {
                         virus += VirusContactAmount(ped, ped1);
+                        contact += ContactDegree(ped, ped1, _fType);
                     }
 
                 } else {
@@ -203,17 +207,22 @@ void VelocityModel::ComputeNextTimeStep(
                         building->GetRoom(ped1->GetRoomID())->GetSubRoom(ped1->GetSubRoomID());
                     if(subroom->IsDirectlyConnectedWith(sb2)) {
                         repPed += ForceRepPed(ped, ped1, periodic);
-                        if(_isCovid) {
+                        if(_isCovid > 0) {
                             virus += VirusContactAmount(ped, ped1);
+                            contact += ContactDegree(ped, ped1, _fType);
                         }
                     }
                 }
             } // for i
-            if(_isCovid) {
+            if(_isCovid > 0) {
+                //intergrate virus
                 virus = ped->GetVirusContact() + virus * deltaT;
                 ped->SetVirusContact(virus);
                 ped->SetVirusGet(VirusGetAmount(ped));
                 ped->SetProInfect(ProbInfect(ped));
+                //intergrate contact
+                contact = ped->GetContactDegree() + contact * deltaT;
+                ped->SetContactDegree(contact);
             }
             //repulsive forces to walls and closed transitions that are not my target
             Point repWall = ForceRepRoom(allPeds[p], subroom);
@@ -309,6 +318,9 @@ void VelocityModel::ComputeNextTimeStep(
                     ped->SetPos(Point(ped->GetPos()._x - (xRight - xLeft), ped->GetPos()._y));
                     //ped->SetID( ped->GetID() + 1);
                 }
+                if(ped->GetPos()._x <= xLeft) {
+                    ped->SetPos(Point(ped->GetPos()._x + (xRight - xLeft), ped->GetPos()._y));
+                }
             }
             ped->SetV(v_neu);
         }
@@ -350,7 +362,7 @@ Point VelocityModel::e0(Pedestrian * ped, Room * room) const
     Point lastE0 = ped->GetLastE0();
     ped->SetLastE0(target - pos);
 
-    if(_isCovid && dist < 1) {
+    if(_isCovid == 1 && dist < 1) {
         NavLine * NewExit = RandomExitLine(ped, room);
         ped->SetExitLine(NewExit);
         ped->SetExitIndex(NewExit->GetUniqueID());
@@ -398,6 +410,9 @@ VelocityModel::GetSpacing(Pedestrian * ped1, Pedestrian * ped2, Point ei, int pe
         if((xRight - x) + (x_j - xLeft) <= cutoff) {
             distp12._x = distp12._x + xRight - xLeft;
         }
+        if((x - xLeft) + (xRight - x_j) <= cutoff) {
+            distp12._x = xRight - xLeft - distp12._x;
+        }
     }
     double Distance = distp12.Norm();
     double l        = 2 * ped1->GetEllipse().GetBmax();
@@ -435,6 +450,9 @@ Point VelocityModel::ForceRepPed(Pedestrian * ped1, Pedestrian * ped2, int perio
         double x_j = ped2->GetPos()._x;
         if((xRight - x) + (x_j - xLeft) <= cutoff) {
             distp12._x = distp12._x + xRight - xLeft;
+        }
+        if((x - xLeft) + (xRight - x_j) <= cutoff) {
+            distp12._x = xRight - xLeft - distp12._x;
         }
     }
 
@@ -500,7 +518,7 @@ Point VelocityModel::ForceRepRoom(Pedestrian * ped, SubRoom * subroom) const
 
     // and finally the closed doors
     for(const auto & trans : subroom->GetAllTransitions()) {
-        if(!trans->IsOpen() || _isCovid) {
+        if(!trans->IsOpen() || _isCovid == 1) {
             f += ForceRepWall(ped, *(static_cast<Line *>(trans)), centroid, inside);
         }
     }
@@ -643,4 +661,27 @@ double VelocityModel::ProbInfect(Pedestrian * ped) const
     double Q    = ped->GetCovidQ();
     double proI = vg * Q;
     return proI;
+}
+
+double VelocityModel::ContactDegree(Pedestrian * ped1, Pedestrian * ped2, int func) const
+{
+    double Contact = 0;
+    Point dist     = ped2->GetPos() - ped1->GetPos();
+    double s       = dist.Norm();
+    double r       = ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax();
+    if(func == 1) {
+        int K   = 1;
+        int D   = 1;
+        Contact = K * exp((r - s) / D);
+    }
+    if(func == 2) {
+        int K   = 1;
+        Contact = K / s;
+    }
+    if(func == 3) {
+        int K     = 1;
+        int safeR = 1;
+        Contact   = s - safeR > 0 ? 0 : K;
+    }
+    return Contact;
 }
