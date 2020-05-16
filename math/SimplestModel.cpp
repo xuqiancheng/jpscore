@@ -478,10 +478,12 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		for (int p = start; p <= end; ++p)
 		{
 			Pedestrian* ped = allPeds[p];
+			/*
 			if (ped->GetInCloggingTime() < _WaitingTime)
 			{
 				continue;
 			}
+			*/
 			int ID = ped->GetID();
 			for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter)
 			{
