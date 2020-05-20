@@ -508,7 +508,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			if (ped->GetID() == ID_closest)
 			{
 				//printf("\nTest:ID=%d time=%f", ID_closest, current);
-				if (_blocktime < 2 * _WaitingTime && abs(_blocktime - current)>_WaitingTime)
+				if ((_blocktime <= _WaitingTime + deltaT) && abs(_blocktime - current) > _WaitingTime)
 				{
 					_clogging_times++;
 				}
