@@ -45,7 +45,7 @@
 double xRight_simplest = 26.0;
 double xLeft_simplest = 0.0;
 double cutoff_simplest = 2.0;
-int clogging_times = 0;
+
 //--------------------------------
 /*
 int Vision_area = 1;//Vision_Area=1:open,Vision_Area=0:close,Vision_Area=2:ei_half,Vision=3:e0_half
@@ -454,8 +454,9 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 
 		//if blockage happens
 		double xpos = ped1->GetPos()._x;
+		double xpos_before = xpos - ped1->GetV()._x*deltaT;
 		double xlimit = 10;
-		if (xpos > xlimit)
+		if (xpos > xlimit&&xpos_before < xlimit)
 		{
 			blockage = 0;
 		}
@@ -463,14 +464,16 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 	if (blockage)
 	{
 		_blocktime = _blocktime + deltaT;
+		_cool_clock = _cool_clock + deltaT;
 	}
 	else
 	{
+		_cool_clock = 0;
 		_blocktime = 0;
 	}
 
 	//if clogging should be solved, then find the closest stable clogging and remove one pedestrian from it.
-	if (_blocktime > _WaitingTime)
+	if (_cool_clock >= _WaitingTime)
 	{
 		// find the closest pedestrian who satisfy
 		int ID_closest = -1;
@@ -478,19 +481,17 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 		for (int p = start; p <= end; ++p)
 		{
 			Pedestrian* ped = allPeds[p];
-			/*
-			if (ped->GetInCloggingTime() < _WaitingTime)
-			{
-				continue;
-			}
-			*/
 			int ID = ped->GetID();
 			for (vector<ID_pair>::iterator iter = relations.begin(); iter < relations.end(); ++iter)
 			{
 				if (iter->first == ID || iter->second == ID)
 				{
 					double distGoal = (ped->GetExitLine()->GetCentre() - ped->GetPos()).Norm();
-					if (distGoal < dis_closest&&ped->GetPos()._x >= 0)
+					if (ped->GetPos()._x > 10)
+					{
+						distGoal = 10 - ped->GetPos()._x;
+					}
+					if (distGoal < dis_closest && ped->GetPos()._x >= 0)
 					{
 						ID_closest = ID;
 						dis_closest = distGoal;
@@ -507,14 +508,17 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 			if (ped->GetID() == ID_closest)
 			{
 				//printf("\nTest:ID=%d time=%f", ID_closest, current);
-				clogging_times++;
+				if (_blocktime < 2 * _WaitingTime && abs(_blocktime - current)>_WaitingTime)
+				{
+					_clogging_times++;
+				}
 				std::ofstream ofile;
 				string ProjectFileName = building->GetProjectFilename();
 				int startN = ProjectFileName.find_last_of("\\");
 				startN = startN == -1 ? ProjectFileName.find_last_of("/") : startN;
 				int endN = ProjectFileName.find(".xml");
 				string InifileName = ProjectFileName.substr(startN + 1, endN - startN - 1);
-				if (clogging_times == 1) {
+				if (_clogging_times == 1) {
 					ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::trunc);
 					ofile << "#inifile: " << building->GetProjectFilename() << "\n";
 					ofile << "#Commit date: " << GIT_COMMIT_DATE << "\n";
@@ -530,7 +534,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				else {
 					ofile.open(building->GetProjectRootDir() + "CloggingLog_" + InifileName + ".txt", std::ofstream::app);
 				}
-				ofile << ped->GetID() << "\t" << current << "\t" << clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
+				ofile << ped->GetID() << "\t" << current << "\t" << _clogging_times << "\t" << ped->GetPos()._x << "\t" << ped->GetPos()._y << "\n";
 				ofile.close();
 				Point position = ped->GetPos();
 				double position_wx = position._x > -8 ? position._x - 18 : position._x - 2;
@@ -544,7 +548,7 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 					ped1->SetInCloggingTime(0);
 				}
 
-				_blocktime = 0;
+				_cool_clock = 0;
 				break;
 			}
 		}

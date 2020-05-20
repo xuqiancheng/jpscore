@@ -84,6 +84,10 @@ private:
 
 	double _blocktime = 0;
 
+	int _clogging_times = 0;
+
+	double _cool_clock = 0;
+
 	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
 	/**
