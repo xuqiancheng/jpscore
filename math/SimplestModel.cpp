@@ -1436,7 +1436,7 @@ bool SimplestModel::NewClogging(Pedestrian* ped1, Pedestrian* ped2)
 	Point ep12 = p2 - p1;
 
 	//condition1 : s<0
-	double d12 = _AreaSize;
+	double d12 = eped1.GetBmin();
 	int condition1 = eff_dist < d12 ? 1 : 0;
 
 	//condition2
