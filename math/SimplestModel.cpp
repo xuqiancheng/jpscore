@@ -538,7 +538,8 @@ void SimplestModel::ComputeNextTimeStep(double current, double deltaT, Building*
 				ofile.close();
 				Point position = ped->GetPos();
 				double position_wx = position._x > -8 ? position._x - 18 : position._x - 2;
-				Point position_w(position_wx, position._y);
+				double position_wy = 0.006 * (rand() % 1000) + 1;
+				Point position_w(position_wx, position_wy);
 				ped->SetPos(position_w, true);
 				ped->SetmoveManually(true);
 
