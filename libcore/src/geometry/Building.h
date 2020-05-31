@@ -26,6 +26,7 @@
  **/
 #pragma once
 
+#include "Counter.h"
 #include "Goal.h"
 #include "Hline.h"
 #include "NavLine.h"

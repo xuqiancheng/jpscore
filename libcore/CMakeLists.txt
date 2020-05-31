@@ -17,6 +17,7 @@ set(source_files
     src/general/ArgumentParser.cpp
     src/general/Logger.cpp
     src/geometry/Building.cpp
+	src/geometry/Counter.cpp
     src/geometry/Crossing.cpp
     src/geometry/Goal.cpp
     src/geometry/GoalManager.cpp
@@ -107,6 +108,7 @@ set(header_files
     src/general/Macros.h
     src/general/randomnumbergenerator.h
     src/geometry/Building.h
+	src/geometry/Counter.h
     src/geometry/Crossing.h
     src/geometry/Goal.h
     src/geometry/GoalManager.h

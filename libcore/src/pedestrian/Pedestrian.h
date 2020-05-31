@@ -160,6 +160,10 @@ private:
 
     double _contact_degree;
 
+    double _time_inshop;
+
+    Point _CounterTogo;
+
 public:
     // public member
     int _ticksInThisRoom;
@@ -595,4 +599,12 @@ public:
     void SetContactDegree(double cdeg);
 
     double GetContactDegree() const;
+
+    void SetTimeInShop(double time);
+
+    double GetTimeInShop() const;
+
+    void SetCounterTogo(Point ctg);
+
+    Point GetCounterTogo() const;
 };

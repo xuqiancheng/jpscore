@@ -121,6 +121,8 @@ Pedestrian::Pedestrian()
     _virus_get      = 0;
     _pro_infect     = 0;
     _contact_degree = 0;
+    _time_inshop    = 0;
+    _CounterTogo    = Point(-100, -100);
 }
 
 Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & building) :
@@ -207,6 +209,8 @@ Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & bu
     _virus_get      = 0;
     _pro_infect     = 0;
     _contact_degree = 0;
+    _time_inshop    = 0;
+    _CounterTogo    = Point(-100, -100);
 }
 
 
@@ -1408,4 +1412,24 @@ void Pedestrian::SetContactDegree(double cdeg)
 double Pedestrian::GetContactDegree() const
 {
     return _contact_degree;
+}
+
+void Pedestrian::SetTimeInShop(double time)
+{
+    _time_inshop = time;
+}
+
+double Pedestrian::GetTimeInShop() const
+{
+    return _time_inshop;
+}
+
+void Pedestrian::SetCounterTogo(Point ctg)
+{
+    _CounterTogo = ctg;
+}
+
+Point Pedestrian::GetCounterTogo() const
+{
+    return _CounterTogo;
 }

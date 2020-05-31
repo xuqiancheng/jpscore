@@ -327,6 +327,12 @@ bool Building::InitGeometry()
                     return false;
             }
 
+            //do the same for the counters
+            for(auto && coun : itr_subroom.second->GetAllCounters()) {
+                if(!coun->ConvertLineToPoly())
+                    return false;
+            }
+
             //here we can create a boost::geometry::model::polygon out of the vector<Point> objects created above
             itr_subroom.second->CreateBoostPoly();
 

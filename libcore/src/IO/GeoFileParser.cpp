@@ -225,6 +225,35 @@ bool GeoFileParser::LoadGeometry(Building * building)
                 }
                 subroom->AddObstacle(obstacle);
             }
+
+            //looking for counters
+            for(TiXmlElement * xCounter = xSubRoom->FirstChildElement("counter"); xCounter;
+                xCounter                = xCounter->NextSiblingElement("counter")) {
+                int id                  = xmltoi(xCounter->Attribute("id"), -1);
+                double height           = xmltof(xCounter->Attribute("height"), 0);
+                std::string CounCaption = xmltoa(xCounter->Attribute("caption"), "-1");
+
+                Counter * counter = new Counter();
+                counter->SetId(id);
+                counter->SetCaption(CounCaption);
+                counter->SetHeight(height);
+
+                //looking for polygons (walls)
+                for(TiXmlElement * xPolyVertices = xCounter->FirstChildElement("polygon");
+                    xPolyVertices;
+                    xPolyVertices = xPolyVertices->NextSiblingElement("polygon")) {
+                    for(TiXmlElement * xVertex = xPolyVertices->FirstChildElement("vertex");
+                        xVertex && xVertex != xPolyVertices->LastChild("vertex");
+                        xVertex = xVertex->NextSiblingElement("vertex")) {
+                        double x1 = xmltof(xVertex->Attribute("px"));
+                        double y1 = xmltof(xVertex->Attribute("py"));
+                        double x2 = xmltof(xVertex->NextSiblingElement("vertex")->Attribute("px"));
+                        double y2 = xmltof(xVertex->NextSiblingElement("vertex")->Attribute("py"));
+                        counter->AddWall(Wall(Point(x1, y1), Point(x2, y2)));
+                    }
+                }
+                subroom->AddCounter(counter);
+            }
             room->AddSubRoom(subroom);
         }
         //parsing the crossings

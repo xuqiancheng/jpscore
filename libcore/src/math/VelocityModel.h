@@ -123,7 +123,7 @@ private:
       *
       * @return Point
       */
-    Point ForceRepRoom(Pedestrian * ped, SubRoom * subroom) const;
+    Point ForceRepRoom(Pedestrian * ped, SubRoom * subroom, bool ifclose) const;
     /**
       * Repulsive force between pedestrian <ped> and wall <l>
       *
@@ -143,6 +143,8 @@ private:
     double ProbInfect(Pedestrian * ped) const;
 
     double ContactDegree(Pedestrian * ped1, Pedestrian * ped2, int func) const;
+
+    int GetNumberInShop(Building * building) const;
 
 public:
     VelocityModel(

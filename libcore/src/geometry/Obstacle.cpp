@@ -305,7 +305,6 @@ const Point Obstacle::GetCentroid() const
     signedArea *= 0.5;
     px /= (6 * signedArea);
     py /= (6 * signedArea);
-
     return Point(px, py);
 }
 

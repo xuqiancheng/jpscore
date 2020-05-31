@@ -43,6 +43,7 @@ class Line;
 class Point;
 class Wall;
 class WaitingArea;
+class Counter;
 
 #ifdef _SIMULATOR
 class Pedestrian;
@@ -92,6 +93,7 @@ protected:
     std::vector<double> _poly_help_constatnt; //for the function IsInsidePolygon, a.brkic
     std::vector<double> _poly_help_multiple;  //for the function IsInsidePolygon, a.brkic
     std::vector<Obstacle *> _obstacles;
+    std::vector<Counter *> _counters;
 
 public:
     /**
@@ -163,6 +165,11 @@ public:
       * @return a reference to all obstacles contained
       */
     const std::vector<Obstacle *> & GetAllObstacles() const;
+
+    /**
+      * @return a reference to all counters contained
+      */
+    const std::vector<Counter *> & GetAllCounters() const;
 
     /**
       * @return a vector containing all Ids
@@ -275,6 +282,13 @@ public:
     bool CheckObstacles();
 
     /**
+      * check the subroom for some inconsistencies.
+      * e.g. simple polygons
+      * no intersection between the walls and the counters.
+      */
+    bool CheckCounters();
+
+    /**
       * Check the subroom for possible errors and
       * output user specific informations.
       */
@@ -322,6 +336,12 @@ public:
     bool IsInObstacle(const Point & pt);
 
     /**
+      *
+      * @return true if the Point is inside any counter
+      */
+    bool IsInCounter(const Point & pt);
+
+    /**
       * @return true if there is an overlapp between the walls of the subrooms and the
       * supplied set of lines.
       */
@@ -348,6 +368,12 @@ public:
       * They are used for the triangulation/convexifivation process
       */
     void AddObstacle(Obstacle * obs);
+
+    /**
+      * Adds an counter to the subroom.
+      * They are used for the triangulation/convexifivation process
+      */
+    void AddCounter(Counter * cou);
 
     /**
       * Add/remove a goal Id

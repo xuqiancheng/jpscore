@@ -26,6 +26,7 @@
  **/
 #include "SubRoom.h"
 
+#include "Counter.h"
 #include "Hline.h"
 #include "Line.h"
 #include "Obstacle.h"
@@ -54,6 +55,7 @@ SubRoom::SubRoom()
     _poly_help_constatnt = std::vector<double>();
     _poly_help_multiple  = std::vector<double>();
     _obstacles           = std::vector<Obstacle *>();
+    _counters            = std::vector<Counter *>();
 
     _crossings   = std::vector<Crossing *>();
     _transitions = std::vector<Transition *>();
@@ -82,6 +84,8 @@ SubRoom::SubRoom(const SubRoom & orig)
     _poly_help_constatnt = orig._poly_help_constatnt;
     _poly_help_multiple  = orig._poly_help_multiple;
     _obstacles           = orig._obstacles;
+    _counters            = orig._counters;
+
 
     _crossings   = orig._crossings;
     _transitions = orig._transitions;
@@ -107,6 +111,10 @@ SubRoom::~SubRoom()
         delete _obstacles[i];
     }
     _obstacles.clear();
+    for(unsigned int i = 0; i < _counters.size(); i++) {
+        delete _counters[i];
+    }
+    _counters.clear();
 }
 
 void SubRoom::SetSubRoomID(int ID)
@@ -184,6 +192,10 @@ const std::vector<Obstacle *> & SubRoom::GetAllObstacles() const
     return _obstacles;
 }
 
+const std::vector<Counter *> & SubRoom::GetAllCounters() const
+{
+    return _counters;
+}
 
 const std::vector<int> & SubRoom::GetAllGoalIDs() const
 {
@@ -223,6 +235,11 @@ void SubRoom::AddObstacle(Obstacle * obs)
     CheckObstacles();
 }
 
+void SubRoom::AddCounter(Counter * cou)
+{
+    _counters.push_back(cou);
+    //CheckCounters();
+}
 
 void SubRoom::AddGoalID(int ID)
 {
@@ -536,6 +553,25 @@ bool SubRoom::CheckObstacles()
                     "The obstacle [{}] intersects with subroom [{}] in room [{}]. The "
                     "triangulation will not work.",
                     obst->GetId(),
+                    _id,
+                    _roomID);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool SubRoom::CheckCounters()
+{
+    for(const auto & wall : _walls) {
+        for(const auto & coun : _counters) {
+            if(coun->IntersectWithLine(wall)) {
+                LOG_ERROR(
+                    "The counter [{}] intersects with subroom [{}] in room [{}]. The "
+                    "triangulation will not work.",
+                    coun->GetId(),
                     _id,
                     _roomID);
                 return false;
