@@ -232,7 +232,7 @@ bool SubRoom::AddWall(const Wall & w)
 void SubRoom::AddObstacle(Obstacle * obs)
 {
     _obstacles.push_back(obs);
-    CheckObstacles();
+    //CheckObstacles();
 }
 
 void SubRoom::AddCounter(Counter * cou)

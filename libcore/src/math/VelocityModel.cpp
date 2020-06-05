@@ -399,15 +399,40 @@ Point VelocityModel::e0(Pedestrian * ped, Room * room) const
         ped->SetExitIndex(NewExit->GetUniqueID());
         target = _direction->GetTarget(room, ped);
     } else if(_isCovid == 4 && room->GetCaption() == "shop" && ped->GetTimeInShop() <= stayTime) {
-        if(ped->GetCounterTogo() == Point(-100, -100) ||
-           (ped->GetCounterTogo() - ped->GetPos()).Norm() < 0.05) {
+        if(!ped->GetCounterTogo() || ped->GetCounterTogo()->Contains(ped->GetPos())) {
             SubRoom * subroom = room->GetSubRoom(ped->GetSubRoomID());
             int counterSize   = (int) subroom->GetAllCounters().size();
-            Point counterTogo = subroom->GetAllCounters()[rand() % counterSize]->GetCentroid();
+            int myseed        = ped->GetGlobalTime() * 100 + ped->GetID();
+            srand(myseed);
+            int randNum = rand() % counterSize;
+            //LOG_ERROR("Test:(ID:{:d}, Value{:d}, time{:d})", ped->GetID(), randNum, myseed);
+            Counter * counterTogo = subroom->GetAllCounters()[randNum];
             ped->SetCounterTogo(counterTogo);
         }
-        target = ped->GetCounterTogo();
+        target = ped->GetCounterTogo()->GetCentroid();
+    } else if(_isCovid == 5) {
+        SubRoom * subroom       = room->GetSubRoom(ped->GetSubRoomID());
+        const NavLine * oldgoal = ped->GetExitLine();
+        if(oldgoal->DistTo(pos) < 0.2) {
+            bool SetNewGoal = false;
+            auto allHlines  = subroom->GetAllHlines();
+            int HlineSize   = (int) allHlines.size();
+            //LOG_ERROR("Test:(ID:{:d}, HlineSize{:d})", ped->GetID(), HlineSize);
+            do {
+                int myseed = ped->GetGlobalTime() * 100 + ped->GetID();
+                //srand(myseed);
+                int randNum           = rand() % HlineSize;
+                const Hline * newgoal = allHlines[randNum];
+                SetNewGoal            = subroom->IsVisible(pos, newgoal->GetCentre(), false);
+                if(SetNewGoal) {
+                    //target = newgoal->GetCentre();
+                    ped->SetExitLine(newgoal);
+                    ped->SetExitIndex(newgoal->GetUniqueID());
+                }
+            } while(SetNewGoal != true);
+        }
     }
+
 
     if((dynamic_cast<DirectionLocalFloorfield *>(_direction->GetDirectionStrategy().get())) ||
        (dynamic_cast<DirectionSubLocalFloorfield *>(_direction->GetDirectionStrategy().get()))) {

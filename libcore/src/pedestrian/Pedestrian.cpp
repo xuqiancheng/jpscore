@@ -122,7 +122,7 @@ Pedestrian::Pedestrian()
     _pro_infect     = 0;
     _contact_degree = 0;
     _time_inshop    = 0;
-    _CounterTogo    = Point(-100, -100);
+    _CounterTogo    = nullptr;
 }
 
 Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & building) :
@@ -210,7 +210,7 @@ Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & bu
     _pro_infect     = 0;
     _contact_degree = 0;
     _time_inshop    = 0;
-    _CounterTogo    = Point(-100, -100);
+    _CounterTogo    = nullptr;
 }
 
 
@@ -1424,12 +1424,12 @@ double Pedestrian::GetTimeInShop() const
     return _time_inshop;
 }
 
-void Pedestrian::SetCounterTogo(Point ctg)
+void Pedestrian::SetCounterTogo(Counter * ctg)
 {
     _CounterTogo = ctg;
 }
 
-Point Pedestrian::GetCounterTogo() const
+Counter * Pedestrian::GetCounterTogo() const
 {
     return _CounterTogo;
 }

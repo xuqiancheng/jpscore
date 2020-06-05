@@ -32,6 +32,7 @@
 #include "JPSfire/C_toxicity_analysis/ToxicityAnalysis.h"
 #include "PedDistributor.h"
 #include "general/Macros.h"
+#include "geometry/Counter.h"
 #include "geometry/NavLine.h"
 #include "pedestrian/Knowledge.h"
 
@@ -45,6 +46,7 @@ class Building;
 class NavLine;
 class Router;
 class WalkingSpeed;
+class Counter;
 class Pedestrian
 {
 private:
@@ -162,7 +164,7 @@ private:
 
     double _time_inshop;
 
-    Point _CounterTogo;
+    Counter * _CounterTogo;
 
 public:
     // public member
@@ -604,7 +606,7 @@ public:
 
     double GetTimeInShop() const;
 
-    void SetCounterTogo(Point ctg);
+    void SetCounterTogo(Counter * ctg);
 
-    Point GetCounterTogo() const;
+    Counter * GetCounterTogo() const;
 };

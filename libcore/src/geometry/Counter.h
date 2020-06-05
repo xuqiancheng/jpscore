@@ -32,4 +32,6 @@
 
 class Counter : public Obstacle
 {
+public:
+    Counter();
 };

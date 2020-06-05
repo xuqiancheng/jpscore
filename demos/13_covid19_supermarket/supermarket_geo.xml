@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<geometry version="0.8" caption="corner" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" unit="m">
+	<rooms>
+		<room id="0" caption="lobby">
+			<subroom id="0" caption="source">
+				<polygon caption="wall">
+					<vertex px="0.0" py="18.0" />
+					<vertex px="-2.0" py="18.0" />
+					<vertex px="-2.0" py="16.0" />
+					<vertex px="0.0" py="16.0" />
+				</polygon>
+			</subroom>
+		</room>
+		<room id="1" caption="supermarket">
+			<subroom id="0" class="shopping area" >
+				<polygon caption="wall">
+					<vertex px="5.0" py="7.0" />
+					<vertex px="5.0" py="8.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="5.0" py="9.0" />
+					<vertex px="5.0" py="10.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="5.0" py="11.0" />
+					<vertex px="5.0" py="12.0" />
+					<vertex px="0.0" py="12.0" />
+					<vertex px="0.0" py="16.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="0.0" py="18.0" />
+					<vertex px="34.0" py="18.0" />
+					<vertex px="34.0" py="0.0" />
+					<vertex px="0.0" py="0.0" />
+					<vertex px="0.0" py="6.0" />
+					<vertex px="5.0" py="6.0" />
+				</polygon>
+				
+				<obstacle id="0" caption="shelf11">
+					<polygon>
+						<vertex px="2.0" py="14.0" />
+						<vertex px="2.0" py="16.0" />
+						<vertex px="8.0" py="16.0" />
+						<vertex px="8.0" py="14.0" />
+						<vertex px="2.0" py="14.0" />
+					</polygon>
+				</obstacle>
+				<obstacle id="1" caption="shelf12">
+					<polygon>
+						<vertex px="10.0" py="14.0" />
+						<vertex px="10.0" py="16.0" />
+						<vertex px="20.0" py="16.0" />
+						<vertex px="20.0" py="14.0" />
+						<vertex px="10.0" py="14.0" />
+					</polygon>
+				</obstacle>
+				<obstacle id="2" caption="shelf13">
+					<polygon>
+						<vertex px="22.0" py="14.0" />
+						<vertex px="22.0" py="16.0" />
+						<vertex px="32.0" py="16.0" />
+						<vertex px="32.0" py="14.0" />
+						<vertex px="22.0" py="14.0" />
+					</polygon>
+				</obstacle>
+				
+				<obstacle id="3" caption="shelf21">
+					<polygon>
+						<vertex px="10.0" py="10.0" />
+						<vertex px="10.0" py="12.0" />
+						<vertex px="20.0" py="12.0" />
+						<vertex px="20.0" py="10.0" />
+						<vertex px="10.0" py="10.0" />
+					</polygon>
+				</obstacle>
+				<obstacle id="4" caption="shelf22">
+					<polygon>
+						<vertex px="22.0" py="10.0" />
+						<vertex px="22.0" py="12.0" />
+						<vertex px="32.0" py="12.0" />
+						<vertex px="32.0" py="10.0" />
+						<vertex px="22.0" py="10.0" />
+					</polygon>
+				</obstacle>
+				
+				<obstacle id="5" caption="shelf31">
+					<polygon>
+						<vertex px="10.0" py="6.0" />
+						<vertex px="10.0" py="8.0" />
+						<vertex px="20.0" py="8.0" />
+						<vertex px="20.0" py="6.0" />
+						<vertex px="10.0" py="6.0" />
+					</polygon>
+				</obstacle>
+				<obstacle id="6" caption="shelf32">
+					<polygon>
+						<vertex px="22.0" py="6.0" />
+						<vertex px="22.0" py="8.0" />
+						<vertex px="32.0" py="8.0" />
+						<vertex px="32.0" py="6.0" />
+						<vertex px="22.0" py="6.0" />
+					</polygon>
+				</obstacle>
+				
+				<obstacle id="7" caption="shelf31">
+					<polygon>
+						<vertex px="2.0" py="2.0" />
+						<vertex px="2.0" py="4.0" />
+						<vertex px="8.0" py="4.0" />
+						<vertex px="8.0" py="2.0" />
+						<vertex px="2.0" py="2.0" />
+					</polygon>
+				</obstacle>
+				<obstacle id="8" caption="shelf32">
+					<polygon>
+						<vertex px="10.0" py="2.0" />
+						<vertex px="10.0" py="4.0" />
+						<vertex px="20.0" py="4.0" />
+						<vertex px="20.0" py="2.0" />
+						<vertex px="10.0" py="2.0" />
+					</polygon>
+				</obstacle>
+				<obstacle id="9" caption="shelf33">
+					<polygon>
+						<vertex px="22.0" py="2.0" />
+						<vertex px="22.0" py="4.0" />
+						<vertex px="32.0" py="4.0" />
+						<vertex px="32.0" py="2.0" />
+						<vertex px="22.0" py="2.0" />
+					</polygon>
+				</obstacle>
+				
+			</subroom>
+			<subroom id="1" class="kassen" >
+				<polygon caption="wall">
+					<vertex px="0.0" py="6.0" />
+					<vertex px="5.0" py="6.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="5.0" py="7.0" />
+					<vertex px="5.0" py="8.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="5.0" py="9.0" />
+					<vertex px="5.0" py="10.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="5.0" py="11.0" />
+					<vertex px="5.0" py="12.0" />
+					<vertex px="0.0" py="12.0" />
+					<vertex px="0.0" py="11.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="0.0" py="10.0" />
+					<vertex px="0.0" py="9.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="0.0" py="8.0" />
+					<vertex px="0.0" py="7.0" />
+				</polygon>
+				
+				<obstacle id="1" caption="kasse1">
+					<polygon>
+						<vertex px="0.0" py="7.0" />
+						<vertex px="0.0" py="8.0" />
+						<vertex px="5.0" py="8.0" />
+						<vertex px="5.0" py="7.0" />
+						<vertex px="0.0" py="7.0" />
+					</polygon>
+				</obstacle>
+				<obstacle id="2" caption="kasse2">
+					<polygon>
+						<vertex px="0.0" py="9.0" />
+						<vertex px="0.0" py="10.0" />
+						<vertex px="5.0" py="10.0" />
+						<vertex px="5.0" py="9.0" />
+						<vertex px="0.0" py="9.0" />
+					</polygon>
+				</obstacle>
+				<obstacle id="3" caption="kasse3">
+					<polygon>
+						<vertex px="0.0" py="11.0" />
+						<vertex px="0.0" py="12.0" />
+						<vertex px="5.0" py="12.0" />
+						<vertex px="5.0" py="11.0" />
+						<vertex px="0.0" py="11.0" />
+					</polygon>
+				</obstacle>
+			</subroom>
+			<crossings>
+				<crossing id="0" subroom1_id="0" subroom2_id="1">
+					<vertex px="5.0" py="6.0" />
+					<vertex px="5.0" py="7.0" />
+				</crossing>
+				<crossing id="1" subroom1_id="0" subroom2_id="1">
+					<vertex px="5.0" py="8.0" />
+					<vertex px="5.0" py="9.0" />
+				</crossing>
+				<crossing id="2" subroom1_id="0" subroom2_id="1">
+					<vertex px="5.0" py="10.0" />
+					<vertex px="5.0" py="11.0" />
+				</crossing>
+			</crossings>
+		</room>
+		<room id="2" caption="lobby">
+			<subroom id="0" caption="out">
+				<polygon caption="wall">
+					<vertex px="-2.0" py="6.0" />
+					<vertex px="0.0" py="6.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="0.0" py="7.0" />
+					<vertex px="0.0" py="8.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="0.0" py="9.0" />
+					<vertex px="0.0" py="10.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="0.0" py="11.0" />
+					<vertex px="0.0" py="12.0" />
+					<vertex px="-2.0" py="12.0" />
+				</polygon>
+			</subroom>
+		</room>
+	</rooms>
+	
+	<transitions>
+		<transition id="0" caption="entrance" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="1" subroom2_id="0">
+			<vertex px="0.0" py="16.0" />
+			<vertex px="0.0" py="18.0" />
+		</transition>
+		<transition id="1" caption="exit1" type="emergency"
+			room1_id="1" subroom1_id="1" room2_id="2" subroom2_id="0">
+			<vertex px="0.0" py="6.0" />
+			<vertex px="0.0" py="7.0" />
+		</transition>
+		<transition id="2" caption="exit2" type="emergency"
+			room1_id="1" subroom1_id="1" room2_id="2" subroom2_id="0">
+			<vertex px="0.0" py="8.0" />
+			<vertex px="0.0" py="9.0" />
+		</transition>
+		<transition id="3" caption="exit3" type="emergency"
+			room1_id="1" subroom1_id="1" room2_id="2" subroom2_id="0">
+			<vertex px="0.0" py="10.0" />
+			<vertex px="0.0" py="11.0" />
+		</transition>
+		<transition id="4" caption="mainExit" type="emergency"
+			room1_id="2" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="-2.0" py="6.0" />
+			<vertex px="-2.0" py="12.0" />
+		</transition>
+	</transitions>
+</geometry>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<geometry version="0.8" caption="corner" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" unit="m">
+	<rooms>
+		<room id="0" caption="queue">
+			<subroom id="0" class="subroom" >
+				<polygon caption="wall">
+					<vertex px="-20" py="4.7" />
+					<vertex px="0" py="4.7" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="-20" py="5.3" />
+					<vertex px="0" py="5.3" />
+				</polygon>
+			</subroom>
+		</room>
+		<room id="1" caption="shop">
+			<subroom id="0" class="subroom" >
+				<polygon caption="wall">
+					<vertex px="0.0" py="4.7" />
+					<vertex px="0.0" py="0.0" />
+					<vertex px="10.0" py="0.0" />
+					<vertex px="10.0" py="4.0" />
+				</polygon>
+				<polygon caption="wall">
+					<vertex px="0.0" py="5.3" />
+					<vertex px="0.0" py="10.0" />
+					<vertex px="10.0" py="10.0" />
+					<vertex px="10.0" py="6.0" />
+				</polygon>
+				<counter id="0" caption="meat">
+					<polygon>
+						<vertex px="0.0" py="0.0" />
+						<vertex px="2.0" py="0.0" />
+						<vertex px="2.0" py="2.0" />
+						<vertex px="0.0" py="2.0" />
+						<vertex px="0.0" py="0.0" />
+					</polygon>
+				</counter>
+				<counter id="1" caption="drink">
+					<polygon>
+						<vertex px="8.0" py="0.0" />
+						<vertex px="10.0" py="0.0" />
+						<vertex px="10.0" py="2.0" />
+						<vertex px="8.0" py="2.0" />
+						<vertex px="8.0" py="0.0" />
+					</polygon>
+				</counter>
+				<counter id="2" caption="fruit">
+					<polygon>
+						<vertex px="0.0" py="8.0" />
+						<vertex px="2.0" py="8.0" />
+						<vertex px="2.0" py="10.0" />
+						<vertex px="0.0" py="10.0" />
+						<vertex px="0.0" py="8.0" />
+					</polygon>
+				</counter>
+				<counter id="3" caption="vegetable">
+					<polygon>
+						<vertex px="8.0" py="8.0" />
+						<vertex px="10.0" py="8.0" />
+						<vertex px="10.0" py="10.0" />
+						<vertex px="8.0" py="10.0" />
+						<vertex px="8.0" py="8.0" />
+					</polygon>
+				</counter>
+				<counter id="4" caption="sauce">
+					<polygon>
+						<vertex px="4.0" py="4.0" />
+						<vertex px="6.0" py="4.0" />
+						<vertex px="6.0" py="6.0" />
+						<vertex px="4.0" py="6.0" />
+						<vertex px="4.0" py="4.0" />
+					</polygon>
+				</counter>
+			</subroom>
+		</room>
+	</rooms>
+	
+	<transitions>
+		<transition id="0" caption="queue end" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="-20.0" py="4.7" />
+			<vertex px="-20.0" py="5.3" />
+		</transition>
+		<transition id="1" caption="main entrance" type="emergency"
+			room1_id="0" subroom1_id="0" room2_id="1" subroom2_id="0">
+			<vertex px="0.0" py="4.7" />
+			<vertex px="0.0" py="5.3" />
+		</transition>
+		<transition id="2" caption="main exit" type="emergency"
+			room1_id="1" subroom1_id="0" room2_id="-1" subroom2_id="-1">
+			<vertex px="10.0" py="4.0" />
+			<vertex px="10.0" py="6.0" />
+		</transition>
+	</transitions>
+</geometry>
