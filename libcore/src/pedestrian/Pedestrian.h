@@ -163,6 +163,7 @@ private:
     double _contact_degree;
 
     double _time_inshop;
+    double _time_checkout;
 
     Counter * _CounterTogo;
 
@@ -605,6 +606,10 @@ public:
     void SetTimeInShop(double time);
 
     double GetTimeInShop() const;
+
+    void SetTimeCheckout(double time);
+
+    double GetTimeCheckout() const;
 
     void SetCounterTogo(Counter * ctg);
 

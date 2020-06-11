@@ -144,7 +144,9 @@ private:
 
     double ContactDegree(Pedestrian * ped1, Pedestrian * ped2, int func) const;
 
-    int GetNumberInShop(Building * building) const;
+    bool IfMarketFull(Building * building) const;
+
+    const NavLine * NewExitLineForMarket(Pedestrian * ped, Room * room) const;
 
 public:
     VelocityModel(

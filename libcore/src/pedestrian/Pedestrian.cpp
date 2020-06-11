@@ -122,6 +122,7 @@ Pedestrian::Pedestrian()
     _pro_infect     = 0;
     _contact_degree = 0;
     _time_inshop    = 0;
+    _time_checkout  = 0;
     _CounterTogo    = nullptr;
 }
 
@@ -210,6 +211,7 @@ Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & bu
     _pro_infect     = 0;
     _contact_degree = 0;
     _time_inshop    = 0;
+    _time_checkout  = 0;
     _CounterTogo    = nullptr;
 }
 
@@ -1162,11 +1164,14 @@ int Pedestrian::GetColor() const
 
         case BY_COVID: {
             int color = -1;
+            /*
             if(_infection == 1)
                 color = 0;
             else {
                 color = (int) ((1 - _virus_get) * 255);
             }
+			*/
+            color = (int) ((1 - _contact_degree / 8) * 255);
             return color;
         } break;
 
@@ -1432,4 +1437,14 @@ void Pedestrian::SetCounterTogo(Counter * ctg)
 Counter * Pedestrian::GetCounterTogo() const
 {
     return _CounterTogo;
+}
+
+void Pedestrian::SetTimeCheckout(double time)
+{
+    _time_checkout = time;
+}
+
+double Pedestrian::GetTimeCheckout() const
+{
+    return _time_checkout;
 }

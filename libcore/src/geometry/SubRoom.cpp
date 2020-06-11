@@ -56,10 +56,10 @@ SubRoom::SubRoom()
     _poly_help_multiple  = std::vector<double>();
     _obstacles           = std::vector<Obstacle *>();
     _counters            = std::vector<Counter *>();
-
-    _crossings   = std::vector<Crossing *>();
-    _transitions = std::vector<Transition *>();
-    _hlines      = std::vector<Hline *>();
+    _caption             = "no subroom caption";
+    _crossings           = std::vector<Crossing *>();
+    _transitions         = std::vector<Transition *>();
+    _hlines              = std::vector<Hline *>();
 
     _planeEquation[0]            = 0.0;
     _planeEquation[1]            = 0.0;
@@ -85,7 +85,7 @@ SubRoom::SubRoom(const SubRoom & orig)
     _poly_help_multiple  = orig._poly_help_multiple;
     _obstacles           = orig._obstacles;
     _counters            = orig._counters;
-
+    _caption             = "no subroom caption";
 
     _crossings   = orig._crossings;
     _transitions = orig._transitions;
@@ -842,6 +842,15 @@ bool SubRoom::CreateBoostPoly()
         _boostPolyObstacles.emplace_back(newObstacle);
     }
     return true;
+}
+
+void SubRoom::SetCaption(const std::string & caption)
+{
+    _caption = caption;
+}
+const std::string & SubRoom::GetCaption()
+{
+    return _caption;
 }
 
 NormalSubRoom::NormalSubRoom() : SubRoom() {}

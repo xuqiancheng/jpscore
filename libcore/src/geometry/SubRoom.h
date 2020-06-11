@@ -70,7 +70,8 @@ private:
     std::string _type;
     double _minElevation;
     double _maxElevation;
-
+    /// subroom caption, I want to use it to find the shop
+    std::string _caption;
     //different types of navigation lines
     std::vector<Crossing *> _crossings;
     std::vector<Transition *> _transitions;
@@ -374,6 +375,10 @@ public:
       * They are used for the triangulation/convexifivation process
       */
     void AddCounter(Counter * cou);
+
+    //Get and set the caption
+    void SetCaption(const std::string & caption);
+    const std::string & GetCaption();
 
     /**
       * Add/remove a goal Id

@@ -180,6 +180,8 @@ bool GeoFileParser::LoadGeometry(Building * building)
             subroom->SetPlanEquation(A_x, B_y, C_z);
             subroom->SetRoomID(room->GetID());
             subroom->SetSubRoomID(subroom_id);
+            std::string subcaption = "subroom " + subroom_id;
+            subroom->SetCaption(xmltoa(xSubRoom->Attribute("caption"), subcaption.c_str()));
 
             //looking for polygons (walls)
             for(TiXmlElement * xPolyVertices = xSubRoom->FirstChildElement("polygon");
