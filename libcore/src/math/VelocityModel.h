@@ -73,6 +73,9 @@ private:
 
     int _fType;
 
+    std::string _BestCheckout;
+
+    bool _checkoutFull;
     /**
       * Optimal velocity function \f$ V(spacing) =\min{v_0, \max{0, (s-l)/T}}  \f$
       *
@@ -82,7 +85,7 @@ private:
       *
       * @return double
       */
-    double OptimalSpeed(Pedestrian * ped, double spacing) const;
+    double OptimalSpeed(Pedestrian * ped, double spacing, Room * room) const;
 
     /**
       * The desired direction of pedestrian
@@ -147,6 +150,10 @@ private:
     bool IfMarketFull(Building * building) const;
 
     const NavLine * NewExitLineForMarket(Pedestrian * ped, Room * room) const;
+
+    std::string BestCheckout(Building * building);
+
+    bool InRightRoom(Room * room, std::vector<std::string> captions) const;
 
 public:
     VelocityModel(
