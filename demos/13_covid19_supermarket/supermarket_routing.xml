@@ -34,6 +34,7 @@ xsi:noNamespaceSchemaLocation="../../xsd/jps_routing.xsd" >
 			<vertex px="6.0" py="6.0" />
 			<vertex px="10.0" py="6.0" />
 		</Hline>
+		<!--
 		<Hline id="8" room_id="1" subroom_id="0">
 			<vertex px="6.0" py="8.0" />
 			<vertex px="10.0" py="8.0" />
@@ -42,6 +43,7 @@ xsi:noNamespaceSchemaLocation="../../xsd/jps_routing.xsd" >
 			<vertex px="6.0" py="10.0" />
 			<vertex px="10.0" py="10.0" />
 		</Hline>
+		-->
 		<Hline id="10" room_id="1" subroom_id="0">
 			<vertex px="6.0" py="12.0" />
 			<vertex px="10.0" py="12.0" />

@@ -2,11 +2,11 @@
 <JuPedSim project="JPS-Project" version="0.7" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <header>
         <seed>1254</seed>
-        <max_sim_time>500</max_sim_time>
+        <max_sim_time>3600</max_sim_time>
         <geometry>supermarket_geo.xml</geometry>
         <trajectories format="plain" fps="8" color_mode="covid">
             <file location="supermarket_traj.txt" />
-			<optional_output covid="FALSE"/>
+			<optional_output covid="TRUE"/>
         </trajectories>
 		<output path="demos/13_covid19_supermarket/result" />
     </header>
@@ -26,9 +26,14 @@
 	
     <agents operational_model_id="3">
         <agents_distribution>
-            <group group_id="0" agent_parameter_id="0" room_id="1" subroom_id="0" 
-			number="30" goal_id="-1" router_id="1" covid_parameter_id="1" />
+            <group group_id="0" agent_parameter_id="0" room_id="0" subroom_id="0" 
+			number="0" goal_id="-1" router_id="1" covid_parameter_id="1" patience="5"/>
         </agents_distribution>
+		
+		<agents_sources>
+            <source id="1" caption="customer" group_id="0" frequency="60" agents_max="100" time_min="0" N_create="10" percent="0.2" rate="10" x_min="-20" x_max="-18" y_min="16" y_max="18" />
+        </agents_sources>
+		
     </agents>
 	
     <operational_models>
@@ -43,7 +48,7 @@
                 <exit_crossing_strategy>3</exit_crossing_strategy>
                 <linkedcells enabled="true" cell_size="3" />
                 <force_ped a="8" D="0.1" />
-                <force_wall a="5" D="0.02" />
+                <force_wall a="5" D="0.05" />
             </model_parameters>
             <agent_parameters agent_parameter_id="0">
 				<v0 mu="1.34" sigma="0.26" />
