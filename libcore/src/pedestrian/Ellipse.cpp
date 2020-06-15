@@ -242,10 +242,15 @@ Point JEllipse::PointOnEllipse(const Point & P) const
 
 double JEllipse::EffectiveDistanceToLine(const Line & l) const
 {
-    Point C = this->GetCenter();
-    Point P = l.ShortestPoint(C);
-    Point R = this->PointOnEllipse(P);
-    return (P - R).Norm();
+    Point C    = this->GetCenter();
+    Point P    = l.ShortestPoint(C);
+    Point PinE = P.TransformToEllipseCoordinates(C, this->GetCosPhi(), this->GetSinPhi());
+    Point R    = this->PointOnEllipse(PinE);
+    if((P - R).ScalarProduct(P - C) > 0) {
+        return (P - R).Norm();
+    } else {
+        return (P - R).Norm() * -1;
+    }
 }
 
 // check if point given in the ellipse coordinates is inside an ellipse

@@ -155,6 +155,10 @@ private:
 
     bool InRightRoom(Room * room, std::vector<std::string> captions) const;
 
+    my_pair
+    GetSpacingEllipse(Pedestrian * ped1, Pedestrian * ped2, Point ei, Room * room, int periodic)
+        const;
+
 public:
     VelocityModel(
         std::shared_ptr<DirectionManager> dir,

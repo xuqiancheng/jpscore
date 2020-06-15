@@ -195,7 +195,7 @@ void VelocityModel::ComputeNextTimeStep(
                 ped->SetTimeInShop(0);
             }
             if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"}) &&
-               ped->GetExitLine()->DistTo(ped->GetPos()) < 2 * ped->GetEllipse().GetBmax()) {
+               ped->GetExitLine()->DistTo(ped->GetPos()) < 2 * ped->GetEllipse().GetAmin()) {
                 double timeCheckout = ped->GetTimeCheckout() + deltaT;
                 ped->SetTimeCheckout(timeCheckout);
             } else {
@@ -282,7 +282,7 @@ void VelocityModel::ComputeNextTimeStep(
                 direction = repPed + repWall;
             }
             if(_isCovid == 5) {
-                if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"})) {
+                if(InRightRoom(room, {"checkout1", "checkout2", "checkout3", "waiting"})) {
                     direction = e0(ped, room) + repWall;
                 }
             }
@@ -291,13 +291,13 @@ void VelocityModel::ComputeNextTimeStep(
                 // calculate spacing
                 // my_pair spacing_winkel = GetSpacing(ped, ped1);
                 if(ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
-                    spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
+                    spacings.push_back(GetSpacingEllipse(ped, ped1, direction, room, periodic));
                 } else {
                     // or in neighbour subrooms
                     SubRoom * sb2 =
                         building->GetRoom(ped1->GetRoomID())->GetSubRoom(ped1->GetSubRoomID());
                     if(subroom->IsDirectlyConnectedWith(sb2)) {
-                        spacings.push_back(GetSpacing(ped, ped1, direction, periodic));
+                        spacings.push_back(GetSpacingEllipse(ped, ped1, direction, room, periodic));
                     }
                 }
             }
@@ -464,14 +464,9 @@ Point VelocityModel::e0(Pedestrian * ped, Room * room) const
 
 double VelocityModel::OptimalSpeed(Pedestrian * ped, double spacing, Room * room) const
 {
-    double v0 = ped->GetV0Norm();
-    double T  = ped->GetT();
-    double l  = 2 * ped->GetEllipse().GetBmax(); //assume peds are circles with const radius
-    if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"})) {
-        l = stayTime * DisRate;
-        l = l < SocialDis ? SocialDis : l;
-    }
-    double speed = (spacing - l) / T;
+    double v0    = ped->GetV0Norm();
+    double T     = ped->GetT();
+    double speed = (spacing) / T;
     speed        = (speed > 0) ? speed : 0;
     speed        = (speed < v0) ? speed : v0;
     //      (1-winkel)*speed;
@@ -540,7 +535,7 @@ Point VelocityModel::ForceRepPed(Pedestrian * ped1, Pedestrian * ped2, int perio
     double Distance = distp12.Norm();
     Point ep12; // x- and y-coordinate of the normalized vector between p1 and p2
     double R_ij;
-    double l = 2 * ped1->GetEllipse().GetBmax();
+    //double l = 2 * ped1->GetEllipse().GetBmax();
 
     if(Distance >= J_EPS) {
         ep12 = distp12.Normalized();
@@ -559,14 +554,13 @@ Point VelocityModel::ForceRepPed(Pedestrian * ped1, Pedestrian * ped2, int perio
         exit(EXIT_FAILURE); //TODO: quick and dirty fix for issue #158
                             // (sometimes sources create peds on the same location)
     }
-    Point ei = ped1->GetV().Normalized();
-    if(ped1->GetV().NormSquare() < 0.01) {
-        ei = ped1->GetV0().Normalized();
-    }
-    double condition1 = ei.ScalarProduct(ep12);            // < e_i , e_ij > should be positive
-    condition1        = (condition1 > 0) ? condition1 : 0; // abs
 
-    R_ij  = -_aPed * exp((l - Distance) / _DPed);
+    double dist;
+    JEllipse Eped1 = ped1->GetEllipse();
+    JEllipse Eped2 = ped2->GetEllipse();
+    dist           = Eped1.EffectiveDistanceToEllipse(Eped2, &dist);
+    //dist           = dist > 0 ? dist : 0;
+    R_ij  = -_aPed * exp((-dist) / _DPed);
     F_rep = ep12 * R_ij;
 
     return F_rep;
@@ -640,6 +634,7 @@ Point VelocityModel::ForceRepWall(
     if(Distance > min_distance_to_wall) {
         e_iw = dist / Distance;
     } else {
+        /*
         LOG_WARNING(
             "Velocity: forceRepWall() ped {:d} [{:f}, {:f}] is too near to the wall [{:f}, "
             "{:f}]-[{:f}, {:f}] (dist={:f})",
@@ -651,6 +646,7 @@ Point VelocityModel::ForceRepWall(
             w.GetPoint2()._x,
             w.GetPoint2()._y,
             Distance);
+			*/
         Point new_dist = centroid - ped->GetPos();
         new_dist       = new_dist / new_dist.Norm();
         e_iw           = (inside ? new_dist : new_dist * -1);
@@ -665,7 +661,11 @@ Point VelocityModel::ForceRepWall(
     if(distGoal < J_EPS_GOAL * J_EPS_GOAL)
         return F_wrep;
     //-------------------------
-    R_iw   = -_aWall * exp((l - Distance) / _DWall);
+    JEllipse Eped1 = ped->GetEllipse();
+    double effdis  = Eped1.EffectiveDistanceToLine(w);
+    //effdis         = effdis > 0 ? effdis : 0;
+    R_iw = -_aWall * exp((-effdis) / _DWall);
+    //R_iw   = -_aWall * exp((l - Distance) / _DWall);
     F_wrep = e_iw * R_iw;
 
     return F_wrep;
@@ -766,7 +766,7 @@ double VelocityModel::ContactDegree(Pedestrian * ped1, Pedestrian * ped2, int fu
     if(func == 1) {
         int K   = 1;
         int D   = 1;
-        Contact = K * exp((r - s) / D);
+        Contact = K * exp((-s) / D);
     }
     if(func == 2) {
         int K   = 1;
@@ -810,7 +810,8 @@ const NavLine * VelocityModel::NewExitLineForMarket(Pedestrian * ped, Room * roo
         auto counters        = subroom->GetAllCounters();
         Counter * chooseArea = counters[0];
         std::vector<Hline *> allGoals;
-        if(((ped->GetTimeInShop() <= stayTime || _checkoutFull) && oldgoal->DistTo(pos) < 0.4) ||
+        if(((ped->GetTimeInShop() <= stayTime || _checkoutFull) &&
+            oldgoal->DistTo(pos) < 2 * ped->GetEllipse().GetAmin()) ||
            ped->IsFeelingLikeInJam() || (!CanSeeExit)) {
             for(auto sub : room->GetAllSubRooms()) {
                 const auto & crossings = sub.second->GetAllCrossings();
@@ -856,20 +857,21 @@ std::string VelocityModel::BestCheckout(Building * building)
         int ID                  = ped->GetRoomID();
         double x                = ped->GetPos()._x;
         double v                = ped->GetV().Norm();
+        double l                = 2 * ped->GetEllipse().GetAmin();
         std::string roomCaption = building->GetRoom(ID)->GetCaption();
         if(roomCaption == "checkout1") {
             num[0]++;
-            if((end - x < 0.4)) {
+            if((end - x < l)) {
                 full[0] = true;
             }
         } else if(roomCaption == "checkout2") {
             num[1]++;
-            if((end - x < 0.4)) {
+            if((end - x < l)) {
                 full[1] = true;
             }
         } else if(roomCaption == "checkout3") {
             num[2]++;
-            if((end - x < 0.4)) {
+            if((end - x < l)) {
                 full[2] = true;
             }
         }
@@ -900,4 +902,130 @@ bool VelocityModel::InRightRoom(Room * room, std::vector<std::string> captions) 
         return false;
     }
     return true;
+}
+
+my_pair VelocityModel::GetSpacingEllipse(
+    Pedestrian * ped1,
+    Pedestrian * ped2,
+    Point ei,
+    Room * room,
+    int periodic) const
+{
+    double x1 = ped1->GetPos()._x;
+    double y1 = ped1->GetPos()._y;
+
+    Point distp12   = ped2->GetPos() - ped1->GetPos(); // inversed sign
+    double Distance = distp12.Norm();
+    Point ep12;
+    if(Distance >= J_EPS) {
+        ep12 = distp12.Normalized();
+    } else {
+        LOG_WARNING("In VelocityModel::GetSPacing() ep12 can not be calculated!!!");
+        LOG_WARNING("Pedestrians are too near to each other {:f}.", Distance);
+    }
+    //calculate effective distance
+    JEllipse eped1 = ped1->GetEllipse();
+    JEllipse eped2 = ped2->GetEllipse();
+    double dist;
+    double eff_dist = eped1.EffectiveDistanceToEllipse(eped2, &dist);
+
+    if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"})) {
+        double l = stayTime * DisRate;
+        l        = l < SocialDis ? SocialDis : l;
+        eff_dist = distp12.Norm() <= l ? 0 : eff_dist;
+    }
+    double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
+    if(condition1 < 0) {
+        return my_pair(FLT_MAX, -1);
+    }
+    //When condition1==0,should no influence on velocity
+    bool parallel = almostEqual(condition1, 0.0, J_EPS);
+    if(parallel) {
+        return my_pair(FLT_MAX, -1);
+    }
+    //Judge conllision
+    //Obtain parameters
+    double a1      = ped1->GetLargerAxis();
+    Point v        = ped1->GetV();
+    double b1      = ped1->GetSmallerAxis();
+    b1             = ped1->GetEllipse().GetBmin();
+    double a2      = ped2->GetLargerAxis();
+    double b2      = ped2->GetSmallerAxis();
+    double x2      = ped2->GetPos()._x;
+    double y2      = ped2->GetPos()._y;
+    double cosphi1 = ei.Normalized()._x;
+    double sinphi1 = ei.Normalized()._y;
+    double cosphi2 = ped2->GetEllipse().GetCosPhi();
+    double sinphi2 = ped2->GetEllipse().GetSinPhi();
+    //Judge the position of the center of ped2
+    double d1 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) + b1;
+    double d2 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) - b1;
+    if(d1 * d2 <= 0) {
+        //if the center between two lines, collision
+        return my_pair(eff_dist, ped2->GetID());
+    }
+    //If the center not between two lines, Judge if ped2 contact with two lines
+    Point D;
+    D._x = cosphi1;
+    D._y = sinphi1;
+    Point De;
+    De._x = cosphi1 * cosphi2 + sinphi1 * sinphi2;
+    De._y = sinphi1 * cosphi2 - sinphi2 * cosphi1;
+    Point Ne;
+    Ne._x = -De._y;
+    Ne._y = De._x;
+    Point A1;
+    A1._x = x1 + b1 * sinphi1;
+    A1._y = y1 - b1 * cosphi1;
+    Point A2;
+    A2._x = x1 - b1 * sinphi1;
+    A2._y = y1 + b1 * cosphi1;
+    //Transfer A1 and A2 to ped2 coordinate
+    //Point A1e = ((A1._x - x2)*cosphi2 + (A1._y - y2)*sinphi2, (A1._y - y2)*cosphi2 - (A1._x - x2)*sinphi2);
+    Point A1e = A1.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+    //Point A2e = ((A2._x - x2)*cosphi2 + (A2._y - y2)*sinphi2, (A2._y - y2)*cosphi2 - (A2._x - x2)*sinphi2);
+    Point A2e = A2.TransformToEllipseCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+    // Judge if the direction of De is right (ellipse2 coordinate)
+    double J1 = Ne.ScalarProduct(A1e);
+    double J2 = Ne.ScalarProduct(A2e);
+    Point De1 = (J1 >= 0) ? De * (-1, -1) : De;
+    Point De2 = (J2 >= 0) ? De * (-1, -1) : De;
+    //Calculate point R (ellipse2 coordinate)
+    Point Ne1;
+    Ne1._x = -De1._y;
+    Ne1._y = De1._x;
+    Point Ne2;
+    Ne2._x = -De2._y;
+    Ne2._y = De2._x;
+    Point Te1;
+    Te1._x = De1._y / b2;
+    Te1._y = -De1._x / a2;
+    Point Te2;
+    Te2._x     = De2._y / b2;
+    Te2._y     = -De2._x / a2;
+    Point Te1n = Te1.Normalized();
+    Point Te2n = Te2.Normalized();
+    Point Re1;
+    Re1._x = a2 * Te1n._x;
+    Re1._y = b2 * Te1n._y;
+    Point Re2;
+    Re2._x = a2 * Te2n._x;
+    Re2._y = b2 * Te2n._y;
+    //Transfer R to global coordinate
+    /*
+	Point R1 = (Re1._x*cosphi2 - Re1._y*sinphi2 + x2, Re1._y*cosphi2 + Re1._x*sinphi2 + y2);
+	Point R1 = Re1.TransformToCartesianCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+	Point R2 = (Re2._x*cosphi2 - Re2._y*sinphi2 + x2, Re2._y*cosphi2 + Re2._x*sinphi2 + y2);
+	Point R2 = Re2.TransformToCartesianCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+	*/
+    //Calculate distance between point R and line
+    double Dis1 = Ne1.ScalarProduct(Re1) - Ne1.ScalarProduct(A1e);
+    double Dis2 = Ne2.ScalarProduct(Re2) - Ne2.ScalarProduct(A2e);
+
+    //Judge if the line contact with ellipse2
+    if(Dis1 >= 0 && Dis2 >= 0)
+        return my_pair(FLT_MAX, -1);
+    else {
+        return my_pair(eff_dist, ped2->GetID());
+    }
 }
