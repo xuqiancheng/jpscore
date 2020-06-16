@@ -109,6 +109,13 @@ public:
         _dirManager                 = nullptr;
         // for random numbers
         _rdGenerator = RandomNumberGenerator();
+
+        //--------supermarket case
+        //<contact_para number="30" checkTimeRate="0.1" checkDisRate="0.003" socialDis="1.5" />
+        _maxNumber      = 30;
+        _checkTimeRate  = 0.1;
+        _checkDisRate   = 0.003;
+        _socialDistance = 0;
     }
 
     std::shared_ptr<WalkingSpeed> GetWalkingSpeed() { return _walkingSpeed; };
@@ -406,6 +413,23 @@ public:
 
     std::set<OptionalOutput> GetOptionalOutputOptions() { return _optionalOutput; };
 
+    //supermarket case
+    void SetMaxNumber(int mn) { _maxNumber = mn; };
+
+    int GetMaxNumber() const { return _maxNumber; };
+
+    void SetCheckTimeRate(double ctr) { _checkTimeRate = ctr; };
+
+    double GetCheckTimeRate() const { return _checkTimeRate; };
+
+    void SetCheckDisRate(double cdr) { _checkDisRate = cdr; };
+
+    double GetCheckDisRate() const { return _checkDisRate; };
+
+    void SetSocialDis(double sd) { _socialDistance = sd; };
+
+    double GetSocialDis() const { return _socialDistance; };
+
 private:
     std::shared_ptr<WalkingSpeed> _walkingSpeed;
     std::shared_ptr<ToxicityAnalysis> _ToxicityAnalysis;
@@ -468,6 +492,12 @@ private:
     fs::path _scheduleFile;
     fs::path _trainTypeFile;
     fs::path _trainTimeTableFile;
+
+    //supermarket case
+    int _maxNumber;
+    double _checkTimeRate;
+    double _checkDisRate;
+    double _socialDistance;
 
 private:
     fs::path _projectRootDir;

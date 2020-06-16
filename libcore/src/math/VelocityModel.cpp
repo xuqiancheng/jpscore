@@ -36,14 +36,10 @@
 #include "neighborhood/NeighborhoodSearch.h"
 #include "pedestrian/Pedestrian.h"
 
-double xRight    = 26.0;
-double xLeft     = 0.0;
-double cutoff    = 2.0;
-int limitation   = 50;
-double stayTime  = 300; //should be normal distribution
-double CheckRate = 0.1;
-double DisRate   = 0.003;
-double SocialDis = 0;
+double xRight = 26.0;
+double xLeft  = 0.0;
+double cutoff = 2.0;
+
 
 VelocityModel::VelocityModel(
     std::shared_ptr<DirectionManager> dir,
@@ -52,7 +48,11 @@ VelocityModel::VelocityModel(
     double awall,
     double Dwall,
     int covid,
-    int fType)
+    int fType,
+    int maxNum,
+    double checkTRate,
+    double checkDRate,
+    double SocialDist)
 {
     _direction = dir;
     // Force_rep_PED Parameter
@@ -65,10 +65,14 @@ VelocityModel::VelocityModel(
     //_isCovid==1:confined room case, _iscovid==2: normal case
     //_isCovid==3: single ped case, _iscovid==4: practical case
     //_isCovid=5: supermarket
-    _isCovid      = covid;
-    _fType        = fType;
-    _BestCheckout = "checkout1";
-    _checkoutFull = false;
+    _isCovid        = covid;
+    _fType          = fType;
+    _maxNumber      = maxNum;
+    _checkTimeRate  = checkTRate;
+    _checkDisRate   = checkDRate;
+    _socialDistance = SocialDist;
+    _BestCheckout   = "checkout1";
+    _checkoutFull   = false;
 }
 
 
@@ -185,7 +189,16 @@ void VelocityModel::ComputeNextTimeStep(
 
             double virus   = 0;
             double contact = 0;
-
+            /*
+            LOG_ERROR(
+                "id:{:d}, stayTime{:f}, maxnumber{:d}, checkt{:f}, checkd{:f}, socialdis{:f}",
+                ped->GetID(),
+                ped->GetMaxTimeInShop(),
+                _maxNumber,
+                _checkTimeRate,
+                _checkDisRate,
+                _socialDistance);
+			*/
             // Count the time pedestrian in shop, if pedestrian not in the shop, set it as 0.
             //TODO:define a function instead of this
             if(InRightRoom(room, {"supermarket"})) {
@@ -260,7 +273,8 @@ void VelocityModel::ComputeNextTimeStep(
 
             // id the door is closed
             bool IfClose = false;
-            if((InRightRoom(room, {"supermarket"}) && ped->GetTimeInShop() < stayTime) ||
+            if((InRightRoom(room, {"supermarket"}) &&
+                ped->GetTimeInShop() < ped->GetMaxTimeInShop()) ||
                (InRightRoom(room, {"waiting"}) && IfMarketFull(building)) ||
                (InRightRoom(
                     room,
@@ -269,7 +283,7 @@ void VelocityModel::ComputeNextTimeStep(
                         "checkout2",
                         "checkout3",
                     }) &&
-                ped->GetTimeCheckout() < stayTime * CheckRate)) {
+                ped->GetTimeCheckout() < ped->GetMaxTimeInShop() * _checkTimeRate)) {
                 IfClose = true;
             }
 
@@ -282,8 +296,11 @@ void VelocityModel::ComputeNextTimeStep(
                 direction = repPed + repWall;
             }
             if(_isCovid == 5) {
-                if(InRightRoom(room, {"checkout1", "checkout2", "checkout3", "waiting"})) {
-                    direction = e0(ped, room) + repWall;
+                if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"})) {
+                    direction = e0(ped, room) + repWall + repPed * 0.1;
+                }
+                if(InRightRoom(room, {"waiting"})) {
+                    direction = e0(ped, room) + repWall + repPed;
                 }
             }
             for(int i = 0; i < size; i++) {
@@ -303,10 +320,9 @@ void VelocityModel::ComputeNextTimeStep(
             }
             //TODO get spacing to walls
             //TODO update direction every DT?
-
             // calculate min spacing
             std::sort(spacings.begin(), spacings.end(), sort_pred());
-            double spacing = spacings[0].first;
+            double spacing = spacings.size() == 0 ? FLT_MAX : spacings[0].first;
             //============================================================
             // TODO: Hack for Head on situations: ped1 x ------> | <------- x ped2
             if(0 && direction.NormSquare() < 0.5) {
@@ -325,10 +341,21 @@ void VelocityModel::ComputeNextTimeStep(
             //============================================================
             Point speed = direction.Normalized() * OptimalSpeed(ped, spacing, room);
             result_acc.push_back(speed);
-
-
+            /*
+            if(ped->GetID() == 92 && spacing < 0.01) {
+                direction = direction.Normalized();
+                LOG_ERROR(
+                    "ID:({:d}),pos=({:f},{:f}),direction({:f},{:f}),spacing({:f},size({:d}))",
+                    ped->GetID(),
+                    ped->GetPos()._x,
+                    ped->GetPos()._y,
+                    direction._x,
+                    direction._y,
+                    spacing,
+                    spacings.size());
+            }
+			*/
             spacings.clear(); //clear for ped p
-
             /*
             // stuck peds get removed. Warning is thrown. low speed due to jam is omitted.
             if(ped->GetTimeInJam() > ped->GetPatienceTime() &&
@@ -368,7 +395,7 @@ void VelocityModel::ComputeNextTimeStep(
                 ped->UpdateTimeInJam();
             }
             //only update the position if the velocity is above a threshold
-            if(v_neu.Norm() >= J_EPS_V) {
+            if(v_neu.Norm() >= 0) {
                 ped->SetPhiPed();
             }
             ped->SetPos(pos_neu);
@@ -428,7 +455,8 @@ Point VelocityModel::e0(Pedestrian * ped, Room * room) const
         ped->SetExitIndex(NewExit->GetUniqueID());
         target = _direction->GetTarget(room, ped);
     } else if(
-        _isCovid == 4 && subroom->GetCaption() == "shop" && ped->GetTimeInShop() <= stayTime) {
+        _isCovid == 4 && subroom->GetCaption() == "shop" &&
+        ped->GetTimeInShop() <= ped->GetMaxTimeInShop()) {
         if(!ped->GetCounterTogo() || ped->GetCounterTogo()->Contains(ped->GetPos())) {
             int counterSize = (int) subroom->GetAllCounters().size();
             int myseed      = ped->GetGlobalTime() * 100 + ped->GetID();
@@ -443,6 +471,7 @@ Point VelocityModel::e0(Pedestrian * ped, Room * room) const
         const NavLine * NewExit = NewExitLineForMarket(ped, room);
         ped->SetExitLine(NewExit);
         ped->SetExitIndex(NewExit->GetUniqueID());
+        target = _direction->GetTarget(room, ped);
     }
 
     if((dynamic_cast<DirectionLocalFloorfield *>(_direction->GetDirectionStrategy().get())) ||
@@ -794,7 +823,7 @@ bool VelocityModel::IfMarketFull(Building * building) const
         }
     }
     bool full = false;
-    if(size >= limitation) {
+    if(size >= _maxNumber) {
         full = true;
     }
     return full;
@@ -810,7 +839,7 @@ const NavLine * VelocityModel::NewExitLineForMarket(Pedestrian * ped, Room * roo
         auto counters        = subroom->GetAllCounters();
         Counter * chooseArea = counters[0];
         std::vector<Hline *> allGoals;
-        if(((ped->GetTimeInShop() <= stayTime || _checkoutFull) &&
+        if(((ped->GetTimeInShop() <= ped->GetMaxTimeInShop() || _checkoutFull) &&
             oldgoal->DistTo(pos) < 2 * ped->GetEllipse().GetAmin()) ||
            ped->IsFeelingLikeInJam() || (!CanSeeExit)) {
             for(auto sub : room->GetAllSubRooms()) {
@@ -828,6 +857,12 @@ const NavLine * VelocityModel::NewExitLineForMarket(Pedestrian * ped, Room * roo
                 if(newgoal == oldgoal) {
                     continue;
                 }
+                /*
+                double dist = (newgoal->GetCentre() - oldgoal->GetCentre()).Norm();
+                if(dist > 11) {
+                    continue;
+                }
+				*/
                 SetNewGoal = subroom->IsVisible(pos, newgoal->GetCentre(), false);
                 if(SetNewGoal) {
                     //target = newgoal->GetCentre();
@@ -835,7 +870,8 @@ const NavLine * VelocityModel::NewExitLineForMarket(Pedestrian * ped, Room * roo
                 }
             } while(SetNewGoal != true);
         } else if(
-            ped->GetTimeInShop() > stayTime && chooseArea->Contains(pos) && (!_checkoutFull)) {
+            ped->GetTimeInShop() > ped->GetMaxTimeInShop() && chooseArea->Contains(pos) &&
+            (!_checkoutFull)) {
             const auto & transitions = subroom->GetAllTransitions();
             for(auto trans : transitions) {
                 if(trans->GetCaption() == _BestCheckout) {
@@ -857,7 +893,7 @@ std::string VelocityModel::BestCheckout(Building * building)
         int ID                  = ped->GetRoomID();
         double x                = ped->GetPos()._x;
         double v                = ped->GetV().Norm();
-        double l                = 2 * ped->GetEllipse().GetAmin();
+        double l                = 3 * ped->GetEllipse().GetAmin();
         std::string roomCaption = building->GetRoom(ID)->GetCaption();
         if(roomCaption == "checkout1") {
             num[0]++;
@@ -930,8 +966,8 @@ my_pair VelocityModel::GetSpacingEllipse(
     double eff_dist = eped1.EffectiveDistanceToEllipse(eped2, &dist);
 
     if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"})) {
-        double l = stayTime * DisRate;
-        l        = l < SocialDis ? SocialDis : l;
+        double l = ped1->GetMaxTimeInShop() * _checkDisRate;
+        l        = l < _socialDistance ? _socialDistance : l;
         eff_dist = distp12.Norm() <= l ? 0 : eff_dist;
     }
     double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive

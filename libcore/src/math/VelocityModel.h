@@ -73,6 +73,15 @@ private:
 
     int _fType;
 
+    //supermarket case
+    int _maxNumber;
+
+    double _checkTimeRate;
+
+    double _checkDisRate;
+
+    double _socialDistance;
+
     std::string _BestCheckout;
 
     bool _checkoutFull;
@@ -167,7 +176,12 @@ public:
         double awall,
         double Dwall,
         int covid,
-        int fType);
+        int fType,
+        int maxNum,
+        double checkTRate,
+        double checkDRate,
+        double SocialDist);
+
     virtual ~VelocityModel(void);
 
     /**

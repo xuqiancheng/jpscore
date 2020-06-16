@@ -84,6 +84,9 @@ public:
 	 */
     void InitAlpha(double mean, double stdv);
 
+
+    void InitStayTime(double mean, double stdv);
+
     /**
 	 * @return the status of infection
 	 */
@@ -115,6 +118,8 @@ public:
 	 */
     double GetAlpha();
 
+    double GetStayTime();
+
 private:
     int _id;
     int _infective    = 0;
@@ -125,4 +130,5 @@ private:
     std::normal_distribution<double> _Q;
     std::normal_distribution<double> _alpha;
     const double _judge = 10000;
+    std::normal_distribution<double> _stayTime;
 };

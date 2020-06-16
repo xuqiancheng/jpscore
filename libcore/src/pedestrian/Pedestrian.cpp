@@ -124,6 +124,7 @@ Pedestrian::Pedestrian()
     _time_inshop    = 0;
     _time_checkout  = 0;
     _CounterTogo    = nullptr;
+    _max_stayTime   = 0;
 }
 
 Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & building) :
@@ -213,6 +214,7 @@ Pedestrian::Pedestrian(const StartDistribution & agentsParameters, Building & bu
     _time_inshop    = 0;
     _time_checkout  = 0;
     _CounterTogo    = nullptr;
+    _max_stayTime   = 0;
 }
 
 
@@ -1447,4 +1449,14 @@ void Pedestrian::SetTimeCheckout(double time)
 double Pedestrian::GetTimeCheckout() const
 {
     return _time_checkout;
+}
+
+void Pedestrian::SetMaxTimeInShop(double st)
+{
+    _max_stayTime = st;
+}
+
+double Pedestrian::GetMaxTimeInShop() const
+{
+    return _max_stayTime;
 }

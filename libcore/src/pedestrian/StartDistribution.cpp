@@ -238,7 +238,7 @@ StartDistribution::GenerateAgent(Building * building, int * pid, std::vector<Poi
     ped->SetCovidP(_covidParameters->GetP());
     ped->SetCovidQ(_covidParameters->GetQ());
     ped->SetCovidAlpha(_covidParameters->GetAlpha());
-
+    ped->SetMaxTimeInShop(_covidParameters->GetStayTime());
     // first default Position
     int index = -1;
 

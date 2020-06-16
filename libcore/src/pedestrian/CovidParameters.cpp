@@ -105,3 +105,14 @@ double CovidParameters::GetD()
 {
     return _fitting_D;
 }
+
+void CovidParameters::InitStayTime(double mean, double stdv)
+{
+    //stdv      = stdv == 0 ? _judge : stdv;
+    _stayTime = std::normal_distribution<double>(mean, stdv);
+}
+
+double CovidParameters::GetStayTime()
+{
+    return _stayTime(_generator);
+}

@@ -167,6 +167,8 @@ private:
 
     Counter * _CounterTogo;
 
+    double _max_stayTime;
+
 public:
     // public member
     int _ticksInThisRoom;
@@ -614,4 +616,8 @@ public:
     void SetCounterTogo(Counter * ctg);
 
     Counter * GetCounterTogo() const;
+
+    void SetMaxTimeInShop(double st);
+
+    double GetMaxTimeInShop() const;
 };

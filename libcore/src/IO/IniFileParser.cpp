@@ -599,6 +599,43 @@ bool IniFileParser::ParseVelocityModel(TiXmlElement * xVelocity, TiXmlElement * 
         LOG_INFO("Frep_wall a={:.2f}, D={:.2f}", _config->GetaWall(), _config->GetDWall());
     }
 
+    if(xModelPara->FirstChild("contact_para")) {
+        if(!xModelPara->FirstChildElement("contact_para")->Attribute("number"))
+            _config->SetMaxNumber(30);
+        else {
+            std::string MN = xModelPara->FirstChildElement("contact_para")->Attribute("number");
+            _config->SetMaxNumber(std::stoi(MN));
+        }
+
+        if(!xModelPara->FirstChildElement("contact_para")->Attribute("checkTimeRate"))
+            _config->SetCheckTimeRate(0.1);
+        else {
+            std::string CTR =
+                xModelPara->FirstChildElement("contact_para")->Attribute("checkTimeRate");
+            _config->SetCheckTimeRate(std::stod(CTR));
+        }
+
+        if(!xModelPara->FirstChildElement("contact_para")->Attribute("checkDisRate"))
+            _config->SetCheckDisRate(0.003);
+        else {
+            std::string CDR =
+                xModelPara->FirstChildElement("contact_para")->Attribute("checkDisRate");
+            _config->SetCheckDisRate(std::stod(CDR));
+        }
+
+        if(!xModelPara->FirstChildElement("contact_para")->Attribute("socialDis"))
+            _config->SetSocialDis(0);
+        else {
+            std::string SD = xModelPara->FirstChildElement("contact_para")->Attribute("socialDis");
+            _config->SetSocialDis(std::stod(SD));
+        }
+        LOG_INFO(
+            "Contact_para number={:d} checkTimeRate={:f} checkDisRate={:f} socialDis={:f}",
+            _config->GetMaxNumber(),
+            _config->GetCheckTimeRate(),
+            _config->GetCheckDisRate(),
+            _config->GetSocialDis());
+    }
     //Parsing the agent parameters
     TiXmlNode * xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
     ParseAgentParameters(xVelocity, xAgentDistri);
@@ -609,7 +646,11 @@ bool IniFileParser::ParseVelocityModel(TiXmlElement * xVelocity, TiXmlElement * 
         _config->GetaWall(),
         _config->GetDWall(),
         _config->IsCovid(),
-        _config->IsfType())));
+        _config->IsfType(),
+        _config->GetMaxNumber(),
+        _config->GetCheckTimeRate(),
+        _config->GetCheckDisRate(),
+        _config->GetSocialDis())));
 
     //Parsing the covid parameters
     ParseCovidParameters(xVelocity, xAgentDistri);
@@ -844,6 +885,14 @@ void IniFileParser::ParseCovidParameters(TiXmlElement * operativModel, TiXmlNode
                 double sigma = xmltof(xCovidPara->FirstChildElement("alpha")->Attribute("sigma"));
                 covidParameters->InitAlpha(mu, sigma);
                 LOG_INFO("alpha mu={} , sigma={}", mu, sigma);
+            }
+
+            if(xCovidPara->FirstChild("stayTime")) {
+                double mu = xmltof(xCovidPara->FirstChildElement("stayTime")->Attribute("mu"));
+                double sigma =
+                    xmltof(xCovidPara->FirstChildElement("stayTime")->Attribute("sigma"));
+                covidParameters->InitStayTime(mu, sigma);
+                LOG_INFO("stayTime mu={} , sigma={}", mu, sigma);
             }
         }
     }
