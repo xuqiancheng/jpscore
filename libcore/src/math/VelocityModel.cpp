@@ -297,10 +297,10 @@ void VelocityModel::ComputeNextTimeStep(
             }
             if(_isCovid == 5) {
                 if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"})) {
-                    direction = e0(ped, room) + repWall + repPed * 0.1;
+                    direction = e0(ped, room) + repWall + repPed * 0.5;
                 }
                 if(InRightRoom(room, {"waiting"})) {
-                    direction = e0(ped, room) + repWall + repPed;
+                    direction = e0(ped, room) + repWall; //+ repPed;
                 }
             }
             for(int i = 0; i < size; i++) {
@@ -813,13 +813,10 @@ bool VelocityModel::IfMarketFull(Building * building) const
 {
     int size                                  = 0;
     const std::vector<Pedestrian *> & allPeds = building->GetAllPedestrians();
-    for(auto [roomID, room] : building->GetAllRooms()) {
-        if(room->GetCaption() == "supermarket") {
-            for(auto ped : building->GetAllPedestrians()) {
-                if(roomID == ped->GetRoomID()) {
-                    size++;
-                }
-            }
+    for(auto ped : building->GetAllPedestrians()) {
+        Room * room = building->GetRoom(ped->GetRoomID());
+        if(InRightRoom(room, {"checkout1", "checkout2", "checkout3", "supermarket"})) {
+            size++;
         }
     }
     bool full = false;
@@ -969,6 +966,8 @@ my_pair VelocityModel::GetSpacingEllipse(
         double l = ped1->GetMaxTimeInShop() * _checkDisRate;
         l        = l < _socialDistance ? _socialDistance : l;
         eff_dist = distp12.Norm() <= l ? 0 : eff_dist;
+    } else if(InRightRoom(room, {"waiting"})) {
+        eff_dist = distp12.Norm() - 2 * 0.4;
     }
     double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
     if(condition1 < 0) {
