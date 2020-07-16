@@ -37,7 +37,6 @@
 #include "OperationalModel.h"
 
 typedef std::pair<double, double> my_pair;
-typedef std::pair<int, int> ID_pair;
 typedef std::tuple<int, double> inf_pair;
 // sort with respect to first element (ascending).
 // In case of equality sort with respect to second element (descending)
@@ -52,17 +51,14 @@ struct sort_pred_agcvm
 	}
 };
 
-
-
 //forward declaration
 class Pedestrian;
 class DirectionStrategy;
 
-
 class AGCVMModel : public OperationalModel {
 private:
 
-	// Modellparameter (CVM)
+	// Model Parameter (CVM)
 	double _aPed;
 	double _DPed;
 	double _aWall;
@@ -71,85 +67,93 @@ private:
 	// GCVM
 	double _Ts;
 	double _Td;
-	int _GCVMUsing=1;// Keep it for incase
+	int _GCVM;
 
-	// Clogging
-	int _Parallel=1;
-	double _WaitingTime = 2;
-	int _clogging_times = 0;
 	// Boundary case
-	double _left_boundary = -100;
-	double _right_boundary = 100;
-	double _up_boundary = 100;
-	double _down_boundary = -100;
-	double _cutoff = 2;
+	double _LeftBoundary;
+	double _RightBoundary;
+	double _UpBoundary;
+	double _DownBoundary;
+	double _CutOff;
 
-	// Switch
-	int _Anticipation = 1;
-	int _Cooperation = 1;
-	int _AttracForce = 1;
-	double _AntiT=0;
-	double _CoopT = 0;
-	int _Pushing = 0;
-	double _CoreSize = 0.1;
+	// Anticipation
+	int _Anticipation;
+	int _Cooperation;
+	int _AttractiveForce;
+	int _PushingForce;
+	double _AntiTime;
+	double _CoopTime;
+	double _CoreSize;
 
-	// Functions
-	double OptimalSpeed(Pedestrian* ped, double spacing) const;
+	// Functions 
 	Point DesireDirection(Pedestrian *ped, Room* room) const;
-	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic, bool collision) const;
-	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Point e0, Building* building, int periodic, bool push) const;
-	Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
-	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside, Point e0) const;
+
+	Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+	Point ForceRepPedPush(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+	Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom) const;
+	Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside) const;
+
+	my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
 	double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom) const;
 	double GetSpacingWall(Pedestrian* ped, const Line& l) const;
-	void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
-	bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building);
-	int GetGCVMU() const;
-	int GetUpdate() const;
-	double GetWaitingTime() const;
-	double GetLeftBoundary() const;
-	double GetRightBoundary() const;
-	double GetUpBoundary() const;
-	double GetDownBoundary() const;
-	double GetCutoff() const;
 
-	int GetAnticipation() const;
-	int GetCooperation() const;
-	int GetAttracForce() const;
-	double GetAntiT() const;
-	double GetCoopT() const;
-	int GetPushing() const;
-	double GetCoreSize() const;
+	double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
-	my_pair JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+	// Functions helpful
+	Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;//Get the periodic position of ped2 for ped1
 	Point GetInfDirection(Point e0, Point ep12) const;
-	Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;
+	void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
 
+	// Function may helpful
+	my_pair JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
 	bool Drill(Pedestrian* ped, vector<Pedestrian*> neighbours, Building* building, SubRoom* subroom, Point e0, int periodic) const;
 	bool DrillRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
 	bool DrillWall(Pedestrian* ped, Point e0, const Line& l) const;
 	Point CorrectD(Pedestrian *ped, Point d_direction, SubRoom* subroom) const;
 	Point CorrectDWall(Pedestrian *ped, Point d_direction, const Line& l) const;
+
+	// Function not use not
+	bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building);
+
+
+
 public:
+	AGCVMModel(std::shared_ptr<DirectionStrategy> dir,
+		double aped, double Dped, double awall, double Dwall,
+		double Ts, double Td, int GCVM,
+		double lb, double rb, double ub, double db, double co,
+		int Anticipation, int Cooperation, int AttracForce, int Push,
+		double AntiT, double CoopT, double CoreSize);
+	~AGCVMModel(void) override;
 
-	AGCVMModel(std::shared_ptr<DirectionStrategy> dir, double aped, double Dped,
-		double awall, double Dwall, double Ts, double Td, int GCVM, 
-		int Parallel, double waitingTime, double lb, double rb, double ub, double db, double co,
-		int Anticipation, int Cooperation, int AttracForce, double AntiT, double CoopT, int Push, double CoreSize);
-	virtual ~AGCVMModel(void);
+	std::string GetDescription() override;
+	bool Init(Building* building) override;
+	void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic) override;
 
+	inline std::shared_ptr<DirectionStrategy> GetDirection() const { return _direction; };
+	inline double GetaPed() const { return _aPed; };
+	inline double GetDPed() const { return _DPed; };
+	inline double GetaWall() const { return _aWall; };
+	inline double GetDWall() const { return _DWall; };
 
-	std::shared_ptr<DirectionStrategy> GetDirection() const;
-	double GetaPed() const;
-	double GetDPed() const;
-	double GetaWall() const;
-	double GetDWall() const;
-	double GetTs() const;
-	double GetTd() const;
-	virtual std::string GetDescription();
-	virtual bool Init(Building* building);
-	virtual void ComputeNextTimeStep(double current, double deltaT, Building* building, int periodic);
+	inline double GetTs() const { return _Ts; };
+	inline double GetTd() const { return _Td; };
+	inline int GetGCVMU() const { return _GCVM; };
+
+	inline double GetLeftBoundary() const { return _LeftBoundary; };
+	inline double GetRightBoundary() const { return _RightBoundary; };
+	inline double GetUpBoundary() const { return _UpBoundary; };
+	inline double GetDownBoundary() const { return _DownBoundary; };
+	inline double GetCutoff() const { return _CutOff; };
+
+	inline int GetAnticipation() const { return _Anticipation; };
+	inline int GetCooperation() const { return _Cooperation; };
+	inline int GetAttracForce() const { return _AttractiveForce; };
+	inline int GetPushing() const { return _PushingForce; };
+
+	inline double GetAntiT() const { return _AntiTime; };
+	inline double GetCoopT() const { return _CoopTime; };
+	inline double GetCoreSize() const { return _CoreSize; };
+
 };
-
-
 #endif 
