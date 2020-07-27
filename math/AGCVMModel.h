@@ -102,6 +102,7 @@ private:
     // Functions helpful
     Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;//Get the periodic position of ped2 for ped1
     Point GetInfDirection(Point e0, Point ep12) const;
+    Point GetInfDirection(Point d1, Point d2, Point ep12, double s12) const;
     void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
 
     // Function may helpful

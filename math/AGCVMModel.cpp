@@ -45,12 +45,12 @@ using std::vector;
 using std::string;
 
 int ShowInfo = 0;
-int TestID1 = -12;
-int TestID2 = -12;
+int TestID1 = 15;
+int TestID2 = 129;
 
 int IfDrill = 0;
 int IfCorrection = 0;
-int VerticalNoInf = 1;;
+int VerticalNoInf = 0;
 
 AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir,
     double aped, double Dped, double awall, double Dwall,
@@ -239,7 +239,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
             {
                 repPedPush += ForceRepPedPush(ped1, ped2, building, periodic);//new method
             }
-            if (ped1->GetUniqueRoomID() == ped2->GetUniqueRoomID())// || subroom->IsDirectlyConnectedWith(subroom2))
+            if (ped1->GetUniqueRoomID() == ped2->GetUniqueRoomID() || subroom->IsDirectlyConnectedWith(subroom2))
             {
                 Point Force = ForceRepPed(ped1, ped2, building, periodic);//new method
                 repPedTurn += Force;
@@ -261,7 +261,6 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
         Point direction;
         Point a_direction = ped1->GetMoveDirection();
         Point d_direction = IniDirection + repPedTurn + repWall + repPedPush;
-
         // calculate new direction
         if (ped1->GetTryCoop() == 1)
         {
@@ -293,7 +292,20 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
         {
             direction = d_direction.Normalized();//original method
         }
+
+        // Test code
+        if (ShowInfo && (ped1->GetID() == TestID1 || ped1->GetID() == TestID2))
+        {
+            if (current > 0 && current < 20)
+            {
+                printf("TEST: \ttime(%f), ID(%d), Pos(%f,%f), e0(%f,%f), ei(%f,%f)\n",
+                    current, ped1->GetID(), ped1->GetPos()._x, ped1->GetPos()._y, IniDirection._x, IniDirection._y, direction._x, direction._y);
+                printf("\trepPedTurn(%f,%f), repPedPush(%f,%f), repWall(%f,%f)\n\n",
+                    repPedTurn._x, repPedTurn._y, repPedPush._x, repPedPush._y, repWall._x, repWall._y);
+            }
+        }
         result_dir.push_back(direction);
+
     }
 
     // Update direction of each pedestrian
@@ -514,12 +526,14 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* buil
     //S_Gap = (ei.ScalarProduct(ep12) - ei2.ScalarProduct(ep12));
     //S_Gap = (ei.ScalarProduct(ep12)*ped1->GetV().Norm() - ei2.ScalarProduct(ep12)*ped2->GetV().Norm());
     double multi_d = d1.ScalarProduct(d2);
-    double beta = (1 - multi_d) / 2;
+    double beta = (1 - multi_d);
     double Dis_Gap = GetAnticipation() ? S_Gap * GetAntiT()* beta : 0;// Anticipation
 
     if (condition1 >= 0 || condition2 >= 0)
     {
         Point infd = GetInfDirection(d1, ep12);
+        //Using anticipation here
+        infd = GetInfDirection(d1, d2*ped2->GetV0Norm(), ep12, Distance);
         double condition3 = d1.ScalarProduct(e2);// ped2 move in the same direction of ped1's e0;		
         if (GetAttracForce() && condition1 > 0 && condition2 > 0 && condition3 > 0 && S_Gap < 0 && dist>0)
         {
@@ -689,7 +703,7 @@ Point AGCVMModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& cent
     }
     else
     {
-        F_wrep = e_iw * R_iw;//original method
+        F_wrep = e_iw * R_iw*-1;//original method
     }
     return F_wrep;
 }
@@ -874,6 +888,12 @@ Point AGCVMModel::GetInfDirection(Point e0, Point ep12) const
         InfDirection = zero - InfDirection;
     }
     return InfDirection;
+}
+
+Point AGCVMModel::GetInfDirection(Point d1, Point d2, Point ep12, double s12) const
+{
+    Point newep12 = ep12 * s12 + d2 * GetAntiT();
+    return GetInfDirection(d1, newep12);
 }
 
 void AGCVMModel::UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic)
