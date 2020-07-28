@@ -45,8 +45,8 @@ using std::vector;
 using std::string;
 
 int ShowInfo = 0;
-int TestID1 = 15;
-int TestID2 = 129;
+int TestID1 = 72;
+int TestID2 = -1;
 
 int IfDrill = 0;
 int IfCorrection = 0;
@@ -296,7 +296,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
         // Test code
         if (ShowInfo && (ped1->GetID() == TestID1 || ped1->GetID() == TestID2))
         {
-            if (current > 0 && current < 20)
+            if (current > 0 && current < 5)
             {
                 printf("TEST: \ttime(%f), ID(%d), Pos(%f,%f), e0(%f,%f), ei(%f,%f)\n",
                     current, ped1->GetID(), ped1->GetPos()._x, ped1->GetPos()._y, IniDirection._x, IniDirection._y, direction._x, direction._y);
@@ -316,7 +316,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
         ped->SetMoveDirection(direction);
     }
 
-    // Calculate speed and minimal TTC
+    // Calculate speed
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped1 = allPeds[p];
@@ -329,11 +329,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 
         vector< my_pair > spacings = vector<my_pair >();
         spacings.reserve(size);
-        /*
-        // Saving all the information of ttcs
-        vector< my_pair> ttcs = vector<my_pair>();
-        ttcs.reserve(size);
-        */
+
         //Calculating spacing in front -------------------------------------------------------------------------------------------------------
         for (int i = 0; i < size; i++)
         {
@@ -342,7 +338,6 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
             if (ped1->GetUniqueRoomID() == ped2->GetUniqueRoomID() || subroom->IsDirectlyConnectedWith(subroom2) || 1)
             {
                 spacings.push_back(GetSpacing(ped1, ped2, periodic));
-                //ttcs.push_back(JudgeCollision(ped1, ped2,building, periodic));
             }
         }//for i
 
@@ -358,36 +353,10 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
         }
         spacing = spacing < spacing_wall ? spacing : spacing_wall;
 
-        /*
-        // Calculate min ttc and save
-        std::sort(ttcs.begin(), ttcs.end(), sort_pred_agcvm());
-        double mttc = ttcs.size() == 0 ? FLT_MAX : ttcs[0].first;
-        if (mttc < GetCoopT())
-        {
-            ped1->SetMTTCP(ttcs[0].second);
-        }
-        else
-        {
-            ped1->SetMTTCP(-1);
-        }
-        if (ped1->GetMTTCP() != -1&&0)
-        {
-            printf("\nTime=%f, ID1=%d, ID2=%d, ttc=%f\n",
-                current * 20, ped1->GetID(), ped1->GetMTTCP(), ttcs[0].first);
-        }
-        */
-
         // Optimal speed function
         Point speed;
         Point ei = ped1->GetMoveDirection();
         speed = ei * OptimalSpeed(ped1, spacing);
-        /*
-        if (ped1->GetTryCoop() == 1)
-        {
-            speed= Point(0, 0);
-        }
-        */
-
         normal_acc.push_back(speed);
     } // for p
 
@@ -533,7 +502,10 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* buil
     {
         Point infd = GetInfDirection(d1, ep12);
         //Using anticipation here
-        infd = GetInfDirection(d1, d2*ped2->GetV0Norm(), ep12, Distance);
+        //optiin 1:
+        //infd = GetInfDirection(d1, d2*ped2->GetV0Norm(), ep12, Distance);
+        //option 2: Better than option 1, especially in crossing scenarios.
+        infd = GetInfDirection(d1, e2*ped2->GetV0Norm(), ep12, Distance);
         double condition3 = d1.ScalarProduct(e2);// ped2 move in the same direction of ped1's e0;		
         if (GetAttracForce() && condition1 > 0 && condition2 > 0 && condition3 > 0 && S_Gap < 0 && dist>0)
         {
@@ -551,7 +523,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* buil
         }
     }
 
-    // I don't know how to judge it. It may be useful.
+    // I don't know how to judge it. It may be useful. I don't like it, can be removed.
     if (VerticalNoInf == 1)
     {
         F_rep = F_rep * abs(d1.ScalarProduct(d2));
