@@ -814,11 +814,11 @@ void Pedestrian::UpdateTimeInJam()
 //TODO: magic
 void Pedestrian::UpdateJamData()
 {
-    if (GetV().NormSquare() < 0.25*GetV0().NormSquare()) {
+    if (GetV().NormSquare() < 0.1*GetV0().NormSquare()) {
         _timeInJam += _deltaT;
     }
     else {
-        _timeInJam /= 2.0;
+        _timeInJam = _timeInJam > 0 ? _timeInJam - _deltaT : 0;
     }
 }
 

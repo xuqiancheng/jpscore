@@ -365,7 +365,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
     {
         Pedestrian* ped = allPeds[p];
         Point speed = normal_acc[p];
-        ped->SetV(speed);;
+        ped->SetV(speed);
     }
 
     // Cooperation
@@ -374,7 +374,6 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
         for (int p = start; p <= end; ++p)
         {
             Pedestrian* ped1 = allPeds[p];
-            ped1->SetTryCoop(0);
             vector<Pedestrian*> neighbours;
             building->GetGrid()->GetNeighbourhood(ped1, neighbours);
             int size = (int)neighbours.size();
@@ -383,27 +382,50 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
             for (int i = 0; i < size; i++)
             {
                 Pedestrian* ped2 = neighbours[i];
-                my_pair ttc = JudgeCollision(ped1, ped2, building, periodic);
+                //my_pair ttc = JudgeCollision(ped1, ped2, building, periodic);//Based on the time to collision
+                my_pair ttc = N_JudgeCollision(ped1, ped2, building, periodic);//Based on distance
                 ttc.second = i; //I don't want to use ID here
                 ttcs.push_back(ttc);
             }
             std::sort(ttcs.begin(), ttcs.end(), sort_pred_agcvm());
-            double mttc = ttcs.size() == 0 ? FLT_MAX : ttcs[0].first;
+            double mttc = ttcs.size() == 0 ? FLT_MAX : ttcs.begin()->first;
             if (mttc < GetCoopT())
             {
-                Pedestrian* ped_mttc = neighbours[ttcs[0].second];
-                ped1->SetMTTCP(ttcs[0].second);
-                double coop1 = ped1->GetCooperation();
-                double coop2 = ped_mttc->GetCooperation();
-                double s1 = GetSpacing(ped1, ped_mttc, periodic).first;
-                double s2 = GetSpacing(ped_mttc, ped1, periodic).first;
+                // Here pedestrian only cooperate with the closest person.
+                Pedestrian* ped_mttc = neighbours[ttcs.begin()->second];
+                double coop1 = ped1->GetCooperation() - ped1->GetTimeInJam() / 20;
+                double coop2 = ped_mttc->GetCooperation() - ped_mttc->GetTimeInJam() / 20;
+                //coop1 = ped1->GetCooperation();
+                //coop2 = ped_mttc->GetCooperation();
+                //double s1 = GetSpacing(ped1, ped_mttc, periodic).first;
+                //double s2 = GetSpacing(ped_mttc, ped1, periodic).first;
+                //double v1 = ped1->GetV().Norm();
+                //double v2 = ped_mttc->GetV().Norm();
+                bool b1 = Blocking(ped1, ped_mttc, periodic);
+                bool b2 = Blocking(ped_mttc, ped1, periodic);
                 /*
-                if (ped1->GetV().Norm() < J_EPS&&ped_mttc->GetV().Norm() > J_EPS)
+                //Test code
+                if (ShowInfo)
+                {
+                    if (current > 0 && current < 100)
+                    {
+                        printf("Cooperation: time: %f, ID:(%d,%d), ttc:%f\n",
+                            current, ped1->GetID(), ped_mttc->GetID(), mttc);
+                        printf("ID1:%d, coop:%f, v=%f, s=%f\n", ped1->GetID(), coop1, v1, s1);
+                        printf("ID2:%d, coop:%f, v=%f, s=%f\n\n", ped_mttc->GetID(), coop2, v2, s2);
+                    }
+                }
+                */
+                // Judge if cooperation
+                if (false == b1 && true == b2)
+                {
+                    ped1->SetTryCoop(0);
+                }
+                else if (true == b1 && false == b2)
                 {
                     ped1->SetTryCoop(1);
                 }
-                */
-                if ((s1 < 100 && s2>100) || (coop1 > coop2&&s1 > 100 && s2 > 100) || (coop1 > coop2&&s1 < 100 && s2 < 100))
+                else if (coop1 > coop2)
                 {
                     ped1->SetTryCoop(1);
                 }
@@ -416,12 +438,9 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
     {
         Pedestrian* ped = allPeds[p];
         Point v_neu = normal_acc[p];
-        if (ped->GetTryCoop() == 1)
-        {
-            v_neu = Point(0, 0);
-        }
         Point dir_neu = result_dir[p];
         UpdatePed(ped, v_neu, dir_neu, deltaT, periodic);
+        ped->SetTryCoop(0);
     }
 
     // remove the pedestrians that have left the building
@@ -505,7 +524,7 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* buil
         //optiin 1:
         //infd = GetInfDirection(d1, d2*ped2->GetV0Norm(), ep12, Distance);
         //option 2: Better than option 1, especially in crossing scenarios.
-        infd = GetInfDirection(d1, e2*ped2->GetV0Norm(), ep12, Distance);
+        infd = GetAnticipation() ? GetInfDirection(d1, e2*ped2->GetV0Norm(), ep12, Distance) : GetInfDirection(d1, ep12);
         double condition3 = d1.ScalarProduct(e2);// ped2 move in the same direction of ped1's e0;		
         if (GetAttracForce() && condition1 > 0 && condition2 > 0 && condition3 > 0 && S_Gap < 0 && dist>0)
         {
@@ -601,9 +620,9 @@ Point AGCVMModel::ForceRepRoom(Pedestrian* ped, SubRoom* subroom) const
         //door is open, but it's not my door (has influence)
         int uid1 = goal->GetUniqueID();
         int uid2 = ped->GetExitIndex();
-        if((uid1 != uid2) && (goal->IsOpen()==true ))
+        if ((uid1 != uid2) && (goal->IsOpen() == true))
         {
-            f +=  ForceRepWall(ped,*(static_cast<Line*>(goal)), centroid, inside, e0);
+            f += ForceRepWall(ped, *(static_cast<Line*>(goal)), centroid, inside);
         }
     }
     for (const auto & crossline : subroom->GetAllCrossings())
@@ -612,9 +631,9 @@ Point AGCVMModel::ForceRepRoom(Pedestrian* ped, SubRoom* subroom) const
         int uid1 = crossline->GetUniqueID();
         int uid2 = ped->GetExitLine()->GetUniqueID();
         //printf("\npedid=%d, uid1=%d, uid2=%d", ped->GetID(), uid1, uid2);
-        if((uid1 != uid2))
+        if ((uid1 != uid2))
         {
-            f +=  ForceRepWall(ped,*(static_cast<Line*>(crossline)), centroid, inside);
+            f += ForceRepWall(ped, *(static_cast<Line*>(crossline)), centroid, inside);
         }
     }
     */
@@ -710,6 +729,39 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic)
     else
     {
         return  my_pair(FLT_MAX, -1);
+    }
+}
+
+bool AGCVMModel::Blocking(Pedestrian * ped1, Pedestrian * ped2, int periodic) const
+{
+    Point ei = ped1->GetMoveDirection();
+    Point p1 = ped1->GetPos();
+    Point p2 = periodic ? GetPosPeriodic(ped1, ped2) : ped2->GetPos();
+    Point distp12 = p2 - p1; //ped1 ---> ped2
+    double Distance = distp12.Norm();
+    Point ep12;
+    if (Distance >= J_EPS)
+    {
+        ep12 = distp12.Normalized();
+    }
+    else
+    {
+        printf("ERROR: \tIn AGCVMModel::GetSpacing() ep12 can not be calculated!!!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //Judge conllision
+    double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
+    double l = GetPushing() == true ? 2 * GetCoreSize() : (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax());
+    double condition2 = ei.Rotate(0, 1).ScalarProduct(ep12); // theta = pi/2. condition2 should <= than l/Distance
+    condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
+    if ((condition1 > 0) && (condition2 < l / Distance))
+    {
+        return  true;
+    }
+    else
+    {
+        return  false;
     }
 }
 
@@ -870,10 +922,14 @@ Point AGCVMModel::GetInfDirection(Point d1, Point d2, Point ep12, double s12) co
 
 void AGCVMModel::UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic)
 {
-    Point pos_neu = ped->GetPos() + speed * deltaT;
     Point e0 = ped->GetLastE0();
     Point MD = direction;
     Point MS = speed;
+    if (ped->GetTryCoop() == 1 && direction.ScalarProduct(e0) > 0)
+    {
+        MS = Point(0, 0);
+    }
+    Point pos_neu = ped->GetPos() + MS * deltaT;
     //backward_movement
     if (direction.ScalarProduct(e0) < 0)
     {
@@ -882,6 +938,9 @@ void AGCVMModel::UpdatePed(Pedestrian* ped, Point speed, Point direction, double
     }
     ped->SetMoveDirection(MD);
     ped->SetV(MS);
+
+    // To make pedestrian with high cooperation move.
+    ped->UpdateJamData();
     if (periodic)
     {
         double xLeft_gcvm = GetLeftBoundary();
@@ -927,55 +986,51 @@ my_pair AGCVMModel::JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, Building*
     //At = 1;
     Point p1 = ped1->GetPos();
     Point p2 = periodic ? GetPosPeriodic(ped1, ped2) : ped2->GetPos();
-    Point  e1 = ped1->GetMoveDirection();
-    //e1 = e1 * ped1->GetV0Norm();
-    Point  e2 = ped2->GetMoveDirection();
-    //e2 = e2 * ped2->GetV0Norm();
-
     Room* room1 = building->GetRoom(ped1->GetRoomID());
     SubRoom* subroom1 = room1->GetSubRoom(ped1->GetSubRoomID());
     Point eo1 = DesireDirection(ped1, room1);
     Room* room2 = building->GetRoom(ped2->GetRoomID());
     SubRoom* subroom2 = room2->GetSubRoom(ped2->GetSubRoomID());
     Point eo2 = DesireDirection(ped2, room2);
+
+    //option 1
+    Point  e1 = ped1->GetMoveDirection();
+    Point  e2 = ped2->GetMoveDirection();
+    //option 2
+    //e1 = e1 * ped1->GetV0Norm();
+    //e2 = e2 * ped2->GetV0Norm();
+    //option 3
     //e1 = eo1;
     //e2 = eo2;
-    //e1 = eo1* ped1->GetV0Norm();
+    //option 4
+    //e1 = eo1 * ped1->GetV0Norm();
     //e2 = eo2 * ped2->GetV0Norm();
-
-
+    //option 5 
     //e1 = ped1->GetV();
     //e2 = ped2->GetV();
+
     Point distp12 = p2 - p1; //ped1 ---> ped2
     double distance = distp12.Norm();
     Point e1m = ped1->GetMoveDirection();
     Point e2m = ped2->GetMoveDirection();
-    double condition1 = e1m.ScalarProduct(distp12);
-    //condition1 = e1.ScalarProduct(distp12);
-    double condition2 = e2m.ScalarProduct(distp12);
-    //condition2 = e2.ScalarProduct(distp12);
-    if (0 && condition1 < 0 || condition2 > 0)
+    double condition1 = e1.ScalarProduct(distp12);
+    double condition2 = e2.ScalarProduct(distp12);
+    // They don't move towards each other
+    if (condition1 < 0 || condition2 > 0)
     {
         return my_pair(ttc, ped2->GetID());
     }
+
     JEllipse Eped1 = ped1->GetEllipse();
     JEllipse Eped2 = ped2->GetEllipse();
     double r = ped1->GetEllipse().GetBmax();
-    r = 0.2;
+    //r = 0.2;
 
     double a = (e1._x - e2._x)*(e1._x - e2._x) + (e1._y - e2._y)*(e1._y - e2._y);
     double b = 2 * ((p1._x - p2._x)*(e1._x - e2._x) + (p1._y - p2._y)*(e1._y - e2._y));
     double c = distance * distance - 4 * r * r;
     double delta = b * b - 4 * a * c;
 
-    // Distance is zero, collision
-    /*
-    if (dist-0.4 < 0)
-    {
-        collision = 1;
-        return collision;
-    }
-    */
     if (delta == 0)
     {
         double t = -b / (2 * a);
@@ -993,12 +1048,58 @@ my_pair AGCVMModel::JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, Building*
         {
             ttc = t1;
         }
-        /*
         else if (t1 <= 0 && t2 > J_EPS && t2 < At)
         {
             ttc = t2;
         }
-        */
+    }
+    return my_pair(ttc, ped2->GetID());
+}
+
+my_pair AGCVMModel::N_JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const
+{
+    double ttc = FLT_MAX;
+    double At = GetCoopT();
+    //At = 1;
+    Point p1 = ped1->GetPos();
+    Point p2 = periodic ? GetPosPeriodic(ped1, ped2) : ped2->GetPos();
+    Room* room1 = building->GetRoom(ped1->GetRoomID());
+    SubRoom* subroom1 = room1->GetSubRoom(ped1->GetSubRoomID());
+    Point eo1 = DesireDirection(ped1, room1);
+    Room* room2 = building->GetRoom(ped2->GetRoomID());
+    SubRoom* subroom2 = room2->GetSubRoom(ped2->GetSubRoomID());
+    Point eo2 = DesireDirection(ped2, room2);
+
+    //option 1
+    Point  e1 = ped1->GetMoveDirection();
+    Point  e2 = ped2->GetMoveDirection();
+    //option 2
+    //e1 = e1 * ped1->GetV0Norm();
+    //e2 = e2 * ped2->GetV0Norm();
+    //option 3
+    //e1 = eo1;
+    //e2 = eo2;
+    //option 4
+    //e1 = eo1 * ped1->GetV0Norm();
+    //e2 = eo2 * ped2->GetV0Norm();
+    //option 5 
+    //e1 = ped1->GetV();
+    //e2 = ped2->GetV();
+
+    Point distp12 = p2 - p1; //ped1 ---> ped2
+    double distance = distp12.Norm();
+    Point e1m = ped1->GetMoveDirection();
+    Point e2m = ped2->GetMoveDirection();
+    double condition1 = e1.ScalarProduct(distp12);
+    double condition2 = e2.ScalarProduct(distp12);
+    // They don't move towards each other
+    if (condition1 < 0 || condition2 > 0)
+    {
+        return my_pair(ttc, ped2->GetID());
+    }
+    if (distance < At)
+    {
+        return my_pair(distance, ped2->GetID());
     }
     return my_pair(ttc, ped2->GetID());
 }
@@ -1227,3 +1328,41 @@ bool AGCVMModel::ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Ped
     return true;
 }
 
+my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Building * building, int periodic) const
+{
+    Room* room1 = building->GetRoom(ped1->GetRoomID());
+    SubRoom* subroom1 = room1->GetSubRoom(ped1->GetSubRoomID());
+    Point eo1 = DesireDirection(ped1, room1);
+    Room* room2 = building->GetRoom(ped2->GetRoomID());
+    SubRoom* subroom2 = room2->GetSubRoom(ped2->GetSubRoomID());
+    Point eo2 = DesireDirection(ped2, room2);
+    Point ei = eo1;
+    Point p1 = ped1->GetPos();
+    Point p2 = periodic ? GetPosPeriodic(ped1, ped2) : ped2->GetPos();
+    Point distp12 = p2 - p1; //ped1 ---> ped2
+    double Distance = distp12.Norm();
+    Point ep12;
+    if (Distance >= J_EPS)
+    {
+        ep12 = distp12.Normalized();
+    }
+    else
+    {
+        printf("ERROR: \tIn AGCVMModel::GetSpacing() ep12 can not be calculated!!!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //Judge conllision
+    double condition1 = ei.ScalarProduct(ep12); // < e_i , e_ij > should be positive
+    double l = GetPushing() == true ? 2 * GetCoreSize() : (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax());
+    double condition2 = ei.Rotate(0, 1).ScalarProduct(ep12); // theta = pi/2. condition2 should <= than l/Distance
+    condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
+    if ((condition1 > 0) && (condition2 < l / Distance))
+    {
+        return  my_pair(0, ped2->GetID());
+    }
+    else
+    {
+        return  my_pair(1, -1);
+    }
+}

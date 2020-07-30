@@ -94,6 +94,7 @@ private:
     Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside) const;
 
     my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
+    bool  Blocking(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
     double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom) const;
     double GetSpacingWall(Pedestrian* ped, const Line& l) const;
 
@@ -107,6 +108,7 @@ private:
 
     // Function may helpful
     my_pair JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+    my_pair N_JudgeCollision(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     bool Drill(Pedestrian* ped, vector<Pedestrian*> neighbours, Building* building, SubRoom* subroom, Point e0, int periodic) const;
     bool DrillRoom(Pedestrian* ped, SubRoom* subroom, Point e0) const;
     bool DrillWall(Pedestrian* ped, Point e0, const Line& l) const;
@@ -115,7 +117,7 @@ private:
 
     // Function not use not
     bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building);
-
+    my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Building * building, int periodic) const;
 
 
 public:
