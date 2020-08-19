@@ -525,27 +525,11 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* buil
         //infd = GetInfDirection(d1, d2*ped2->GetV0Norm(), ep12, Distance);
         //option 2: Better than option 1, especially in crossing scenarios.
         infd = GetAnticipation() ? GetInfDirection(d1, e2*ped2->GetV0Norm(), ep12, Distance) : GetInfDirection(d1, ep12);
-        double condition3 = d1.ScalarProduct(e2);// ped2 move in the same direction of ped1's e0;		
-        if (GetAttracForce() && condition1 > 0 && condition2 > 0 && condition3 > 0 && S_Gap < 0 && dist>0)
-        {
-            double R_dist = dist + Dis_Gap;
-            R_dist = R_dist < 0 ? 0 : R_dist;
-            double R_ij = _aPed * exp((-R_dist) / _DPed);
-            F_rep = infd * (-R_ij);
-        }
-        else
-        {
-            double R_dist = dist - Dis_Gap;
-            R_dist = R_dist < 0 ? 0 : R_dist;
-            double R_ij = _aPed * exp((-R_dist) / _DPed);
-            F_rep = infd * R_ij;
-        }
-    }
-
-    // I don't know how to judge it. It may be useful. I don't like it, can be removed.
-    if (VerticalNoInf == 1)
-    {
-        F_rep = F_rep * abs(d1.ScalarProduct(d2));
+        //double condition3 = d1.ScalarProduct(e2);// ped2 move in the same direction of ped1's e0;		
+        double R_dist = dist - Dis_Gap;
+        R_dist = R_dist < 0 ? 0 : R_dist;
+        double R_ij = _aPed * exp((-R_dist) / _DPed);
+        F_rep = infd * R_ij;
     }
     return F_rep;
 }
