@@ -165,6 +165,7 @@ private:
     int _MTTC_Person = -1;
     double _CoreSize = 0.1;
     int _try_coop = 0;
+    double _dynamic_V0;
 
 public:
     // public member
@@ -241,7 +242,6 @@ public:
      * @return the norm of the desired speed.
      */
     double GetV0Norm() const;
-
     ///get axis in the walking direction
     double GetLargerAxis() const;
     ///get axis in the shoulder direction = orthogonal to the walking direction
@@ -552,6 +552,10 @@ public:
     int GetTryCoop() const;
 
     void SetTryCoop(int tc);
+
+    void SetDV0(double v0);
+
+    double GetDV0() const;
 };
 
 #endif  /* _PEDESTRIAN_H */

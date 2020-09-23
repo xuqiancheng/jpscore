@@ -126,6 +126,7 @@ Pedestrian::Pedestrian()
     _MTTC_Person = -1;
     _CoreSize = 0.1;
     _try_coop = 0;
+    _dynamic_V0 = 1.3;
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -213,6 +214,7 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
     _MTTC_Person = -1;
     _CoreSize = 0.1;
     _try_coop = 0;
+    _dynamic_V0 = 1.3;
 }
 
 
@@ -1389,4 +1391,14 @@ int Pedestrian::GetTryCoop() const
 void Pedestrian::SetTryCoop(int tc)
 {
     _try_coop = tc;
+}
+
+void Pedestrian::SetDV0(double v0)
+{
+    _dynamic_V0 = v0;
+}
+
+double Pedestrian::GetDV0() const
+{
+    return _dynamic_V0;
 }

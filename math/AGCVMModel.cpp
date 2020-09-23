@@ -48,10 +48,6 @@ int ShowInfo = 0;
 int TestID1 = 72;
 int TestID2 = -1;
 
-int IfDrill = 0;
-int IfCorrection = 0;
-int VerticalNoInf = 0;
-
 AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir,
     double aped, double Dped, double awall, double Dwall,
     double Ts, double Td, int GCVM,
@@ -217,8 +213,11 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
         vector<Pedestrian*> neighbours;
         building->GetGrid()->GetNeighbourhood(ped1, neighbours);
         int size = (int)neighbours.size();
+        // Normal force
         Point repPedTurn = Point(0, 0);
+        //Pushing force
         Point repPedPush = Point(0, 0);
+
         // Calculate the influence from neighbours
         for (int i = 0; i < size; i++)
         {
@@ -230,10 +229,15 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
             emptyVector.push_back(subroom);
             emptyVector.push_back(subroom2);
             bool isVisible = building->IsVisible(p1, p2, emptyVector, false);
+
+            /*
+            //Optional
             if (!isVisible)
             {
-                //continue;// we can delete it to make different simulations
+                continue;// we can delete it to make different simulations
             }
+            */
+
             // whole building, not only the pedestrians in same subroom or next subroom
             if (GetPushing() == 1)
             {
@@ -241,14 +245,15 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
             }
             if (ped1->GetUniqueRoomID() == ped2->GetUniqueRoomID() || subroom->IsDirectlyConnectedWith(subroom2))
             {
-                Point Force = ForceRepPed(ped1, ped2, building, periodic);//new method
-                repPedTurn += Force;
+                repPedTurn += ForceRepPed(ped1, ped2, building, periodic);//new method;
             }
         } //for i
 
+        // Calculate the influence from walls
         Point repWall = ForceRepRoom(ped1, subroom);
+
         /*
-        // the influence from next subroom should be considered
+        // Optional: the influence from next subroom should be considered
         if (ped1->GetExitLine()->DistTo(p1) < ped1->GetEllipse().GetBmax())
         {
             for (const auto & subr : subroom->GetNeighbors())
@@ -258,40 +263,32 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
         }
         */
 
+        // Turning process
         Point direction;
-        Point a_direction = ped1->GetMoveDirection();
-        Point d_direction = IniDirection + repPedTurn + repWall + repPedPush;
-        // calculate new direction
-        if (ped1->GetTryCoop() == 1)
+        if (GetPushing() == 1)
         {
-            //d_direction = a_direction;
+            Point d_direction = IniDirection + repPedTurn + repWall + repPedPush;
+            Point AccTu = Point(0, 0);
+            double angle_tau = GetTd();
+            AccTu = (d_direction.Normalized()*ped1->GetV0Norm() - ped1->GetV()) / angle_tau;
+            direction = ped1->GetV() + AccTu * deltaT;
         }
-        if (IfDrill == 1)
+        else
         {
-            bool drill = Drill(ped1, neighbours, building, subroom, IniDirection, periodic);
-            if (drill == true)
-            {
-                d_direction = IniDirection.Normalized();
-            }
+            Point d_direction = IniDirection + repPedTurn + repWall;
+            Point a_direction = ped1->GetMoveDirection();
+            Point AccTu = Point(0, 0);
+            double angle_tau = GetTd();
+            AccTu = (d_direction.Normalized() - a_direction) / angle_tau;
+            direction = a_direction + AccTu * deltaT;
         }
-        if (IfCorrection == 1)
+        if (GetGCVMU() == 0)//original method
         {
-            d_direction = CorrectD(ped1, d_direction, subroom);
+            Point d_direction = IniDirection + repPedTurn + repWall;
+            direction = d_direction;
         }
-
-        Point AccTu = Point(0, 0);
-        double angle_tau = GetTd();
-        d_direction = d_direction.Normalized();
-        AccTu = (d_direction.Normalized()*ped1->GetV0Norm() - ped1->GetV()) / angle_tau;
-        direction = ped1->GetV() + AccTu * deltaT;
         direction = direction.Normalized();
-        //direction = IniDirection.Normalized();
-        //direction = CorrectD(ped1, direction, subroom);
-
-        if (GetGCVMU() == 0)
-        {
-            direction = d_direction.Normalized();//original method
-        }
+        result_dir.push_back(direction);
 
         // Test code
         if (ShowInfo && (ped1->GetID() == TestID1 || ped1->GetID() == TestID2))
@@ -304,7 +301,6 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
                     repPedTurn._x, repPedTurn._y, repPedPush._x, repPedPush._y, repWall._x, repWall._y);
             }
         }
-        result_dir.push_back(direction);
 
     }
 
@@ -394,7 +390,9 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
                 // Here pedestrian only cooperate with the closest person.
                 Pedestrian* ped_mttc = neighbours[ttcs.begin()->second];
                 double coop1 = ped1->GetCooperation() - ped1->GetTimeInJam() / 20;
+                //coop1 = coop1 > 0 ? coop1 : 0;
                 double coop2 = ped_mttc->GetCooperation() - ped_mttc->GetTimeInJam() / 20;
+                //coop2 = coop2 > 0 ? coop2 : 0;
                 //coop1 = ped1->GetCooperation();
                 //coop2 = ped_mttc->GetCooperation();
                 //double s1 = GetSpacing(ped1, ped_mttc, periodic).first;
@@ -490,45 +488,49 @@ Point AGCVMModel::ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* buil
     // Distance between boundaries
     double dist = Distance - (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax());
 
-    if (GetGCVMU() == 0)// Using CVM
+    //Vision area
+    Point e1 = ped1->GetMoveDirection();
+    Room* room1 = building->GetRoom(ped1->GetRoomID());
+    Point d1 = DesireDirection(ped1, room1);
+    Point e2 = ped2->GetMoveDirection();
+    Room* room2 = building->GetRoom(ped2->GetRoomID());
+    Point d2 = DesireDirection(ped2, room2);
+    double condition1 = d1.ScalarProduct(ep12);
+    double condition2 = e1.ScalarProduct(ep12);
+
+    //Anticipation
+    //double S_Gap = (e1.ScalarProduct(ep12)*ped1->GetV0Norm() - e2.ScalarProduct(ep12)*ped2->GetV0Norm());
+    double S_Gap = (ped1->GetV() - ped2->GetV()).ScalarProduct(ep12);
+    //double S_Gap = 0;
+
+    double multi_d = d1.ScalarProduct(d2);
+    //double multi_d = e1.ScalarProduct(e2);
+    double beta = (3 - multi_d) / 2;
+    //double beta = (2 - multi_d);
+    //double beta = (1 - multi_d);
+
+    double Dis_Gap = GetAnticipation() ? S_Gap * GetAntiT() : 0;// Anticipation
+    //double Dis_Gap = GetAnticipation() ? S_Gap * GetAntiT()*beta : 0;// Anticipation
+
+    //Original model
+    if (GetGCVMU() == 0)
     {
         double R_ij = _aPed * exp((-dist) / _DPed);
         F_rep = ep12 * (-R_ij);
         return F_rep;
     }
-
-    //Vision area
-    Point e1 = ped1->GetMoveDirection();
-    Room* room1 = building->GetRoom(ped1->GetRoomID());
-    Point d1 = DesireDirection(ped1, room1);
-
-    Point e2 = ped2->GetMoveDirection();
-    Room* room2 = building->GetRoom(ped2->GetRoomID());
-    Point d2 = DesireDirection(ped2, room2);
-
-    double condition1 = d1.ScalarProduct(ep12);
-    double condition2 = e1.ScalarProduct(ep12);
-
-    //Anticipation
-    double S_Gap = (e1.ScalarProduct(ep12)*ped1->GetV0Norm() - e2.ScalarProduct(ep12)*ped2->GetV0Norm());
-    //S_Gap = (ei.ScalarProduct(ep12) - ei2.ScalarProduct(ep12));
-    //S_Gap = (ei.ScalarProduct(ep12)*ped1->GetV().Norm() - ei2.ScalarProduct(ep12)*ped2->GetV().Norm());
-    double multi_d = d1.ScalarProduct(d2);
-    double beta = (1 - multi_d);
-    double Dis_Gap = GetAnticipation() ? S_Gap * GetAntiT()* beta : 0;// Anticipation
-
     if (condition1 >= 0 || condition2 >= 0)
     {
-        Point infd = GetInfDirection(d1, ep12);
         //Using anticipation here
-        //optiin 1:
-        //infd = GetInfDirection(d1, d2*ped2->GetV0Norm(), ep12, Distance);
-        //option 2: Better than option 1, especially in crossing scenarios.
-        infd = GetAnticipation() ? GetInfDirection(d1, e2*ped2->GetV0Norm(), ep12, Distance) : GetInfDirection(d1, ep12);
-        //double condition3 = d1.ScalarProduct(e2);// ped2 move in the same direction of ped1's e0;		
+        //Point infd = GetInfDirection(d1, ep12);
+        //Point infd = GetAnticipation() ? GetInfDirection(d1, e2*ped2->GetV0Norm(), ep12, Distance) : GetInfDirection(d1, ep12);
+        //Point infd = GetAnticipation() ? GetInfDirection(d1, e2*ped2->GetV0Norm() - e1 * ped1->GetV0Norm(), ep12, Distance) : GetInfDirection(d1, ep12);
+        //Point infd = GetAnticipation() ? GetInfDirection(d1, e2*ped2->GetV().Norm(), ep12, Distance) : GetInfDirection(d1, ep12);
+        Point infd = GetAnticipation() ? GetInfDirection(d1, e2*ped2->GetV().Norm() - e1 * ped1->GetV().Norm(), ep12, Distance) : GetInfDirection(d1, ep12);
         double R_dist = dist - Dis_Gap;
         R_dist = R_dist < 0 ? 0 : R_dist;
         double R_ij = _aPed * exp((-R_dist) / _DPed);
+        R_ij = GetAnticipation() ? R_ij * beta : R_ij;
         F_rep = infd * R_ij;
     }
     return F_rep;
@@ -909,13 +911,13 @@ void AGCVMModel::UpdatePed(Pedestrian* ped, Point speed, Point direction, double
     Point e0 = ped->GetLastE0();
     Point MD = direction;
     Point MS = speed;
-    if (ped->GetTryCoop() == 1 && direction.ScalarProduct(e0) > 0)
+    if (ped->GetTryCoop() == 1) //&& direction.ScalarProduct(e0) > 0)
     {
         MS = Point(0, 0);
     }
     Point pos_neu = ped->GetPos() + MS * deltaT;
     //backward_movement
-    if (direction.ScalarProduct(e0) < 0)
+    if (GetPushing() == 1 && direction.ScalarProduct(e0) < 0)
     {
         MD = MD * -1;
         MS = Point(0, 0);
