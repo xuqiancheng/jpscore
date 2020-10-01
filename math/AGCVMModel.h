@@ -89,10 +89,11 @@ private:
     Point DesireDirection(Pedestrian *ped, Room* room) const;
 
     Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+    Point ForceRepCVM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     Point ForceRepPedPush(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+    Point ForceRepBack(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom) const;
     Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside) const;
-
     my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
     bool  Blocking(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
     double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom) const;
