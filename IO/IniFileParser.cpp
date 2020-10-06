@@ -2314,6 +2314,27 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
         Log->Write("INFO: \tfrep_ped a=%0.2f, D=%0.2f", _config->GetaPed(), _config->GetDPed());
 
     }
+
+    //force_ped_push
+    if (xModelPara->FirstChild("force_ped_push")) {
+
+        if (!xModelPara->FirstChildElement("force_ped_push")->Attribute("a"))
+            _config->SetaPedPush(1.0); // default value
+        else {
+            string a = xModelPara->FirstChildElement("force_ped_push")->Attribute("a");
+            _config->SetaPedPush(atof(a.c_str()));
+        }
+
+        if (!xModelPara->FirstChildElement("force_ped_push")->Attribute("D"))
+            _config->SetDPedPush(0.1); // default value in [m]
+        else {
+            string D = xModelPara->FirstChildElement("force_ped_push")->Attribute("D");
+            _config->SetDPedPush(atof(D.c_str()));
+        }
+        Log->Write("INFO: \tfrep_ped_push a=%0.2f, D=%0.2f", _config->GetaPedPush(), _config->GetDPedPush());
+
+    }
+
     //force_wall
     if (xModelPara->FirstChild("force_wall")) {
 
@@ -2472,11 +2493,11 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
             string Cooperation = xModelPara->FirstChildElement("AGCVM")->Attribute("cooperation");
             _config->SetCooperation(atoi(Cooperation.c_str()));
         }
-        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("attractive"))
-            _config->SetAttracForce(0);
+        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("alpha"))
+            _config->SetAlpha(0);
         else {
-            string AttracForce = xModelPara->FirstChildElement("AGCVM")->Attribute("attractive");
-            _config->SetAttracForce(atoi(AttracForce.c_str()));
+            string Alpha = xModelPara->FirstChildElement("AGCVM")->Attribute("alpha");
+            _config->SetAlpha(atof(Alpha.c_str()));
         }
         if (!xModelPara->FirstChildElement("AGCVM")->Attribute("AntiTime"))
             _config->SetAntiT(0);
@@ -2502,18 +2523,18 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
             string CoreSize = xModelPara->FirstChildElement("AGCVM")->Attribute("CoreSize");
             _config->SetCoreSize(atof(CoreSize.c_str()));
         }
-        Log->Write("INFO: \tAGCVM anticipation=%d, cooperation=%d, attractive=%d, AntiTime=%0.2f, CoopTime=%0.2f, pushing=%d, CoreSize=%0.2f.",
-            _config->GetAnticipation(), _config->GetCooperation(), _config->GetAttracForce(),
+        Log->Write("INFO: \tAGCVM anticipation=%d, cooperation=%d, alpha=%f, AntiTime=%0.2f, CoopTime=%0.2f, pushing=%d, CoreSize=%0.2f.",
+            _config->GetAnticipation(), _config->GetCooperation(), _config->GetAlpha(),
             _config->GetAntiT(), _config->GetCoopT(), _config->GetPushing(), _config->GetCoreSize());
     }
     //Parsing the agent parameters
     TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
     ParseAgentParameters(xAGCVM, xAgentDistri);
     _config->SetModel(std::shared_ptr<OperationalModel>(new AGCVMModel(_exit_strategy,
-        _config->GetaPed(), _config->GetDPed(), _config->GetaWall(), _config->GetDWall(),
+        _config->GetaPed(), _config->GetDPed(), _config->GetaPedPush(), _config->GetDPedPush(), _config->GetaWall(), _config->GetDWall(),
         _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
         _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
-        _config->GetAnticipation(), _config->GetCooperation(), _config->GetAttracForce(), _config->GetPushing(),
-        _config->GetAntiT(), _config->GetCoopT(), _config->GetCoreSize())));
+        _config->GetAnticipation(), _config->GetCooperation(), _config->GetPushing(),
+        _config->GetAntiT(), _config->GetCoopT(), _config->GetCoreSize(), _config->GetAlpha())));
     return true;
 }

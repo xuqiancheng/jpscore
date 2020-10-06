@@ -61,6 +61,8 @@ private:
     // Model Parameter (CVM)
     double _aPed;
     double _DPed;
+    double _aPedPush;
+    double _DPedPush;
     double _aWall;
     double _DWall;
 
@@ -79,23 +81,23 @@ private:
     // Anticipation
     int _Anticipation;
     int _Cooperation;
-    int _AttractiveForce;
     int _PushingForce;
     double _AntiTime;
     double _CoopTime;
     double _CoreSize;
+    double _Alpha;
 
     // Functions 
     Point DesireDirection(Pedestrian *ped, Room* room) const;
 
-    Point ForceRepPed(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
-    Point ForceRepCVM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+    Point ForceRepPedTurn(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+    Point ForceRepPedCSM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     Point ForceRepPedPush(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
-    Point ForceRepBack(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+
     Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom) const;
     Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside) const;
+
     my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
-    bool  Blocking(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
     double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom) const;
     double GetSpacingWall(Pedestrian* ped, const Line& l) const;
 
@@ -104,7 +106,6 @@ private:
     // Functions helpful
     Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;//Get the periodic position of ped2 for ped1
     Point GetInfDirection(Point e0, Point ep12) const;
-    Point GetInfDirection(Point d1, Point d2, Point ep12, double s12) const;
     void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
 
     // Function may helpful
@@ -115,19 +116,18 @@ private:
     bool DrillWall(Pedestrian* ped, Point e0, const Line& l) const;
     Point CorrectD(Pedestrian *ped, Point d_direction, SubRoom* subroom) const;
     Point CorrectDWall(Pedestrian *ped, Point d_direction, const Line& l) const;
+    bool  Blocking(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
 
     // Function not use not
     bool ReArrange(const vector< Pedestrian* >& allPeds_ini, vector< Pedestrian* >& allPeds, Building* building);
-    my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, Building * building, int periodic) const;
-
 
 public:
     AGCVMModel(std::shared_ptr<DirectionStrategy> dir,
-        double aped, double Dped, double awall, double Dwall,
+        double aped, double Dped, double apedpush, double Dpedpush, double awall, double Dwall,
         double Ts, double Td, int GCVM,
         double lb, double rb, double ub, double db, double co,
-        int Anticipation, int Cooperation, int AttracForce, int Push,
-        double AntiT, double CoopT, double CoreSize);
+        int Anticipation, int Cooperation, int Push,
+        double AntiT, double CoopT, double CoreSize, double alpha);
     ~AGCVMModel(void) override;
 
     std::string GetDescription() override;
@@ -137,6 +137,8 @@ public:
     inline std::shared_ptr<DirectionStrategy> GetDirection() const { return _direction; };
     inline double GetaPed() const { return _aPed; };
     inline double GetDPed() const { return _DPed; };
+    inline double GetaPedPush() const { return _aPedPush; };
+    inline double GetDPedPush() const { return _DPedPush; };
     inline double GetaWall() const { return _aWall; };
     inline double GetDWall() const { return _DWall; };
 
@@ -152,12 +154,11 @@ public:
 
     inline int GetAnticipation() const { return _Anticipation; };
     inline int GetCooperation() const { return _Cooperation; };
-    inline int GetAttracForce() const { return _AttractiveForce; };
     inline int GetPushing() const { return _PushingForce; };
 
     inline double GetAntiT() const { return _AntiTime; };
     inline double GetCoopT() const { return _CoopTime; };
     inline double GetCoreSize() const { return _CoreSize; };
-
+    inline double GetAlpha() const { return _Alpha; };
 };
 #endif 
