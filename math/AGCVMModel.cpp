@@ -793,6 +793,7 @@ double AGCVMModel::GetSpacingWall(Pedestrian* ped, const Line& l) const
 double AGCVMModel::OptimalSpeed(Pedestrian* ped, double spacing) const
 {
     double v0 = ped->GetV0Norm();
+    v0 = v0 < 0.1 ? 0.1 : v0; //To avoid pedestrians who's desired speed is zero
     double T = GetTs();
     double speed = (spacing) / T;
     speed = (speed > 0) ? speed : 0;
