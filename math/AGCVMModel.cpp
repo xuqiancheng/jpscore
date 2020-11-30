@@ -235,6 +235,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
                 else
                 {
                     repPedTurn += ForceRepPedTurn(ped1, ped2, building, periodic);//new method;
+                    //repPedTurn += ForceRepPedTurnEllipse(ped1, ped2, building, periodic);//new method;
                     if (GetPushing())
                     {
                         repPedPush += ForceRepPedPush(ped1, ped2, building, periodic);//new method
@@ -321,6 +322,7 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
             if (ped1->GetUniqueRoomID() == ped2->GetUniqueRoomID() || subroom1->IsDirectlyConnectedWith(subroom2))
             {
                 spacings.push_back(GetSpacing(ped1, ped2, periodic));
+                //spacings.push_back(GetSpacingEllipse(ped1, ped2, periodic));
             }
         }//for i
 
@@ -503,19 +505,30 @@ Point AGCVMModel::ForceRepPedTurn(Pedestrian* ped1, Pedestrian* ped2, Building* 
     {
         if (GetAnticipation())
         {
-            // Scale of effect
+            //Only use distance
+            /*
+            Point np1 = p1 + d1 * GetAntiT()*ped1->GetV0Norm();
+            np1 = p1 + ped1->GetV()* GetAntiT();
+            Point np2 = p2 + ped2->GetV()* GetAntiT();
+            Point np12 = np2 - np1;
+            double R_dist = np12.ScalarProduct(ep12) >= 0 ? np12.Norm() - (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax()) : 0;
+            //printf("R_dist:%f\n", R_dist);
+            */
             // ToDo: Add the anticipation error into the work
+
             double S_Gap = (ped1->GetV() - ped2->GetV()).ScalarProduct(ep12);
             double Dis_Gap = S_Gap * GetAntiT();
             double R_dist = dist - Dis_Gap;
             R_dist = R_dist < 0 ? 0 : R_dist;
+
             double multi_d = d1.ScalarProduct(e2);
             double alpha = GetAlpha();
-            double beta = 1 + (1 - multi_d) / 2 * alpha;
+            double beta = 1 + 0.5*(1 - multi_d)  * alpha;
+            //beta = 1;
             double R_ij = _aPed * exp((-R_dist) / _DPed) * beta;
 
             //Direction of effect
-            Point newep12 = distp12 + ped2->GetV() * GetAntiT();
+            Point newep12 = distp12 + ped2->GetV() * GetAntiT() - ped1->GetV() * GetAntiT();
             Point infd = GetInfDirection(d1, newep12);
             FRep = infd * R_ij;
         }
@@ -528,6 +541,62 @@ Point AGCVMModel::ForceRepPedTurn(Pedestrian* ped1, Pedestrian* ped2, Building* 
     }
     return FRep;
 }
+
+// Revise it
+Point AGCVMModel::ForceRepPedTurnEllipse(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const
+{
+    Point FRep(0.0, 0.0);
+    Point p1 = ped1->GetPos();
+    Point p2 = periodic ? GetPosPeriodic(ped1, ped2) : ped2->GetPos();
+
+    Point distp12 = p2 - p1;
+    double Distance = distp12.Norm();
+    Point ep12 = distp12.Normalized();
+    // Distance between body boundaries (which is r2 > r1)
+    double dist = Distance - (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax());
+
+    Point e1 = ped1->GetMoveDirection();
+    Room* room1 = building->GetRoom(ped1->GetRoomID());
+    Point d1 = DesireDirection(ped1, room1);
+
+    Point e2 = ped2->GetMoveDirection();
+    Room* room2 = building->GetRoom(ped2->GetRoomID());
+    Point d2 = DesireDirection(ped2, room2);
+
+    double condition1 = d1.ScalarProduct(ep12);
+    double condition2 = e1.ScalarProduct(ep12);
+
+    if (condition1 >= 0 || condition2 >= 0)
+    {
+        if (GetAnticipation())
+        {
+            Point p2Future = p2 + ped2->GetV()*GetAntiT() / 2;
+            Point NewVector12 = p2Future - p1;
+            double NewDistance = NewVector12.Norm();
+            Point NewDirection = NewVector12.Normalized();
+            // Distance between body boundaries (which is r2 > r1)
+            double ActualDistance = NewDistance - (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax());
+
+            double multi_d = d1.ScalarProduct(e2);
+            double alpha = GetAlpha();
+            double beta = 1 + 0.5 * (1 - multi_d) * alpha;
+            //beta = 1;
+            double R_ij = _aPed * exp(-ActualDistance / _DPed) * beta;
+
+            //Direction of effect
+            Point infd = GetInfDirection(d1, NewDirection);
+            FRep = infd * R_ij;
+        }
+        else
+        {
+            Point infd = GetInfDirection(d1, ep12);
+            double R_ij = _aPed * exp((-dist) / _DPed);
+            FRep = infd * R_ij;
+        }
+    }
+    return FRep;
+}
+
 
 Point AGCVMModel::ForceRepPedPush(Pedestrian * ped1, Pedestrian * ped2, Building * building, int periodic) const
 {
@@ -702,6 +771,121 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic)
     else
     {
         return  my_pair(FLT_MAX, -1);
+    }
+}
+
+my_pair AGCVMModel::GetSpacingEllipse(Pedestrian* ped1, Pedestrian* ped2, int periodic) const
+{
+    Point e1 = ped1->GetMoveDirection();
+    Point p1 = ped1->GetPos();
+
+    Point p2 = periodic ? GetPosPeriodic(ped1, ped2) : ped2->GetPos();
+    Point Np2 = p2 + ped2->GetV()*GetAntiT() / 2;
+    double b2 = ped2->GetEllipse().GetBmax();
+    double a2 = ped2->GetV().Norm()*GetAntiT() / 2 + ped2->GetEllipse().GetBmax();
+
+    Point ep12 = Np2 - p1;
+    //calculate effective distance
+    JEllipse eped1 = ped1->GetEllipse();
+    JEllipse eped2 = ped2->GetEllipse();
+    eped2.SetCenter(Np2);
+    eped2.SetAmin(a2);
+    eped2.SetAv(0);
+    eped2.SetBmin(b2);
+    eped2.SetBmax(b2);
+    //JEllipse eped2 = ped2->GetEllipse();
+    double dist;
+    double eff_dist = eped1.EffectiveDistanceToEllipse(eped2, &dist);
+
+    double condition1 = e1.ScalarProduct(ep12); // < e_i , e_ij > should be positive
+    if (condition1 <= 0) {
+        return  my_pair(FLT_MAX, -1);
+    }
+    //Judge conllision
+    //Obtain parameters
+    double a1 = ped1->GetLargerAxis();
+    Point v = ped1->GetV();
+    double b1 = ped1->GetSmallerAxis();
+    b1 = ped1->GetEllipse().GetBmin();
+    double x1 = ped1->GetPos()._x;
+    double y1 = ped1->GetPos()._y;
+    double x2 = Np2._x;
+    double y2 = Np2._y;
+    double cosphi1 = e1.Normalized()._x;
+    double sinphi1 = e1.Normalized()._y;
+    double cosphi2 = eped2.GetCosPhi();
+    double sinphi2 = eped2.GetSinPhi();
+    //Judge the position of the center of ped2
+    double d1 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) + b1;
+    double d2 = -sinphi1 * (x2 - x1) + cosphi1 * (y2 - y1) - b1;
+    if (d1*d2 <= 0) {
+        //if the center between two lines, collision
+        return  my_pair(eff_dist, ped2->GetID());
+    }
+    //If the center not between two lines, Judge if ped2 contact with two lines
+    Point D;
+    D._x = cosphi1;
+    D._y = sinphi1;
+    Point De;
+    De._x = cosphi1 * cosphi2 + sinphi1 * sinphi2;
+    De._y = sinphi1 * cosphi2 - sinphi2 * cosphi1;
+    Point Ne;
+    Ne._x = -De._y;
+    Ne._y = De._x;
+    Point A1;
+    A1._x = x1 + b1 * sinphi1;
+    A1._y = y1 - b1 * cosphi1;
+    Point A2;
+    A2._x = x1 - b1 * sinphi1;
+    A2._y = y1 + b1 * cosphi1;
+    //Transfer A1 and A2 to ped2 coordinate
+    //Point A1e = ((A1._x - x2)*cosphi2 + (A1._y - y2)*sinphi2, (A1._y - y2)*cosphi2 - (A1._x - x2)*sinphi2);
+    Point A1e = A1.TransformToEllipseCoordinates(Np2, cosphi2, sinphi2);
+    //Point A2e = ((A2._x - x2)*cosphi2 + (A2._y - y2)*sinphi2, (A2._y - y2)*cosphi2 - (A2._x - x2)*sinphi2);
+    Point A2e = A2.TransformToEllipseCoordinates(Np2, cosphi2, sinphi2);
+    // Judge if the direction of De is right (ellipse2 coordinate)
+    double J1 = Ne.ScalarProduct(A1e);
+    double J2 = Ne.ScalarProduct(A2e);
+    Point De1 = (J1 >= 0) ? De * (-1, -1) : De;
+    Point De2 = (J2 >= 0) ? De * (-1, -1) : De;
+    //Calculate point R (ellipse2 coordinate)
+    Point Ne1;
+    Ne1._x = -De1._y;
+    Ne1._y = De1._x;
+    Point Ne2;
+    Ne2._x = -De2._y;
+    Ne2._y = De2._x;
+    Point Te1;
+    Te1._x = De1._y / b2;
+    Te1._y = -De1._x / a2;
+    Point Te2;
+    Te2._x = De2._y / b2;
+    Te2._y = -De2._x / a2;
+    Point Te1n = Te1.Normalized();
+    Point Te2n = Te2.Normalized();
+    Point Re1;
+    Re1._x = a2 * Te1n._x;
+    Re1._y = b2 * Te1n._y;
+    Point Re2;
+    Re2._x = a2 * Te2n._x;
+    Re2._y = b2 * Te2n._y;
+    //Transfer R to global coordinate
+    /*
+    Point R1 = (Re1._x*cosphi2 - Re1._y*sinphi2 + x2, Re1._y*cosphi2 + Re1._x*sinphi2 + y2);
+    Point R1 = Re1.TransformToCartesianCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+    Point R2 = (Re2._x*cosphi2 - Re2._y*sinphi2 + x2, Re2._y*cosphi2 + Re2._x*sinphi2 + y2);
+    Point R2 = Re2.TransformToCartesianCoordinates(ped2->GetPos(), cosphi2, sinphi2);
+    */
+    //Calculate distance between point R and line
+    double Dis1 = Ne1.ScalarProduct(Re1) - Ne1.ScalarProduct(A1e);
+    double Dis2 = Ne2.ScalarProduct(Re2) - Ne2.ScalarProduct(A2e);
+
+    //Judge if the line contact with ellipse2
+    if (Dis1 >= 0 && Dis2 >= 0)
+        return  my_pair(FLT_MAX, -1);
+    else
+    {
+        return  my_pair(eff_dist, ped2->GetID());
     }
 }
 

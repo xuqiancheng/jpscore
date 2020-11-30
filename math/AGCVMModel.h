@@ -93,6 +93,7 @@ private:
     Point ForceRepPedTurn(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     Point ForceRepPedCSM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     Point ForceRepPedPush(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+    Point ForceRepPedTurnEllipse(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
 
     Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom) const;
     Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside) const;
@@ -100,6 +101,7 @@ private:
     my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
     double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom) const;
     double GetSpacingWall(Pedestrian* ped, const Line& l) const;
+    my_pair GetSpacingEllipse(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
 
     double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
