@@ -528,7 +528,8 @@ Point AGCVMModel::ForceRepPedTurn(Pedestrian* ped1, Pedestrian* ped2, Building* 
             double R_ij = _aPed * exp((-R_dist) / _DPed) * beta;
 
             //Direction of effect
-            Point newep12 = distp12 + ped2->GetV() * GetAntiT() - ped1->GetV() * GetAntiT();
+            //Point newep12 = distp12 + ped2->GetV() * GetAntiT() - ped1->GetV() * GetAntiT();
+            Point newep12 = distp12 + ped2->GetV() * GetAntiT();
             Point infd = GetInfDirection(d1, newep12);
             FRep = infd * R_ij;
         }
@@ -766,6 +767,14 @@ my_pair AGCVMModel::GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic)
     condition2 = (condition2 > 0) ? condition2 : -condition2; // abs
     if ((condition1 > 0) && (condition2 < l / Distance))
     {
+        //Anticipation test
+        /*
+        double S_Gap = (ped1->GetV() - ped2->GetV()).ScalarProduct(ep12);
+        double Dis_Gap = S_Gap * GetAntiT();
+        double R_dist = Distance - Dis_Gap;
+        R_dist = R_dist < l ? l : R_dist;
+        return  my_pair((R_dist - l), ped2->GetID());
+        */
         return  my_pair((Distance - l), ped2->GetID());
     }
     else
