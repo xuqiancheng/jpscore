@@ -86,6 +86,7 @@ private:
     double _CoopTime;
     double _CoreSize;
     double _Alpha;
+    int _ddType;
 
     // Functions 
     Point DesireDirection(Pedestrian *ped, Room* room) const;
@@ -129,7 +130,7 @@ public:
         double Ts, double Td, int GCVM,
         double lb, double rb, double ub, double db, double co,
         int Anticipation, int Cooperation, int Push,
-        double AntiT, double CoopT, double CoreSize, double alpha);
+        double AntiT, double CoopT, double CoreSize, double alpha, int ddType);
     ~AGCVMModel(void) override;
 
     std::string GetDescription() override;
@@ -162,5 +163,7 @@ public:
     inline double GetCoopT() const { return _CoopTime; };
     inline double GetCoreSize() const { return _CoreSize; };
     inline double GetAlpha() const { return _Alpha; };
+
+    inline int GetddType() const { return _ddType; };
 };
 #endif 

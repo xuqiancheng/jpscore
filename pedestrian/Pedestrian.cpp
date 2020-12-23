@@ -44,7 +44,7 @@ AgentColorMode Pedestrian::_colorMode = BY_VELOCITY;
 std::vector<int> colors = {
      0,
      255,
-     35,
+     64,
      127,
      90,
 };
@@ -127,6 +127,7 @@ Pedestrian::Pedestrian()
     _CoreSize = 0.1;
     _try_coop = 0;
     _dynamic_V0 = 1.3;
+    _alwaysTarget = Point(0, 0);
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -215,6 +216,7 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
     _CoreSize = 0.1;
     _try_coop = 0;
     _dynamic_V0 = 1.3;
+    _alwaysTarget = Point(0, 0);
 }
 
 
@@ -673,7 +675,7 @@ double Pedestrian::GetV0Norm() const
 #ifdef JPSFIRE
     if (_WalkingSpeed && _WalkingSpeed->ReduceWalkingSpeed()) {
         walking_speed = _WalkingSpeed->WalkingInSmoke(this, walking_speed);
-    }
+}
 #endif
     //WHERE should the call to that routine be placed properly?
     //only executed every 3 seconds
@@ -1401,4 +1403,14 @@ void Pedestrian::SetDV0(double v0)
 double Pedestrian::GetDV0() const
 {
     return _dynamic_V0;
+}
+
+Point Pedestrian::GetAlwaysTarget() const
+{
+    return _alwaysTarget;
+}
+
+void Pedestrian::SetAlwaysTarget(Point target)
+{
+    _alwaysTarget = target;
 }

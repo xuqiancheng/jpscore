@@ -49,7 +49,7 @@ AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir,
     double Ts, double Td, int GCVM,
     double lb, double rb, double ub, double db, double co,
     int Anticipation, int Cooperation, int Push,
-    double AntiT, double CoopT, double CoreSize, double alpha)
+    double AntiT, double CoopT, double CoreSize, double alpha, int ddType)
 {
     _direction = dir;
 
@@ -83,6 +83,7 @@ AGCVMModel::AGCVMModel(std::shared_ptr<DirectionStrategy> dir,
     _CoopTime = CoopT;
     _CoreSize = CoreSize;
     _Alpha = alpha;
+    _ddType = ddType;
 }
 
 
@@ -191,7 +192,6 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 
     int start = 0;
     int end = nSize - 1;
-
     // Parallel: Calculate direction for each pedestrians
     for (int p = start; p <= end; ++p)
     {
@@ -286,6 +286,10 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
                 double angleTau = GetTd();
                 AccTu = (dDirection.Normalized() - aDirection) / angleTau;
                 direction = aDirection + AccTu * deltaT;
+                if (IniDirection.ScalarProduct(dDirection)*IniDirection.ScalarProduct(aDirection) < 0)
+                {
+                    direction = dDirection;
+                }
             }
         }
         direction = direction.Normalized();
@@ -440,7 +444,120 @@ void AGCVMModel::ComputeNextTimeStep(double current, double deltaT, Building* bu
 /*----------Functions important----------*/
 Point AGCVMModel::DesireDirection(Pedestrian* ped, Room* room) const
 {
-    const Point target = this->GetDirection()->GetTarget(room, ped);
+
+    Point target = this->GetDirection()->GetTarget(room, ped);
+    if (GetddType() == 1)
+    {
+        // Set the boundary manually, it will be easy
+        double LeftBoundary = 0;
+        double RightBoundary = 26;
+        // GroupID 0:UpRight 1:UpLeft 2:DownRight 3:DownLeft
+        const int id = ped->GetGroup();
+        const Point pos = ped->GetPos();
+        switch (id)
+        {
+        case 0:
+            if (pos._y < 0)
+                target = Point(RightBoundary, 1);
+            break;
+        case 1:
+            if (pos._y < 0)
+                target = Point(LeftBoundary, 1);
+            break;
+        case 2:
+            if (pos._y > 0)
+                target = Point(RightBoundary, -1);
+            break;
+        case 3:
+            if (pos._y > 0)
+                target = Point(LeftBoundary, -1);
+            break;
+        default:
+            break;
+        }
+    }
+    else if (GetddType() == 2)
+    {
+        // Set the boundary manually, it will be easy
+        double LeftBoundary = -2;
+        double RightBoundary = 28;
+        double r = ped->GetEllipse().GetBmax();
+        double UpBoundary = 2 - r;
+        double DownBoundary = -2 + r;
+        if (ped->GetAlwaysTarget() == Point(0, 0))
+        {
+            double x = target._x == 26 ? RightBoundary : LeftBoundary;
+            int random = rand() % 10000;
+            double gap = (UpBoundary - DownBoundary)*random / 10000;
+            double y = DownBoundary + gap;
+            target = Point(x, y);
+            ped->SetAlwaysTarget(target);
+            //printf("\nID=%d, target=(%f,%f)\n", ped->GetID(), target._x, target._y);
+        }
+        else
+        {
+            target = ped->GetAlwaysTarget();
+        }
+    }
+    else if (GetddType() == 3)
+    {
+        // Set the boundary manually, it will be easy
+        double LeftBoundary = -2;
+        double RightBoundary = 28;
+        double r = ped->GetEllipse().GetBmax();
+        double UpBoundary = 2 - r;
+        double DownBoundary = -2 + r;
+        const int id = ped->GetGroup();
+        if (ped->GetAlwaysTarget() == Point(0, 0))
+        {
+            double x = target._x == 26 ? RightBoundary : LeftBoundary;
+            int random = rand() % 10000;
+            double gap = (UpBoundary - DownBoundary)*random / 10000;
+            double y = id > 1 ? DownBoundary + 0.5*gap : UpBoundary - 0.5*gap;
+            target = Point(x, y);
+            ped->SetAlwaysTarget(target);
+            //printf("\nID=%d, target=(%f,%f)\n", ped->GetID(), target._x, target._y);
+        }
+        else
+        {
+            target = ped->GetAlwaysTarget();
+        }
+
+    }
+    else if (GetddType() == 4)
+    {
+        // Set the boundary manually, it will be easy
+        double LeftBoundary = -2;
+        double RightBoundary = 28;
+        double r = ped->GetEllipse().GetBmax();
+        double UpBoundary = 2 - r;
+        double DownBoundary = -2 + r;
+        double x = target._x == 26 ? RightBoundary : LeftBoundary;
+        int random = rand() % 10000;
+        double gap = (UpBoundary - DownBoundary)*random / 10000;
+        double y = DownBoundary + gap;
+        target = Point(x, y);
+        //ped->SetAlwaysTarget(target);
+        //printf("\nID=%d, target=(%f,%f)\n", ped->GetID(), target._x, target._y);
+    }
+    else if (GetddType() == 5)
+    {
+        // Set the boundary manually, it will be easy
+        double LeftBoundary = -2;
+        double RightBoundary = 28;
+        double r = ped->GetEllipse().GetBmax();
+        double UpBoundary = 2 - r;
+        double DownBoundary = -2 + r;
+        const int id = ped->GetGroup();
+        double x = target._x == 26 ? RightBoundary : LeftBoundary;
+        int random = rand() % 10000;
+        double gap = (UpBoundary - DownBoundary)*random / 10000;
+        double y = id > 1 ? DownBoundary + 0.5*gap : UpBoundary - 0.5*gap;
+        target = Point(x, y);
+        //ped->SetAlwaysTarget(target);
+        //printf("\nID=%d, target=(%f,%f)\n", ped->GetID(), target._x, target._y);
+    }
+
     Point desiredDirection;
     const Point pos = ped->GetPos();
     double dist = (target - pos).Norm();

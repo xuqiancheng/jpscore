@@ -115,6 +115,7 @@ public:
         _CoopT = 0;
         _CoreSize = 0.1;
         _Alpha = 0;
+        _ddType = 0;
 
         //--------  boundary ------
         _left_boundary = -100;
@@ -463,6 +464,10 @@ public:
 
     void SetAlpha(double alpha) { _Alpha = alpha; };
 
+    int GetddType() const { return _ddType; };
+
+    void SetddType(int ddtype) { _ddType = ddtype; };
+
 #ifdef _JPS_AS_A_SERVICE
 
     const bool GetRunAsService() const { return _runAsService; };
@@ -547,6 +552,7 @@ private:
     int _Pushing;
     double _CoreSize;
     double _Alpha;
+    int _ddType;
     //Todo: anticipation error
 
     //ff router quickest

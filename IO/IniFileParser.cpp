@@ -2386,42 +2386,6 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
             Log->Write("INFO:\tOnly using CVM model");
     }
 
-    //boundary condition
-    if (xModelPara->FirstChild("boundary")) {
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
-            _config->SetLeftBoundary(-100);
-        else {
-            string leftboundary = xModelPara->FirstChildElement("boundary")->Attribute("left");
-            _config->SetLeftBoundary(atof(leftboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("right"))
-            _config->SetRightBoundary(100);
-        else {
-            string rightboundary = xModelPara->FirstChildElement("boundary")->Attribute("right");
-            _config->SetRightBoundary(atof(rightboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("up"))
-            _config->SetUpBoundary(100);
-        else {
-            string upboundary = xModelPara->FirstChildElement("boundary")->Attribute("up");
-            _config->SetUpBoundary(atof(upboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("down"))
-            _config->SetDownBoundary(-100);
-        else {
-            string downboundary = xModelPara->FirstChildElement("boundary")->Attribute("down");
-            _config->SetDownBoundary(atof(downboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("cutoff"))
-            _config->SetCutoff(2);
-        else {
-            string cutoff = xModelPara->FirstChildElement("boundary")->Attribute("cutoff");
-            _config->SetCutoff(atof(cutoff.c_str()));
-        }
-        Log->Write("INFO: \tboundary left=%0.2f, right=%0.2f, up=%0.2f, down=%0.2f, cutoff=%0.2f",
-            _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff());
-    }
-
     if (xModelPara->FirstChild("update_method")) {
 
         if (!xModelPara->FirstChildElement("update_method")->Attribute("parallel"))
@@ -2445,6 +2409,7 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
         }
         Log->Write("INFO: \twaiting_time Tw=%0.2f", _config->GetWaitingTime());
     }
+
     if (xModelPara->FirstChild("boundary")) {
         if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
             _config->SetLeftBoundary(-100);
@@ -2527,6 +2492,17 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
             _config->GetAnticipation(), _config->GetCooperation(), _config->GetAlpha(),
             _config->GetAntiT(), _config->GetCoopT(), _config->GetPushing(), _config->GetCoreSize());
     }
+
+    if (xModelPara->FirstChild("desired_direction"))
+    {
+        if (!xModelPara->FirstChildElement("desired_direction")->Attribute("type"))
+            _config->SetddType(0);
+        else {
+            string ddType = xModelPara->FirstChildElement("desired_direction")->Attribute("type");
+            _config->SetddType(atoi(ddType.c_str()));
+        }
+        Log->Write("INFO: \t desired_direction type=%d", _config->GetddType());
+    }
     //Parsing the agent parameters
     TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
     ParseAgentParameters(xAGCVM, xAgentDistri);
@@ -2535,6 +2511,6 @@ bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNod
         _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
         _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
         _config->GetAnticipation(), _config->GetCooperation(), _config->GetPushing(),
-        _config->GetAntiT(), _config->GetCoopT(), _config->GetCoreSize(), _config->GetAlpha())));
+        _config->GetAntiT(), _config->GetCoopT(), _config->GetCoreSize(), _config->GetAlpha(), _config->GetddType())));
     return true;
 }

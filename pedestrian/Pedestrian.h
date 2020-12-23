@@ -167,6 +167,8 @@ private:
     int _try_coop = 0;
     double _dynamic_V0;
 
+    Point _alwaysTarget;
+
 public:
     // public member
     int _ticksInThisRoom;
@@ -556,6 +558,10 @@ public:
     void SetDV0(double v0);
 
     double GetDV0() const;
+
+    Point GetAlwaysTarget() const;
+
+    void SetAlwaysTarget(Point target);
 };
 
 #endif  /* _PEDESTRIAN_H */
