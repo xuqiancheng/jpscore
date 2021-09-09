@@ -69,22 +69,22 @@ private:
     double _aWall;
     double _DWall;
 
-    int _isCovid;
+    int _isCovid; // Control the case of simulation, 1:confined room, 2:normal case, 5:supermarket case
 
-    int _fType;
+    int _fType; //the function used to calculate contact degree
 
-    //supermarket case
-    int _maxNumber;
+    int _maxNumber; // the number of customers allowed in the supermarket
 
-    double _checkTimeRate;
+    double _checkTimeRate; //=checkout time/shopping time
 
-    double _checkDisRate;
+    double _checkDisRate; //=checkout distance/shopping time
 
-    double _socialDistance;
+    double _socialDistance; // social distance
 
-    std::string _BestCheckout;
+    std::string _BestCheckout; // the checkout with fewest customers
 
-    bool _checkoutFull;
+    bool _checkoutFull; // if the checkout is full, customers will not go to the checkout
+
     /**
       * Optimal velocity function \f$ V(spacing) =\min{v_0, \max{0, (s-l)/T}}  \f$
       *
@@ -146,24 +146,34 @@ private:
       */
     Point ForceRepWall(Pedestrian * ped, const Line & l, const Point & centroid, bool inside) const;
 
+    // Get a random exit line for the pedsetrian
     NavLine * RandomExitLine(Pedestrian * ped, Room * room) const;
 
+    // calculate the amount of virus from infected person to uninfected person
     double VirusContactAmount(Pedestrian * ped1, Pedestrian * ped2) const;
 
+    // the amount of inhaled virus
     double VirusGetAmount(Pedestrian * ped) const;
 
+    // the probability of be infected
     double ProbInfect(Pedestrian * ped) const;
 
+    // the degree of contact
     double ContactDegree(Pedestrian * ped1, Pedestrian * ped2, int func) const;
 
+    // if the supermatet is full
     bool IfMarketFull(Building * building) const;
 
+    //set the goal for customers in the supermarket
     const NavLine * NewExitLineForMarket(Pedestrian * ped, Room * room) const;
 
+    // get the number of best checkout
     std::string BestCheckout(Building * building);
 
+    // check the name of room
     bool InRightRoom(Room * room, std::vector<std::string> captions) const;
 
+    // Get the space between two pedsetrians, here the case is changing with different situations
     my_pair
     GetSpacingEllipse(Pedestrian * ped1, Pedestrian * ped2, Point ei, Room * room, int periodic)
         const;

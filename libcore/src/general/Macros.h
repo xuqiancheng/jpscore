@@ -92,7 +92,8 @@ enum AgentColorMode {
     BY_GROUP,
     BY_FINAL_GOAL,
     BY_INTERMEDIATE_GOAL,
-    BY_COVID
+    BY_COVID,
+    BY_CONTACT
 };
 
 enum LineIntersectType {

@@ -5,8 +5,12 @@
             <subroom id="0" caption="source">
                 <polygon caption="wall">
                     <vertex px="0.0" py="18.0" />
-                    <vertex px="-20.0" py="18.0" />
-                    <vertex px="-20.0" py="16.0" />
+					<vertex px="-0.1" py="18.0" />
+					<vertex px="-0.1" py="17.5" />
+					<vertex px="-60.0" py="17.5" />
+                    <vertex px="-60.0" py="16.5" />
+					<vertex px="-0.1" py="16.5" />
+					<vertex px="-0.1" py="16.0" />
                     <vertex px="0.0" py="16.0" />
                 </polygon>
             </subroom>

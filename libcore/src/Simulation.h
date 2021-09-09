@@ -49,7 +49,7 @@ class Simulation
 {
 private:
     /// Max file size 16Mb
-    static const size_t _maxFileSize{1 << 24};
+    static const size_t _maxFileSize{1 << 28};
     Configuration * _config;
     long _nPeds;
     double _deltaT;

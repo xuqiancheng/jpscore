@@ -1166,14 +1166,17 @@ int Pedestrian::GetColor() const
 
         case BY_COVID: {
             int color = -1;
-            /*
             if(_infection == 1)
                 color = 0;
             else {
-                color = (int) ((1 - _virus_get) * 255);
+                color = (int) ((1 - this->GetProInfect()) * 255);
             }
-			*/
-            color = (int) ((1 - _contact_degree / 8) * 255);
+            return color;
+        } break;
+
+        case BY_CONTACT: {
+            int color = -1;
+            color     = (int) ((1 - _contact_degree / 133) * 255);
             return color;
         } break;
 

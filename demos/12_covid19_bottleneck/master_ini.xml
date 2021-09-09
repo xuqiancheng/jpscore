@@ -1,27 +1,51 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <JuPedSim project="JPS-Project" version="0.7" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <header>
-        <seed>1254</seed>
+        <seed>np.linspace(1,10000,1)</seed>
         <max_sim_time>200</max_sim_time>
-        <geometry>covid_geo.xml</geometry>
+        <geometry>F:\workspace\jpscore_master\jpscore\demos\12_covid19_bottleneck\geometries</geometry>
         <trajectories format="plain" fps="8" color_mode="covid">
-            <file location="covid_traj.txt" />
-			<optional_output covid="FALSE"/>
+            <file location="bottleneck_traj.txt" />
+			<optional_output covid="TRUE"/>
         </trajectories>
 		
     </header>
-
+	
+	<routing>
+	<goals>
+		<goal id="0" final="true" caption="goal 0">
+			<polygon>
+				<vertex px="29" py="-2" />
+				<vertex px="29" py="2" />
+				<vertex px="30" py="2" />
+				<vertex px="30" py="-2" />
+				<vertex px="29" py="-2" />
+			</polygon>
+		</goal>
+		<goal id="1" final="true" caption="goal 1">
+			<polygon>
+				<vertex px="-4" py="-2" />
+				<vertex px="-4" py="2" />
+				<vertex px="-3" py="2" />
+				<vertex px="-3" py="-2" />
+				<vertex px="-4" py="-2" />
+			</polygon>
+		</goal>
+	</goals>
+  </routing>
+  
     <agents operational_model_id="3">
         <agents_distribution>
-            <group group_id="0" agent_parameter_id="1" room_id="0" subroom_id="0" number="1" goal_id="-1" router_id="1" covid_parameter_id="1" />
-			<group group_id="1" agent_parameter_id="1" room_id="0" subroom_id="0" number="100" goal_id="-1" router_id="1" covid_parameter_id="2"/>
+            <group group_id="0" agent_parameter_id="1" room_id="0" subroom_id="0" number="1" goal_id="0" router_id="1" covid_parameter_id="1" />
+            <group group_id="0" agent_parameter_id="1" room_id="0" subroom_id="0" number="50" goal_id="0" router_id="1" covid_parameter_id="2" />
         </agents_distribution>
     </agents>
     <operational_models>
         <model operational_model_id="3" description="Tordeux2015">
             <model_parameters>
                 <stepsize>0.01</stepsize>
-				<covid>1</covid>
+				<periodic>1</periodic>
+				<covid>2</covid> <!--normal case-->
 				<fType>1</fType>
                 <exit_crossing_strategy>3</exit_crossing_strategy>
                 <linkedcells enabled="true" cell_size="2.2" />
@@ -39,17 +63,17 @@
             </agent_parameters>
 			<covid_parameters covid_parameter_id="1">
 				<infective>1</infective>
-				<Model_param k="0.1" D="1.0" />
+				<Model_param k="1.0" D="1.0" />
 				<P mu="0.3" sigma="0.00" />
-				<Q mu="0.3" sigma="0.00" />
-				<alpha mu="1.0" sigma="0.00" />
+				<Q mu="1.0" sigma="0.00" />
+				<alpha mu="1" sigma="0.00" />
 			</covid_parameters>
 			<covid_parameters covid_parameter_id="2">
 				<infective>0</infective>
 				<Model_param k="1.0" D="1.0" />
 				<P mu="0.3" sigma="0.00" />
-				<Q mu="0.3" sigma="0.00" />
-				<alpha mu="1.0" sigma="0.00" />
+				<Q mu="1.0" sigma="0.00" />
+				<alpha mu="1" sigma="0.00" />
 			</covid_parameters>
         </model>
     </operational_models>

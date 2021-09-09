@@ -269,6 +269,8 @@ bool IniFileParser::ParseHeader(TiXmlNode * xHeader)
             Pedestrian::SetColorMode(AgentColorMode::BY_INTERMEDIATE_GOAL);
         if(color_mode == "covid")
             Pedestrian::SetColorMode(AgentColorMode::BY_COVID);
+        if(color_mode == "contact")
+            Pedestrian::SetColorMode(AgentColorMode::BY_CONTACT);
 
         fs::path trajectoryFile = _config->GetTrajectoriesFile();
         //a file descriptor was given

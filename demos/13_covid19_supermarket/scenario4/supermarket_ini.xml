@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <JuPedSim project="JPS-Project" version="0.7" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <header>
-        <seed>1</seed>
+        <seed>linspace(1,15001,2)</seed>
         <max_sim_time>3600</max_sim_time>
-        <geometry>supermarket_geo.xml</geometry>
-        <trajectories format="plain" fps="8" color_mode="covid">
+        <geometry>../supermarket_geo.xml</geometry>
+        <trajectories format="plain" fps="8" color_mode="contact">
             <file location="supermarket_traj.txt" />
 			<optional_output covid="TRUE"/>
         </trajectories>
-		<output path="demos/13_covid19_supermarket/result" />
+		<output path="trajectories" />
     </header>
 	<routing>
 		<goals>
@@ -31,7 +31,7 @@
         </agents_distribution>
 		
 		<agents_sources>
-            <source id="1" caption="customer" group_id="0" frequency="60" agents_max="100" time_min="0" N_create="10" percent="0.2" rate="10" x_min="-20" x_max="-18" y_min="16" y_max="18" />
+            <source id="1" caption="customer" group_id="0" frequency="60" agents_max="100" time_min="0" N_create="10" percent="0.2" rate="10" x_min="-60" x_max="-58" y_min="16.5" y_max="17.5" />
         </agents_sources>
 		
     </agents>
@@ -90,7 +90,7 @@
     <route_choice_models>
         <router router_id="1" description="global_shortest">
 			<parameters>
-				<navigation_lines file="supermarket_routing.xml" />
+				<navigation_lines file="../supermarket_routing.xml" />
 			</parameters>
         </router>
     </route_choice_models>

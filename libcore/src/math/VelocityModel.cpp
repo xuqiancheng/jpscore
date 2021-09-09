@@ -54,17 +54,11 @@ VelocityModel::VelocityModel(
     double checkDRate,
     double SocialDist)
 {
-    _direction = dir;
-    // Force_rep_PED Parameter
-    _aPed = aped;
-    _DPed = Dped;
-    // Force_rep_WALL Parameter
-    _aWall = awall;
-    _DWall = Dwall;
-    // Covid, which is important.
-    //_isCovid==1:confined room case, _iscovid==2: normal case
-    //_isCovid==3: single ped case, _iscovid==4: practical case
-    //_isCovid=5: supermarket
+    _direction      = dir;
+    _aPed           = aped;
+    _DPed           = Dped;
+    _aWall          = awall;
+    _DWall          = Dwall;
     _isCovid        = covid;
     _fType          = fType;
     _maxNumber      = maxNum;
@@ -189,24 +183,16 @@ void VelocityModel::ComputeNextTimeStep(
 
             double virus   = 0;
             double contact = 0;
-            /*
-            LOG_ERROR(
-                "id:{:d}, stayTime{:f}, maxnumber{:d}, checkt{:f}, checkd{:f}, socialdis{:f}",
-                ped->GetID(),
-                ped->GetMaxTimeInShop(),
-                _maxNumber,
-                _checkTimeRate,
-                _checkDisRate,
-                _socialDistance);
-			*/
-            // Count the time pedestrian in shop, if pedestrian not in the shop, set it as 0.
-            //TODO:define a function instead of this
+
+            //Count the time pedestrian in shop, if pedestrian not in the shop, set it as 0.
             if(InRightRoom(room, {"supermarket"})) {
                 double timeInshop = ped->GetTimeInShop() + deltaT;
                 ped->SetTimeInShop(timeInshop);
             } else {
                 ped->SetTimeInShop(0);
             }
+
+            //Pedestrian is the first one in the chekout, start couting checkout time
             if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"}) &&
                ped->GetExitLine()->DistTo(ped->GetPos()) < 2 * ped->GetEllipse().GetAmin()) {
                 double timeCheckout = ped->GetTimeCheckout() + deltaT;
@@ -238,8 +224,11 @@ void VelocityModel::ComputeNextTimeStep(
                     continue;
                 if(ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
                     repPed += ForceRepPed(ped, ped1, periodic);
-                    if(_isCovid > 0 &&
+                    if(_isCovid == 5 &&
                        InRightRoom(room, {"checkout1", "checkout2", "checkout3", "supermarket"})) {
+                        virus += VirusContactAmount(ped, ped1);
+                        contact += ContactDegree(ped, ped1, _fType);
+                    } else if(_isCovid == 1 || _isCovid == 2) {
                         virus += VirusContactAmount(ped, ped1);
                         contact += ContactDegree(ped, ped1, _fType);
                     }
@@ -249,11 +238,14 @@ void VelocityModel::ComputeNextTimeStep(
                     SubRoom * sb2 = room1->GetSubRoom(ped1->GetSubRoomID());
                     if(subroom->IsDirectlyConnectedWith(sb2)) {
                         repPed += ForceRepPed(ped, ped1, periodic);
-                        if(_isCovid > 0 &&
+                        if(_isCovid == 5 &&
                            InRightRoom(
                                room, {"checkout1", "checkout2", "checkout3", "supermarket"}) &&
                            InRightRoom(
                                room1, {"checkout1", "checkout2", "checkout3", "supermarket"})) {
+                            virus += VirusContactAmount(ped, ped1);
+                            contact += ContactDegree(ped, ped1, _fType);
+                        } else if(_isCovid == 1 || _isCovid == 2) {
                             virus += VirusContactAmount(ped, ped1);
                             contact += ContactDegree(ped, ped1, _fType);
                         }
@@ -267,11 +259,11 @@ void VelocityModel::ComputeNextTimeStep(
                 ped->SetVirusGet(VirusGetAmount(ped));
                 ped->SetProInfect(ProbInfect(ped));
                 //intergrate contact
-                //contact = ped->GetContactDegree() + contact * deltaT;
+                contact = ped->GetContactDegree() + contact * deltaT;
                 ped->SetContactDegree(contact);
             }
 
-            // id the door is closed
+            // if the door is closed
             bool IfClose = false;
             if((InRightRoom(room, {"supermarket"}) &&
                 ped->GetTimeInShop() < ped->GetMaxTimeInShop()) ||
@@ -292,9 +284,6 @@ void VelocityModel::ComputeNextTimeStep(
 
             // calculate new direction ei according to (6)
             Point direction = e0(ped, room) + repPed + repWall;
-            if(_isCovid == 3 && ped->GetGroup() != 0) {
-                direction = repPed + repWall;
-            }
             if(_isCovid == 5) {
                 if(InRightRoom(room, {"checkout1", "checkout2", "checkout3"})) {
                     direction = e0(ped, room) + repWall + repPed * 0.5;
