@@ -103,7 +103,7 @@ public:
         _WaitingTime = 0;
         _SubmodelDirection = 0;
         _SubmodelSpeed = 0;
-        _GCVMUsing = 0;
+        _RealModelType = 2;
         _AreaSize = 1;
         // --------  AGCVM model ------
         _aPedPush = 1;
@@ -114,7 +114,7 @@ public:
         _AntiT = 0;
         _CoopT = 0;
         _CoreSize = 0.1;
-        _Alpha = 0;
+        _ConstantAlpha = false;
         _ddType = 0;
 
         //--------  boundary ------
@@ -400,9 +400,9 @@ public:
 
     int GetSubmodelSpeed() const { return _SubmodelSpeed; };
 
-    void SetGCVMUsing(int gu) { _GCVMUsing = gu; };
+    void SetRealModelType(int gu) { _RealModelType = gu; };
 
-    int GetGCVMUsing() const { return _GCVMUsing; };
+    int GetRealModelType() const { return _RealModelType; };
 
     void SetAreaSize(double as) { _AreaSize = as; };
 
@@ -460,9 +460,9 @@ public:
 
     void SetDPedPush(double DPedPush) { _DPedPush = DPedPush; };
 
-    double GetAlpha() const { return _Alpha; };
+    bool GetConstantAlpha() const { return _ConstantAlpha; };
 
-    void SetAlpha(double alpha) { _Alpha = alpha; };
+    void SetConstantAlpha(bool alpha) { _ConstantAlpha = alpha; };
 
     int GetddType() const { return _ddType; };
 
@@ -540,7 +540,7 @@ private:
     double _WaitingTime;
     int _SubmodelDirection;
     int _SubmodelSpeed;
-    int _GCVMUsing;
+    int _RealModelType;
     double _AreaSize;
     //AGCVMmodel
     double _aPedPush;
@@ -551,7 +551,7 @@ private:
     double _CoopT;
     int _Pushing;
     double _CoreSize;
-    double _Alpha;
+    bool _ConstantAlpha;
     int _ddType;
     //Todo: anticipation error
 

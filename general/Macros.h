@@ -44,7 +44,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-// define some colors
+ // define some colors
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
@@ -102,76 +102,76 @@
 
 
 enum RoomState {
-     ROOM_CLEAN=0,
-     ROOM_SMOKED=1
+    ROOM_CLEAN = 0,
+    ROOM_SMOKED = 1
 };
 
 enum AgentType {
-     MALE=0,
-     FEMALE,
-     CHILD,
-     ELDERLY
+    MALE = 0,
+    FEMALE,
+    CHILD,
+    ELDERLY
 };
 
 enum FileFormat {
-     FORMAT_XML_PLAIN,
-     FORMAT_XML_BIN,
-     FORMAT_PLAIN,
-     FORMAT_VTK,
-     FORMAT_XML_PLAIN_WITH_MESH
+    FORMAT_XML_PLAIN,
+    FORMAT_XML_BIN,
+    FORMAT_PLAIN,
+    FORMAT_VTK,
+    FORMAT_XML_PLAIN_WITH_MESH
 };
 
 enum RoutingStrategy {
-     ROUTING_LOCAL_SHORTEST=1,
-     ROUTING_GLOBAL_SHORTEST,
-     ROUTING_QUICKEST,
-     ROUTING_FROM_FILE,
-     ROUTING_SMOKE,
-     ROUTING_AI,
-     ROUTING_AI_TRIPS,
-     ROUTING_FLOORFIELD,
-     ROUTING_FF_GLOBAL_SHORTEST,
-     ROUTING_FF_LOCAL_SHORTEST,
-     ROUTING_FF_QUICKEST,
-     ROUTING_TRIPS,
-     ROUTING_UNDEFINED =-1
+    ROUTING_LOCAL_SHORTEST = 1,
+    ROUTING_GLOBAL_SHORTEST,
+    ROUTING_QUICKEST,
+    ROUTING_FROM_FILE,
+    ROUTING_SMOKE,
+    ROUTING_AI,
+    ROUTING_AI_TRIPS,
+    ROUTING_FLOORFIELD,
+    ROUTING_FF_GLOBAL_SHORTEST,
+    ROUTING_FF_LOCAL_SHORTEST,
+    ROUTING_FF_QUICKEST,
+    ROUTING_TRIPS,
+    ROUTING_UNDEFINED = -1
 };
 
 enum OperativModels {
-    MODEL_GCFM=1,
+    MODEL_GCFM = 1,
     MODEL_GOMPERTZ,
     MODEL_VELOCITY,
     MODEL_GRADIENT,
     MODEL_KRAUSZ,
-	MODEL_GCVM,
-	MODEL_SIMPLEST,
-	MODEL_AGCVM
-//    MODEL_ORCA,
-//    MODEL_CFM,
-//    MODEL_GNM
+    MODEL_GCVM,
+    MODEL_SIMPLEST,
+    MODEL_AVM
+    //    MODEL_ORCA,
+    //    MODEL_CFM,
+    //    MODEL_GNM
 };
 
 enum AgentColorMode {
-     BY_VELOCITY=1,
-     BY_KNOWLEDGE,
-     BY_ROUTE,
-     BY_ROUTER,
-     BY_SPOTLIGHT,
-     BY_GROUP,
-     BY_FINAL_GOAL,
-     BY_INTERMEDIATE_GOAL
+    BY_VELOCITY = 1,
+    BY_KNOWLEDGE,
+    BY_ROUTE,
+    BY_ROUTER,
+    BY_SPOTLIGHT,
+    BY_GROUP,
+    BY_FINAL_GOAL,
+    BY_INTERMEDIATE_GOAL
 };
 
 enum LineIntersectType {
-	NO_INTERSECTION = 0,
-	INTERSECTION,
-	OVERLAP // overlap, parallel, no intersection
+    NO_INTERSECTION = 0,
+    INTERSECTION,
+    OVERLAP // overlap, parallel, no intersection
 };
 
 enum FFRouterMode {
-     global_shortest = 0,
-     local_shortest,
-     quickest
+    global_shortest = 0,
+    local_shortest,
+    quickest
 };
 
 enum GridCode { //used in floor fields
@@ -186,40 +186,40 @@ enum GridCode { //used in floor fields
 };
 
 enum FastMarchingFlags {
-     FM_UNKNOWN = 0,
-     FM_SINGLE = 1, // single and double indicate whether a grid point was reached from one or two
-     FM_DOUBLE = 2, // directions (rows and columns) when performing the fast marching algorithm
-     FM_FINAL = 3,
-     FM_ADDED = 4, // added to trial but not calculated
-     //FM_BLOCKER = -5, // currently not used
-     FM_OUTSIDE = -7
+    FM_UNKNOWN = 0,
+    FM_SINGLE = 1, // single and double indicate whether a grid point was reached from one or two
+    FM_DOUBLE = 2, // directions (rows and columns) when performing the fast marching algorithm
+    FM_FINAL = 3,
+    FM_ADDED = 4, // added to trial but not calculated
+    //FM_BLOCKER = -5, // currently not used
+    FM_OUTSIDE = -7
 };
 
 enum FloorfieldMode {
-     FF_CENTRALPOINT,
-     FF_FULL_LINE,
-     FF_WALL_AVOID,
-     FF_HOMO_SPEED,
-     FF_PED_SPEED,
-     FF_ROOM_SCALE,
-     FF_SUBROOM_SCALE
+    FF_CENTRALPOINT,
+    FF_FULL_LINE,
+    FF_WALL_AVOID,
+    FF_HOMO_SPEED,
+    FF_PED_SPEED,
+    FF_ROOM_SCALE,
+    FF_SUBROOM_SCALE
 };
 
-enum MagicNumbers{
-     UNKNOWN_DISTANCE,
-     UNKNOWN_COST,
-     WALL_ON_COSTARRAY,
-     TARGET_REGION
+enum MagicNumbers {
+    UNKNOWN_DISTANCE,
+    UNKNOWN_COST,
+    WALL_ON_COSTARRAY,
+    TARGET_REGION
 };
 
 enum SPEEDFIELD {        //this enum is used as index in _speedFieldSelector
-    INITIAL_SPEED=0,    //homogen speed in walkable area, nealy zero in walls
-    REDU_WALL_SPEED=1,   //reduced wall speed
-    PED_SPEED=2         //standing agents reduce speed, so that jams will be considered in ff
+    INITIAL_SPEED = 0,    //homogen speed in walkable area, nealy zero in walls
+    REDU_WALL_SPEED = 1,   //reduced wall speed
+    PED_SPEED = 2         //standing agents reduce speed, so that jams will be considered in ff
 };
 
 enum TARGETMODE {
-    LINESEGMENT=0,
+    LINESEGMENT = 0,
     CENTERPOINT
 };
 
@@ -231,72 +231,72 @@ enum USERMODE {
 // Describes the door
 enum class DoorState { OPEN, CLOSE, TEMP_CLOSE, Error };
 
-inline DoorState StringToDoorState(std::string name){
-     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+inline DoorState StringToDoorState(std::string name) {
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 
-     if (name.compare("open") == 0){
-          return DoorState::OPEN;
-     }
+    if (name.compare("open") == 0) {
+        return DoorState::OPEN;
+    }
 
-     if (name.compare("temp_close") == 0){
-          return DoorState::TEMP_CLOSE;
-     }
+    if (name.compare("temp_close") == 0) {
+        return DoorState::TEMP_CLOSE;
+    }
 
-     if (name.compare("close") == 0){
-          return DoorState::CLOSE;
-     }
+    if (name.compare("close") == 0) {
+        return DoorState::CLOSE;
+    }
 
-     return DoorState::Error;
+    return DoorState::Error;
 };
 
 constexpr double magicnum(int i) {
-     return (i == UNKNOWN_DISTANCE) ? -3.0 : (i == UNKNOWN_COST) ? -2.0 : (i == WALL_ON_COSTARRAY) ? -7.0 : (i == TARGET_REGION) ? 0.0 : J_NAN;
-//     switch (i) {
-//          case UNKNOWN_DISTANCE:
-//               return -3.0;
-//          case UNKNOWN_COST:
-//               return -2.0;
-//          case WALL_ON_COSTARRAY:
-//               return -7.0;
-//          case TARGET_REGION:
-//               return 0.0;
-//          default:
-//               std::cerr << "ERROR: \tunknown magic number " << i << std::endl;
-//               return NAN;
-//     }
+    return (i == UNKNOWN_DISTANCE) ? -3.0 : (i == UNKNOWN_COST) ? -2.0 : (i == WALL_ON_COSTARRAY) ? -7.0 : (i == TARGET_REGION) ? 0.0 : J_NAN;
+    //     switch (i) {
+    //          case UNKNOWN_DISTANCE:
+    //               return -3.0;
+    //          case UNKNOWN_COST:
+    //               return -2.0;
+    //          case WALL_ON_COSTARRAY:
+    //               return -7.0;
+    //          case TARGET_REGION:
+    //               return 0.0;
+    //          default:
+    //               std::cerr << "ERROR: \tunknown magic number " << i << std::endl;
+    //               return NAN;
+    //     }
 }
 
 //global functions for convenience
 
 inline char xmltob(const char * t, char v = 0)
 {
-     if (t && (*t)) return (char) atoi(t);
-     return v;
+    if (t && (*t)) return (char)atoi(t);
+    return v;
 }
 inline int xmltoi(const char * t, int v = 0)
 {
-     if (t && (*t)) return atoi(t);
-     return v;
+    if (t && (*t)) return atoi(t);
+    return v;
 }
 inline long xmltol(const char * t, long v = 0)
 {
-     if (t && (*t)) return atol(t);
-     return v;
+    if (t && (*t)) return atol(t);
+    return v;
 }
 inline double xmltof(const char * t, double v = 0.0)
 {
-     if (t && (*t)) return atof(t);
-     return v;
+    if (t && (*t)) return atof(t);
+    return v;
 }
 inline const char * xmltoa(const char * t, const char * v = "")
 {
-     if (t) return t;
-     return v;
+    if (t) return t;
+    return v;
 }
 inline char xmltoc(const char * t, const char v = '\0')
 {
-     if (t && (*t)) return *t;
-     return v;
+    if (t && (*t)) return *t;
+    return v;
 }
 
 /**
@@ -304,13 +304,14 @@ inline char xmltoc(const char * t, const char v = '\0')
  */
 template<typename A>
 inline bool IsElementInVector(const std::vector<A> &vec, const A& el) {
-     typename std::vector<A>::const_iterator it;
-     it = std::find (vec.begin(), vec.end(), el);
-     if(it==vec.end()) {
-          return false;
-     } else {
-          return true;
-     }
+    typename std::vector<A>::const_iterator it;
+    it = std::find(vec.begin(), vec.end(), el);
+    if (it == vec.end()) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 /**
@@ -318,27 +319,28 @@ inline bool IsElementInVector(const std::vector<A> &vec, const A& el) {
  * @return the default value if the element was not found in the map
  */
 template <typename K, typename V>
-inline V GetWithDef(const  std::map <K,V> & m, const K & key, const V & defval ) {
-     typename std::map<K,V>::const_iterator it = m.find( key );
-     if ( it == m.end() ) {
-          return defval;
-     } else {
-          return it->second;
-     }
+inline V GetWithDef(const  std::map <K, V> & m, const K & key, const V & defval) {
+    typename std::map<K, V>::const_iterator it = m.find(key);
+    if (it == m.end()) {
+        return defval;
+    }
+    else {
+        return it->second;
+    }
 }
 
 inline std::string concatenate(std::string const& name, int i) {
-     std::stringstream s;
-     s << name << i;
-     return s.str();
+    std::stringstream s;
+    s << name << i;
+    return s.str();
 }
 
 inline void ReplaceStringInPlace(std::string& subject, const std::string& search,
-                          const std::string& replace) {
+    const std::string& replace) {
     size_t pos = 0;
-    while((pos = subject.find(search, pos)) != std::string::npos) {
-         subject.replace(pos, search.length(), replace);
-         pos += replace.length();
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
+        subject.replace(pos, search.length(), replace);
+        pos += replace.length();
     }
 }
 //**************************************************************
@@ -390,8 +392,8 @@ inline void ReplaceStringInPlace(std::string& subject, const std::string& search
 
 inline void _printDebugLine(const std::string& fileName, int lineNumber)
 {
-unsigned found = fileName.find_last_of("/\\");
-std::cerr  << "["<< lineNumber  << "]: ---"<< fileName.substr(found+1)<< " ---"<<std::endl;
+    unsigned found = fileName.find_last_of("/\\");
+    std::cerr << "[" << lineNumber << "]: ---" << fileName.substr(found + 1) << " ---" << std::endl;
 }
 
 #define dtrace(...)                         \

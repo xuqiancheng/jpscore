@@ -1,0 +1,10 @@
+Please read this paper first: https://arxiv.org/abs/2107.00624
+Then you can know the meaning of these parameters. 
+
+<model_parameters>
+    <model_type using="2" />                        % 0:CSM  1:GCVM  2:AVM
+    <force_ped D="0.01" a="6.0" />                  % For pedestrian    a:k  D:D 
+    <force_wall D="0.05" a="6" />                   % For wall          a:k  D:D
+    <GCVM Td="0.3" Ts="0.5" />                      % Td:\tau  Ts:T
+    <AVM AntiTime="1.0" ConstantAlpha="false"/>     % AntiTime:t^a   
+</model_parameters>

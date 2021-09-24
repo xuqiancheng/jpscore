@@ -1,0 +1,104 @@
+<JuPedSim xmlns:ns0="http://xsd.jupedsim.org/jps_ini_core.xsd" project="JPS-Project" version="0.8" ns0:noNamespaceSchemaLocation="ini.xsd">
+  <seed>1.0</seed>
+  <num_threads>8</num_threads>
+  <max_sim_time unit="sec">500</max_sim_time>
+  <logfile>log.txt</logfile>
+  <geometry>geometry.xml</geometry>
+  <trajectories color_mode="group" embed_mesh="false" format="xml-plain" fps="10">
+    <file location="trajectory.xml" /> 
+  </trajectories>
+  <show_statistics>false</show_statistics>
+  
+  <routing>
+  <goals>
+		<goal caption="goal 0" final="true" id="0">
+			<polygon>
+				<vertex px="8" py="0" />
+				<vertex px="8" py="6" />
+				<vertex px="10" py="6" />
+				<vertex px="10" py="0" />
+				<vertex px="8" py="0" />
+			</polygon>
+		</goal>
+		<goal caption="goal 1" final="true" id="1">
+			<polygon>
+				<vertex px="-15" py="0" />
+				<vertex px="-15" py="6" />
+				<vertex px="-13" py="6" />
+				<vertex px="-13" py="0" />
+				<vertex px="-15" py="0" />
+			</polygon>
+		</goal>
+		<goal caption="goal 2" final="true" id="2">
+			<polygon>
+				<vertex px="0" py="14" />
+				<vertex px="0" py="16" />
+				<vertex px="-6" py="16" />
+				<vertex px="-6" py="14" />
+				<vertex px="0" py="14" />
+			</polygon>
+		</goal>
+		<goal caption="goal 3" final="true" id="3">
+			<polygon>
+				<vertex px="0" py="-8" />
+				<vertex px="0" py="-10" />
+				<vertex px="-6" py="-10" />
+				<vertex px="-6" py="-8" />
+				<vertex px="0" py="-8" />
+			</polygon>
+		</goal>
+	</goals>
+  </routing>
+  
+  <agents operational_model_id="8">
+    <agents_distribution>
+		<group agent_parameter_id="1" goal_id="0" group_id="1" number="15" room_id="0" router_id="1" subroom_id="1" x_max="-8" x_min="-12" y_max="6" y_min="0" />
+		<group agent_parameter_id="1" goal_id="1" group_id="2" number="15" room_id="0" router_id="1" subroom_id="2" x_max="6" x_min="2" y_max="6" y_min="0" />
+		<group agent_parameter_id="1" goal_id="3" group_id="4" number="15" room_id="0" router_id="1" subroom_id="3" x_max="0" x_min="-6" y_max="12" y_min="8" />
+		<group agent_parameter_id="1" goal_id="2" group_id="3" number="15" room_id="0" router_id="1" subroom_id="4" x_max="0" x_min="-6" y_max="-2" y_min="-6" />			
+	</agents_distribution>
+  </agents>
+ 
+  <operational_models>
+	<model description="avm" operational_model_id="8">
+      <model_parameters>
+        <solver>euler</solver>
+        <stepsize>0.05</stepsize>
+		<periodic>1</periodic>
+        <exit_crossing_strategy>3</exit_crossing_strategy>
+        <linkedcells cell_size="300" enabled="true" />
+        <model_type using="2" />
+        <force_ped D="0.01" a="6.0" />
+        <force_wall D="0.05" a="6" />
+		<GCVM Td="0.3" Ts="0.5" />
+        <AVM AntiTime="1.0" ConstantAlpha="false"/>
+		<boundary cutoff="2" down="-6" left="-12" right="6" up="12" />
+      </model_parameters>
+      <agent_parameters agent_parameter_id="1">
+        <v0 mu="1.34" sigma="0.26" />
+        <bmax mu="0.18" sigma="0.00000" /> 
+        <bmin mu="0.18" sigma="0.00000" />
+        <amin mu="0.18" sigma="0.00000" />
+        <atau mu="0.0" sigma="0.00000" />
+		<tau mu="0.0" sigma="0.000" />
+      </agent_parameters>
+	  <agent_parameters agent_parameter_id="2">
+        <v0 mu="1.34" sigma="0.26" />
+        <bmax mu="0.20" sigma="0.00000" /> 
+        <bmin mu="0.15" sigma="0.00000" />
+        <amin mu="0.18" sigma="0.00000" />
+        <atau mu="0.0" sigma="0.00000" />
+		<tau mu="0.0" sigma="0.000" /> 
+      </agent_parameters>
+	</model>    
+  </operational_models>
+
+  <route_choice_models>
+    <router description="local_shortest" router_id="1">
+      <parameters>
+        
+      </parameters>
+    </router>
+  </route_choice_models>
+
+</JuPedSim>

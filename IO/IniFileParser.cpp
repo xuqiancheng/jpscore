@@ -41,7 +41,7 @@
 #include "../math/VelocityModel.h"
 #include "../math/GCVMModel.h"
 #include "../math/SimplestModel.h"
-#include "../math/AGCVMModel.h"
+#include "../math/AVMModel.h"
 #include "../routing/global_shortest/GlobalRouter.h"
 #include "../routing/quickest/QuickestPathRouter.h"
 #include "../routing/smoke_router/SmokeRouter.h"
@@ -537,34 +537,12 @@ bool IniFileParser::Parse(std::string iniFile)
             //only parsing one model
             break;
         }
-        if ((_model == MODEL_GCVM) && (model_id == MODEL_GCVM)) {
-            if (modelName != "gcvm") {
-                Log->Write("ERROR: \t mismatch model ID and description. Did you mean gcvm?");
+        if ((_model == MODEL_AVM) && (model_id == MODEL_AVM)) {
+            if (modelName != "avm") {
+                Log->Write("ERROR: \t mismatch model ID and description. Did you mean avm?");
                 return false;
             }
-            if (!ParseGCVMModel(xModel, xMainNode))
-                return false;
-            parsingModelSuccessful = true;
-            //only parsing one model
-            break;
-        }
-        if ((_model == MODEL_SIMPLEST) && (model_id == MODEL_SIMPLEST)) {
-            if (modelName != "simplest") {
-                Log->Write("ERROR: \t mismatch model ID and description. Did you mean simplest?");
-                return false;
-            }
-            if (!ParseSimplestModel(xModel, xMainNode))
-                return false;
-            parsingModelSuccessful = true;
-            //only parsing one model
-            break;
-        }
-        if ((_model == MODEL_AGCVM) && (model_id == MODEL_AGCVM)) {
-            if (modelName != "agcvm") {
-                Log->Write("ERROR: \t mismatch model ID and description. Did you mean agcvm?");
-                return false;
-            }
-            if (!ParseAGCVMModel(xModel, xMainNode))
+            if (!ParseAVMModel(xModel, xMainNode))
                 return false;
             parsingModelSuccessful = true;
             //only parsing one model
@@ -573,7 +551,7 @@ bool IniFileParser::Parse(std::string iniFile)
     }
 
     if (!parsingModelSuccessful) {
-        Log->Write("ERROR: \tWrong model id [%d]. Choose 1 (GCFM), 2 (Gompertz),  3 (Tordeux2015),  5 (Krausz),  6 (GCVM), 7 (Simplest), 8 (AGCVM)", _model);
+        Log->Write("ERROR: \tWrong model id [%d]. Choose 1 (GCFM), 2 (Gompertz),  3 (Tordeux2015),  5 (Krausz),  6 (GCVM), 7 (Simplest), 8 (AVM)", _model);
         Log->Write("ERROR: \tPlease make sure that all models are specified in the operational_models section");
         Log->Write("ERROR: \tand make sure to use the same ID in the agent section");
         return false;
@@ -1223,6 +1201,7 @@ void IniFileParser::ParseAgentParameters(TiXmlElement* operativModel, TiXmlNode*
                 agentParameters->InitTau(mu, sigma);
                 Log->Write("INFO: \tTau mu=%f , sigma=%f", mu, sigma);
             }
+
             //atau
             if (xAgentPara->FirstChild("atau")) {
                 double mu = xmltof(xAgentPara->FirstChildElement("atau")->Attribute("mu"));
@@ -1920,24 +1899,16 @@ bool IniFileParser::ParseFfOpts(const TiXmlNode &strategyNode) {
     return true;
 }
 
-bool IniFileParser::ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
+bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
 {
     //parsing the model parameters
-    Log->Write("\nINFO:\tUsing GCVM model");
+    Log->Write("\nINFO:\tUsing AVM model");
     Log->Write("INFO:\tParsing the model parameters");
 
-    TiXmlNode* xModelPara = xGCVM->FirstChild("model_parameters");
+    TiXmlNode* xModelPara = xAVM->FirstChild("model_parameters");
 
     if (!xModelPara) {
         Log->Write("ERROR: \t !!!! Changes in the operational model section !!!");
-        Log->Write("ERROR: \t !!!! The new version is in inputfiles/ship_msw/ini_ship3.xml !!!");
-        return false;
-    }
-
-    // For convenience. This moved to the header as it is not model specific
-    if (xModelPara->FirstChild("tmax")) {
-        Log->Write("ERROR: \tthe maximal simulation time section moved to the header!!!");
-        Log->Write("ERROR: \t\t <max_sim_time> </max_sim_time>\n");
         return false;
     }
 
@@ -1949,161 +1920,8 @@ bool IniFileParser::ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMainNode)
     if (!ParseStepSize(*xModelPara))
         return false;
 
-    //exit crossing strategy
-    if (!ParseStrategyNodeToObject(*xModelPara))
-        return false;
-
-    //linked-cells
-    if (!ParseLinkedCells(*xModelPara))
-        return false;
-
     //periodic
     if (!ParsePeriodic(*xModelPara))
-        return false;
-
-    //force_ped
-    if (xModelPara->FirstChild("force_ped")) {
-
-        if (!xModelPara->FirstChildElement("force_ped")->Attribute("a"))
-            _config->SetaPed(3.0); // default value
-        else {
-            string a = xModelPara->FirstChildElement("force_ped")->Attribute("a");
-            _config->SetaPed(atof(a.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("force_ped")->Attribute("D"))
-            _config->SetDPed(0.1); // default value in [m]
-        else {
-            string D = xModelPara->FirstChildElement("force_ped")->Attribute("D");
-            _config->SetDPed(atof(D.c_str()));
-        }
-        Log->Write("INFO: \tfrep_ped a=%0.2f, D=%0.2f", _config->GetaPed(), _config->GetDPed());
-
-    }
-    //force_wall
-    if (xModelPara->FirstChild("force_wall")) {
-
-        if (!xModelPara->FirstChildElement("force_wall")->Attribute("a"))
-            _config->SetaWall(6.0); // default value
-        else {
-            string a = xModelPara->FirstChildElement("force_wall")->Attribute("a");
-            _config->SetaWall(atof(a.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("force_wall")->Attribute("D"))
-            _config->SetDWall(0.05); // default value in [m]
-        else {
-            string D = xModelPara->FirstChildElement("force_wall")->Attribute("D");
-            _config->SetDWall(atof(D.c_str()));
-        }
-        Log->Write("INFO: \tfrep_wall a=%0.2f, D=%0.2f", _config->GetaWall(), _config->GetDWall());
-    }
-
-    //time parameters
-    if (xModelPara->FirstChild("time_parameters")) {
-
-        if (!xModelPara->FirstChildElement("time_parameters")->Attribute("Ts"))
-            _config->SetTs(0.5); // default value
-        else {
-            string Ts = xModelPara->FirstChildElement("time_parameters")->Attribute("Ts");
-            _config->SetTs(atof(Ts.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("time_parameters")->Attribute("Td"))
-            _config->SetTd(0.3); // default value in [m]
-        else {
-            string Td = xModelPara->FirstChildElement("time_parameters")->Attribute("Td");
-            _config->SetTd(atof(Td.c_str()));
-        }
-        Log->Write("INFO: \ttime_parameters Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
-    }
-
-    if (xModelPara->FirstChild("GCVM")) {
-        if (!xModelPara->FirstChildElement("GCVM")->Attribute("using"))
-            _config->SetGCVMUsing(1);
-        else {
-            string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
-            _config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
-        }
-        _config->GetGCVMUsing() == 1 ?
-            Log->Write("INFO:\tUsing Generalized part") :
-            Log->Write("INFO:\tOnly using CVM model");
-    }
-
-    //boundary condition
-    if (xModelPara->FirstChild("boundary")) {
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
-            _config->SetLeftBoundary(-100);
-        else {
-            string leftboundary = xModelPara->FirstChildElement("boundary")->Attribute("left");
-            _config->SetLeftBoundary(atof(leftboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("right"))
-            _config->SetRightBoundary(100);
-        else {
-            string rightboundary = xModelPara->FirstChildElement("boundary")->Attribute("right");
-            _config->SetRightBoundary(atof(rightboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("up"))
-            _config->SetUpBoundary(100);
-        else {
-            string upboundary = xModelPara->FirstChildElement("boundary")->Attribute("up");
-            _config->SetUpBoundary(atof(upboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("down"))
-            _config->SetDownBoundary(-100);
-        else {
-            string downboundary = xModelPara->FirstChildElement("boundary")->Attribute("down");
-            _config->SetDownBoundary(atof(downboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("cutoff"))
-            _config->SetCutoff(2);
-        else {
-            string cutoff = xModelPara->FirstChildElement("boundary")->Attribute("cutoff");
-            _config->SetCutoff(atof(cutoff.c_str()));
-        }
-        Log->Write("INFO: \tboundary left=%0.2f, right=%0.2f, up=%0.2f, down=%0.2f, cutoff=%0.2f",
-            _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff());
-    }
-    //Parsing the agent parameters
-    TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
-    ParseAgentParameters(xGCVM, xAgentDistri);
-    _config->SetModel(std::shared_ptr<OperationalModel>(new GCVMModel(_exit_strategy, _config->GetaPed(),
-        _config->GetDPed(), _config->GetaWall(),
-        _config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
-        _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(),
-        _config->GetDownBoundary(), _config->GetCutoff())));
-
-    return true;
-}
-
-bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xMainNode)
-{
-    //parsing the model parameters
-    Log->Write("\nINFO:\tUsing Simplest model");
-    Log->Write("INFO:\tParsing the model parameters");
-
-    TiXmlNode* xModelPara = xSimplest->FirstChild("model_parameters");
-
-    if (!xModelPara) {
-        Log->Write("ERROR: \t !!!! Changes in the operational model section !!!");
-        Log->Write("ERROR: \t !!!! The new version is in inputfiles/ship_msw/ini_ship3.xml !!!");
-        return false;
-    }
-
-    // For convenience. This moved to the header as it is not model specific
-    if (xModelPara->FirstChild("tmax")) {
-        Log->Write("ERROR: \tthe maximal simulation time section moved to the header!!!");
-        Log->Write("ERROR: \t\t <max_sim_time> </max_sim_time>\n");
-        return false;
-    }
-
-    //solver
-    if (!ParseNodeToSolver(*xModelPara))
-        return false;
-
-    //stepsize
-    if (!ParseStepSize(*xModelPara))
         return false;
 
     //exit crossing strategy
@@ -2114,403 +1932,148 @@ bool IniFileParser::ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xM
     if (!ParseLinkedCells(*xModelPara))
         return false;
 
-    //periodic
-    if (!ParsePeriodic(*xModelPara))
-        return false;
-
-    //force_ped
-    if (xModelPara->FirstChild("force_ped")) {
-
-        if (!xModelPara->FirstChildElement("force_ped")->Attribute("a"))
-            _config->SetaPed(3.0); // default value
-        else {
-            string a = xModelPara->FirstChildElement("force_ped")->Attribute("a");
-            _config->SetaPed(atof(a.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("force_ped")->Attribute("D"))
-            _config->SetDPed(0.1); // default value in [m]
-        else {
-            string D = xModelPara->FirstChildElement("force_ped")->Attribute("D");
-            _config->SetDPed(atof(D.c_str()));
-        }
-        Log->Write("INFO: \tfrep_ped a=%0.2f, D=%0.2f", _config->GetaPed(), _config->GetDPed());
-
-    }
-    //force_wall
-    if (xModelPara->FirstChild("force_wall")) {
-
-        if (!xModelPara->FirstChildElement("force_wall")->Attribute("a"))
-            _config->SetaWall(6.0); // default value
-        else {
-            string a = xModelPara->FirstChildElement("force_wall")->Attribute("a");
-            _config->SetaWall(atof(a.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("force_wall")->Attribute("D"))
-            _config->SetDWall(0.05); // default value in [m]
-        else {
-            string D = xModelPara->FirstChildElement("force_wall")->Attribute("D");
-            _config->SetDWall(atof(D.c_str()));
-        }
-        Log->Write("INFO: \tfrep_wall a=%0.2f, D=%0.2f", _config->GetaWall(), _config->GetDWall());
-    }
-
-    //time parameters
-    if (xModelPara->FirstChild("time_parameters")) {
-
-        if (!xModelPara->FirstChildElement("time_parameters")->Attribute("Ts"))
-            _config->SetTs(0.5); // default value
-        else {
-            string Ts = xModelPara->FirstChildElement("time_parameters")->Attribute("Ts");
-            _config->SetTs(atof(Ts.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("time_parameters")->Attribute("Td"))
-            _config->SetTd(0.3); // default value in [m]
-        else {
-            string Td = xModelPara->FirstChildElement("time_parameters")->Attribute("Td");
-            _config->SetTd(atof(Td.c_str()));
-        }
-        Log->Write("INFO: \ttime_parameters Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
-    }
-
-    if (xModelPara->FirstChild("update_method")) {
-
-        if (!xModelPara->FirstChildElement("update_method")->Attribute("parallel"))
-            _config->SetUpdate(1); // default value
-        else {
-            string Parallel = xModelPara->FirstChildElement("update_method")->Attribute("parallel");
-            _config->SetUpdate(atoi(Parallel.c_str()));
-        }
-        _config->GetUpdate() == 1 ?
-            Log->Write("INFO: \tupdate_method: parallel") :
-            Log->Write("INFO: \tupdate_method: unparallel ");
-    }
-
-    if (xModelPara->FirstChild("model_submodel")) {
-        if (!xModelPara->FirstChildElement("model_submodel")->Attribute("direction"))
-            _config->SetSubmodelDirection(0);
-        else {
-            string SubmodelDirection = xModelPara->FirstChildElement("model_submodel")->Attribute("direction");
-            _config->SetSubmodelDirection(atoi(SubmodelDirection.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("model_submodel")->Attribute("speed"))
-            _config->SetSubmodelSpeed(0);
-        else {
-            string SubmodelSpeed = xModelPara->FirstChildElement("model_submodel")->Attribute("speed");
-            _config->SetSubmodelSpeed(atoi(SubmodelSpeed.c_str()));
-        }
-        _config->GetSubmodelDirection() == 1 ?
-            Log->Write("INFO: \tUsing direction submodel") :
-            Log->Write("INFO: \tNot using direction submodel");
-        _config->GetSubmodelSpeed() == 1 ?
-            Log->Write("INFO: \tUsing Speed submodel") :
-            Log->Write("INFO: \tNot using Speed submodel");
-    }
-
-    if (xModelPara->FirstChild("GCVM")) {
-        if (!xModelPara->FirstChildElement("GCVM")->Attribute("using"))
-            _config->SetGCVMUsing(0);
-        else {
-            string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
-            _config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
-        }
-        _config->GetGCVMUsing() == 1 ?
-            Log->Write("INFO:\tUsing GCVM model instead of Simplest model") :
-            Log->Write("INFO:\tStill using Simplest model");
-    }
-    if (xModelPara->FirstChild("waiting_time")) {
-
-        if (!xModelPara->FirstChildElement("waiting_time")->Attribute("Tw"))
-            _config->SetWaitingTime(0); // default value
-        else {
-            string WaitingTime = xModelPara->FirstChildElement("waiting_time")->Attribute("Tw");
-            _config->SetWaitingTime(atof(WaitingTime.c_str()));
-        }
-        Log->Write("INFO: \twaiting_time Tw=%0.2f", _config->GetWaitingTime());
-    }
-
-    if (xModelPara->FirstChild("clogging_area")) {
-
-        if (!xModelPara->FirstChildElement("clogging_area")->Attribute("size"))
-            _config->SetAreaSize(1); // default value
-        else {
-            string AreaSize = xModelPara->FirstChildElement("clogging_area")->Attribute("size");
-            _config->SetAreaSize(atof(AreaSize.c_str()));
-        }
-        Log->Write("INFO: \tclogging_area size=%0.2f", _config->GetAreaSize());
-    }
-
-
-    //Parsing the agent parameters
-    TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
-    ParseAgentParameters(xSimplest, xAgentDistri);
-    _config->SetModel(std::shared_ptr<OperationalModel>(new SimplestModel(_exit_strategy, _config->GetaPed(),
-        _config->GetDPed(), _config->GetaWall(),
-        _config->GetDWall(), _config->GetTs(), _config->GetTd(), _config->GetUpdate(), _config->GetWaitingTime(), _config->GetAreaSize(), _config->GetSubmodelDirection(), _config->GetSubmodelSpeed(), _config->GetGCVMUsing())));
-
-    return true;
-}
-
-bool IniFileParser::ParseAGCVMModel(TiXmlElement* xAGCVM, TiXmlElement* xMainNode)
-{
-    //parsing the model parameters
-    Log->Write("\nINFO:\tUsing AGCVM model");
-    Log->Write("INFO:\tParsing the model parameters");
-
-    TiXmlNode* xModelPara = xAGCVM->FirstChild("model_parameters");
-
-    if (!xModelPara) {
-        Log->Write("ERROR: \t !!!! Changes in the operational model section !!!");
-        Log->Write("ERROR: \t !!!! The new version is in inputfiles/ship_msw/ini_ship3.xml !!!");
-        return false;
-    }
-
-    // For convenience. This moved to the header as it is not model specific
-    if (xModelPara->FirstChild("tmax")) {
-        Log->Write("ERROR: \tthe maximal simulation time section moved to the header!!!");
-        Log->Write("ERROR: \t\t <max_sim_time> </max_sim_time>\n");
-        return false;
-    }
-
-    //solver
-    if (!ParseNodeToSolver(*xModelPara))
-        return false;
-
-    //stepsize
-    if (!ParseStepSize(*xModelPara))
-        return false;
-
-    //exit crossing strategy
-    if (!ParseStrategyNodeToObject(*xModelPara))
-        return false;
-
-    //linked-cells
-    if (!ParseLinkedCells(*xModelPara))
-        return false;
-
-    //periodic
-    if (!ParsePeriodic(*xModelPara))
-        return false;
-
-    //force_ped
-    if (xModelPara->FirstChild("force_ped")) {
-
-        if (!xModelPara->FirstChildElement("force_ped")->Attribute("a"))
-            _config->SetaPed(3.0); // default value
-        else {
-            string a = xModelPara->FirstChildElement("force_ped")->Attribute("a");
-            _config->SetaPed(atof(a.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("force_ped")->Attribute("D"))
-            _config->SetDPed(0.1); // default value in [m]
-        else {
-            string D = xModelPara->FirstChildElement("force_ped")->Attribute("D");
-            _config->SetDPed(atof(D.c_str()));
-        }
-        Log->Write("INFO: \tfrep_ped a=%0.2f, D=%0.2f", _config->GetaPed(), _config->GetDPed());
-
-    }
-
-    //force_ped_push
-    if (xModelPara->FirstChild("force_ped_push")) {
-
-        if (!xModelPara->FirstChildElement("force_ped_push")->Attribute("a"))
-            _config->SetaPedPush(1.0); // default value
-        else {
-            string a = xModelPara->FirstChildElement("force_ped_push")->Attribute("a");
-            _config->SetaPedPush(atof(a.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("force_ped_push")->Attribute("D"))
-            _config->SetDPedPush(0.1); // default value in [m]
-        else {
-            string D = xModelPara->FirstChildElement("force_ped_push")->Attribute("D");
-            _config->SetDPedPush(atof(D.c_str()));
-        }
-        Log->Write("INFO: \tfrep_ped_push a=%0.2f, D=%0.2f", _config->GetaPedPush(), _config->GetDPedPush());
-
-    }
-
-    //force_wall
-    if (xModelPara->FirstChild("force_wall")) {
-
-        if (!xModelPara->FirstChildElement("force_wall")->Attribute("a"))
-            _config->SetaWall(6.0); // default value
-        else {
-            string a = xModelPara->FirstChildElement("force_wall")->Attribute("a");
-            _config->SetaWall(atof(a.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("force_wall")->Attribute("D"))
-            _config->SetDWall(0.05); // default value in [m]
-        else {
-            string D = xModelPara->FirstChildElement("force_wall")->Attribute("D");
-            _config->SetDWall(atof(D.c_str()));
-        }
-        Log->Write("INFO: \tfrep_wall a=%0.2f, D=%0.2f", _config->GetaWall(), _config->GetDWall());
-    }
-
-    //time parameters
-    if (xModelPara->FirstChild("time_parameters")) {
-
-        if (!xModelPara->FirstChildElement("time_parameters")->Attribute("Ts"))
-            _config->SetTs(0.5); // default value
-        else {
-            string Ts = xModelPara->FirstChildElement("time_parameters")->Attribute("Ts");
-            _config->SetTs(atof(Ts.c_str()));
-        }
-
-        if (!xModelPara->FirstChildElement("time_parameters")->Attribute("Td"))
-            _config->SetTd(0.3); // default value in [m]
-        else {
-            string Td = xModelPara->FirstChildElement("time_parameters")->Attribute("Td");
-            _config->SetTd(atof(Td.c_str()));
-        }
-        Log->Write("INFO: \ttime_parameters Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
-    }
-
-    if (xModelPara->FirstChild("GCVM"))
+    //model_type
+    if (xModelPara->FirstChild("model_type"))
     {
-        if (!xModelPara->FirstChildElement("GCVM")->Attribute("using"))
-            _config->SetGCVMUsing(1);
+        if (!xModelPara->FirstChildElement("model_type")->Attribute("using"))
+            _config->SetRealModelType(2);
         else {
-            string GCVMUsing = xModelPara->FirstChildElement("GCVM")->Attribute("using");
-            _config->SetGCVMUsing(atoi(GCVMUsing.c_str()));
+            string modelType = xModelPara->FirstChildElement("model_type")->Attribute("using");
+            _config->SetRealModelType(atoi(modelType.c_str()));
         }
-        _config->GetGCVMUsing() == 1 ?
-            Log->Write("INFO:\tUsing Generalized part") :
-            Log->Write("INFO:\tOnly using CVM model");
+        switch (_config->GetRealModelType())
+        {
+        case 0:
+            Log->Write("INFO:\tUsing CVM.");
+            break;
+        case 1:
+            Log->Write("INFO:\tUsing GCVM.");
+            break;
+        case 2:
+            Log->Write("INFO:\tUsing AVM.");
+            break;
+        default:
+            break;
+        }
     }
 
-    if (xModelPara->FirstChild("update_method")) {
+    //force_ped
+    if (xModelPara->FirstChild("force_ped")) {
 
-        if (!xModelPara->FirstChildElement("update_method")->Attribute("parallel"))
-            _config->SetUpdate(1); // default value
+        if (!xModelPara->FirstChildElement("force_ped")->Attribute("a"))
+            _config->SetaPed(3.0); // default value
         else {
-            string Parallel = xModelPara->FirstChildElement("update_method")->Attribute("parallel");
-            _config->SetUpdate(atoi(Parallel.c_str()));
+            string a = xModelPara->FirstChildElement("force_ped")->Attribute("a");
+            _config->SetaPed(atof(a.c_str()));
         }
-        _config->GetUpdate() == 1 ?
-            Log->Write("INFO: \tupdate_method: parallel") :
-            Log->Write("INFO: \tupdate_method: unparallel ");
+
+        if (!xModelPara->FirstChildElement("force_ped")->Attribute("D"))
+            _config->SetDPed(0.1); // default value in [m]
+        else {
+            string D = xModelPara->FirstChildElement("force_ped")->Attribute("D");
+            _config->SetDPed(atof(D.c_str()));
+        }
+        Log->Write("INFO: \tfrep_ped a=%0.2f, D=%0.2f", _config->GetaPed(), _config->GetDPed());
     }
 
-    if (xModelPara->FirstChild("waiting_time")) {
+    //force_wall
+    if (xModelPara->FirstChild("force_wall")) {
 
-        if (!xModelPara->FirstChildElement("waiting_time")->Attribute("Tw"))
-            _config->SetWaitingTime(0); // default value
+        if (!xModelPara->FirstChildElement("force_wall")->Attribute("a"))
+            _config->SetaWall(6.0); // default value
         else {
-            string WaitingTime = xModelPara->FirstChildElement("waiting_time")->Attribute("Tw");
-            _config->SetWaitingTime(atof(WaitingTime.c_str()));
+            string a = xModelPara->FirstChildElement("force_wall")->Attribute("a");
+            _config->SetaWall(atof(a.c_str()));
         }
-        Log->Write("INFO: \twaiting_time Tw=%0.2f", _config->GetWaitingTime());
+
+        if (!xModelPara->FirstChildElement("force_wall")->Attribute("D"))
+            _config->SetDWall(0.05); // default value in [m]
+        else {
+            string D = xModelPara->FirstChildElement("force_wall")->Attribute("D");
+            _config->SetDWall(atof(D.c_str()));
+        }
+        Log->Write("INFO: \tfrep_wall a=%0.2f, D=%0.2f", _config->GetaWall(), _config->GetDWall());
     }
 
-    if (xModelPara->FirstChild("boundary")) {
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
-            _config->SetLeftBoundary(-100);
+    //GCVM parameters
+    if (xModelPara->FirstChild("GCVM")) {
+
+        if (!xModelPara->FirstChildElement("GCVM")->Attribute("Ts"))
+            _config->SetTs(0.5); // default value
         else {
-            string leftboundary = xModelPara->FirstChildElement("boundary")->Attribute("left");
-            _config->SetLeftBoundary(atof(leftboundary.c_str()));
+            string Ts = xModelPara->FirstChildElement("GCVM")->Attribute("Ts");
+            _config->SetTs(atof(Ts.c_str()));
         }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("right"))
-            _config->SetRightBoundary(100);
+
+        if (!xModelPara->FirstChildElement("GCVM")->Attribute("Td"))
+            _config->SetTd(0.3); // default value in [m]
         else {
-            string rightboundary = xModelPara->FirstChildElement("boundary")->Attribute("right");
-            _config->SetRightBoundary(atof(rightboundary.c_str()));
+            string Td = xModelPara->FirstChildElement("GCVM")->Attribute("Td");
+            _config->SetTd(atof(Td.c_str()));
         }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("up"))
-            _config->SetUpBoundary(100);
-        else {
-            string upboundary = xModelPara->FirstChildElement("boundary")->Attribute("up");
-            _config->SetUpBoundary(atof(upboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("down"))
-            _config->SetDownBoundary(-100);
-        else {
-            string downboundary = xModelPara->FirstChildElement("boundary")->Attribute("down");
-            _config->SetDownBoundary(atof(downboundary.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("boundary")->Attribute("cutoff"))
-            _config->SetCutoff(2);
-        else {
-            string cutoff = xModelPara->FirstChildElement("boundary")->Attribute("cutoff");
-            _config->SetCutoff(atof(cutoff.c_str()));
-        }
-        Log->Write("INFO: \tboundary left=%0.2f, right=%0.2f, up=%0.2f, down=%0.2f, cutoff=%0.2f",
-            _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff());
+        Log->Write("INFO: \tGCVM Ts=%0.2f, Td=%0.2f", _config->GetTs(), _config->GetTd());
     }
 
-    if (xModelPara->FirstChild("AGCVM")) {
-        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("anticipation"))
-            _config->SetAnticipation(0);
+    // AVM parameter
+    if (xModelPara->FirstChild("AVM")) {
+        if (!xModelPara->FirstChildElement("AVM")->Attribute("ConstantAlpha"))
+            _config->SetConstantAlpha(false);
         else {
-            string Anticipation = xModelPara->FirstChildElement("AGCVM")->Attribute("anticipation");
-            _config->SetAnticipation(atoi(Anticipation.c_str()));
+            string Alpha = xModelPara->FirstChildElement("AVM")->Attribute("ConstantAlpha");
+            Alpha == "false" ? _config->SetConstantAlpha(false) : _config->SetConstantAlpha(true);
         }
-        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("cooperation"))
-            _config->SetCooperation(0);
+        if (!xModelPara->FirstChildElement("AVM")->Attribute("AntiTime"))
+            _config->SetAntiT(1.0);
         else {
-            string Cooperation = xModelPara->FirstChildElement("AGCVM")->Attribute("cooperation");
-            _config->SetCooperation(atoi(Cooperation.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("alpha"))
-            _config->SetAlpha(0);
-        else {
-            string Alpha = xModelPara->FirstChildElement("AGCVM")->Attribute("alpha");
-            _config->SetAlpha(atof(Alpha.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("AntiTime"))
-            _config->SetAntiT(0);
-        else {
-            string AntiT = xModelPara->FirstChildElement("AGCVM")->Attribute("AntiTime");
+            string AntiT = xModelPara->FirstChildElement("AVM")->Attribute("AntiTime");
             _config->SetAntiT(atof(AntiT.c_str()));
         }
-        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("CoopTime"))
-            _config->SetCoopT(0);
-        else {
-            string CoopT = xModelPara->FirstChildElement("AGCVM")->Attribute("CoopTime");
-            _config->SetCoopT(atof(CoopT.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("pushing"))
-            _config->SetPushing(0);
-        else {
-            string Pushing = xModelPara->FirstChildElement("AGCVM")->Attribute("pushing");
-            _config->SetPushing(atoi(Pushing.c_str()));
-        }
-        if (!xModelPara->FirstChildElement("AGCVM")->Attribute("CoreSize"))
-            _config->SetCoreSize(0.1);
-        else {
-            string CoreSize = xModelPara->FirstChildElement("AGCVM")->Attribute("CoreSize");
-            _config->SetCoreSize(atof(CoreSize.c_str()));
-        }
-        Log->Write("INFO: \tAGCVM anticipation=%d, cooperation=%d, alpha=%f, AntiTime=%0.2f, CoopTime=%0.2f, pushing=%d, CoreSize=%0.2f.",
-            _config->GetAnticipation(), _config->GetCooperation(), _config->GetAlpha(),
-            _config->GetAntiT(), _config->GetCoopT(), _config->GetPushing(), _config->GetCoreSize());
+        _config->GetConstantAlpha() == true ? Log->Write("INFO: \tAVM AntiTime=%0.2f, ConstantAlpha=true.", _config->GetAntiT()) :
+            Log->Write("INFO: \tAVM AntiTime=%0.2f, ConstantAlpha=false.", _config->GetAntiT());
     }
 
-    if (xModelPara->FirstChild("desired_direction"))
-    {
-        if (!xModelPara->FirstChildElement("desired_direction")->Attribute("type"))
-            _config->SetddType(0);
+    if (xModelPara->FirstChild("boundary")) {
+        if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
+            _config->SetLeftBoundary(-100);
         else {
-            string ddType = xModelPara->FirstChildElement("desired_direction")->Attribute("type");
-            _config->SetddType(atoi(ddType.c_str()));
+            string leftboundary = xModelPara->FirstChildElement("boundary")->Attribute("left");
+            _config->SetLeftBoundary(atof(leftboundary.c_str()));
         }
-        Log->Write("INFO: \t desired_direction type=%d", _config->GetddType());
+        if (!xModelPara->FirstChildElement("boundary")->Attribute("right"))
+            _config->SetRightBoundary(100);
+        else {
+            string rightboundary = xModelPara->FirstChildElement("boundary")->Attribute("right");
+            _config->SetRightBoundary(atof(rightboundary.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("boundary")->Attribute("up"))
+            _config->SetUpBoundary(100);
+        else {
+            string upboundary = xModelPara->FirstChildElement("boundary")->Attribute("up");
+            _config->SetUpBoundary(atof(upboundary.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("boundary")->Attribute("down"))
+            _config->SetDownBoundary(-100);
+        else {
+            string downboundary = xModelPara->FirstChildElement("boundary")->Attribute("down");
+            _config->SetDownBoundary(atof(downboundary.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("boundary")->Attribute("cutoff"))
+            _config->SetCutoff(2);
+        else {
+            string cutoff = xModelPara->FirstChildElement("boundary")->Attribute("cutoff");
+            _config->SetCutoff(atof(cutoff.c_str()));
+        }
+        Log->Write("INFO: \tboundary left=%0.2f, right=%0.2f, up=%0.2f, down=%0.2f, cutoff=%0.2f",
+            _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff());
     }
+
     //Parsing the agent parameters
     TiXmlNode* xAgentDistri = xMainNode->FirstChild("agents")->FirstChild("agents_distribution");
-    ParseAgentParameters(xAGCVM, xAgentDistri);
-    _config->SetModel(std::shared_ptr<OperationalModel>(new AGCVMModel(_exit_strategy,
-        _config->GetaPed(), _config->GetDPed(), _config->GetaPedPush(), _config->GetDPedPush(), _config->GetaWall(), _config->GetDWall(),
-        _config->GetTs(), _config->GetTd(), _config->GetGCVMUsing(),
-        _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
-        _config->GetAnticipation(), _config->GetCooperation(), _config->GetPushing(),
-        _config->GetAntiT(), _config->GetCoopT(), _config->GetCoreSize(), _config->GetAlpha(), _config->GetddType())));
+    ParseAgentParameters(xAVM, xAgentDistri);
+    _config->SetModel(std::shared_ptr<OperationalModel>(new AVMModel(_exit_strategy, _config->GetRealModelType(),
+        _config->GetaPed(), _config->GetDPed(), _config->GetaWall(), _config->GetDWall(),
+        _config->GetTs(), _config->GetTd(),
+        _config->GetAntiT(), _config->GetConstantAlpha(),
+        _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff())));
     return true;
 }

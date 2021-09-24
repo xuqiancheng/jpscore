@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with JuPedSim. If not, see <http://www.gnu.org/licenses/>.
  **/
-//
-// Created by laemmel on 24.03.16.
-//
+ //
+ // Created by laemmel on 24.03.16.
+ //
 
 #ifndef JPSCORE_INIFILEPARSER_H
 #define JPSCORE_INIFILEPARSER_H
@@ -38,54 +38,50 @@ extern OutputHandler* Log;
 class IniFileParser {
 
 public:
-     IniFileParser(Configuration* config);
-     ~IniFileParser(){};
+    IniFileParser(Configuration* config);
+    ~IniFileParser() {};
 
-     bool Parse(std::string iniFile);
+    bool Parse(std::string iniFile);
 
 private:
-     bool ParseGCFMModel(TiXmlElement* xGCFM, TiXmlElement* xMain);
+    bool ParseGCFMModel(TiXmlElement* xGCFM, TiXmlElement* xMain);
 
-     bool ParseKrauszModel(TiXmlElement* xKrausz, TiXmlElement* xMain);
+    bool ParseKrauszModel(TiXmlElement* xKrausz, TiXmlElement* xMain);
 
-     bool ParseGompertzModel(TiXmlElement* xGompertz, TiXmlElement* xMain);
+    bool ParseGompertzModel(TiXmlElement* xGompertz, TiXmlElement* xMain);
 
-     bool ParseGradientModel(TiXmlElement* xGradient, TiXmlElement* xMain);
+    bool ParseGradientModel(TiXmlElement* xGradient, TiXmlElement* xMain);
 
-     bool ParseVelocityModel(TiXmlElement* xVelocity, TiXmlElement* xMain);
+    bool ParseVelocityModel(TiXmlElement* xVelocity, TiXmlElement* xMain);
 
-     void ParseAgentParameters(TiXmlElement* operativModel, TiXmlNode* agentDistri);
+    void ParseAgentParameters(TiXmlElement* operativModel, TiXmlNode* agentDistri);
 
-     bool ParseRoutingStrategies(TiXmlNode* routingNode, TiXmlNode* agentDistri);
+    bool ParseRoutingStrategies(TiXmlNode* routingNode, TiXmlNode* agentDistri);
 
-     bool ParseFfRouterOps(TiXmlNode* routingNode, RoutingStrategy s);
+    bool ParseFfRouterOps(TiXmlNode* routingNode, RoutingStrategy s);
 
-     bool ParseCogMapOpts(TiXmlNode* routingNode);
+    bool ParseCogMapOpts(TiXmlNode* routingNode);
 
-	 bool ParseGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMain);
-
-	 bool ParseSimplestModel(TiXmlElement* xSimplest, TiXmlElement* xMain);
-
-	 bool ParseAGCVMModel(TiXmlElement* xGCVM, TiXmlElement* xMain);
+    bool ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMain);
 #ifdef AIROUTER
-     bool ParseAIOpts(TiXmlNode* routingNode);
+    bool ParseAIOpts(TiXmlNode* routingNode);
 #endif
-     bool ParseLinkedCells(const TiXmlNode& linkedCellNode);
+    bool ParseLinkedCells(const TiXmlNode& linkedCellNode);
 
-     bool ParseStepSize(TiXmlNode& stepNode);
+    bool ParseStepSize(TiXmlNode& stepNode);
 
-     bool ParsePeriodic(TiXmlNode& Node);
+    bool ParsePeriodic(TiXmlNode& Node);
 
-     bool ParseNodeToSolver(const TiXmlNode& solverNode);
+    bool ParseNodeToSolver(const TiXmlNode& solverNode);
 
-     bool ParseStrategyNodeToObject(const TiXmlNode& strategyNode);
+    bool ParseStrategyNodeToObject(const TiXmlNode& strategyNode);
 
-     bool ParseFfOpts(const TiXmlNode& strategyNode);
+    bool ParseFfOpts(const TiXmlNode& strategyNode);
 
-     Configuration* _config;
-     int _model;
-     std::shared_ptr<DirectionStrategy> _exit_strategy;
-     int _exit_strat_number;
+    Configuration* _config;
+    int _model;
+    std::shared_ptr<DirectionStrategy> _exit_strategy;
+    int _exit_strat_number;
 
 };
 
