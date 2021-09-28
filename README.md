@@ -2,14 +2,14 @@
 
 ## Introduction
 
-**jpscore** is the core module of [jupedsim](https://www.jupedsim.org/jupedsim_introduction.html) for preforming the simulation (i.e. computing the trajectories).
-This branch is used to demonstrate the work of paper [Anticipation in velocity-based model for pedestrian dynamics](https://arxiv.org/abs/2107.00624).
-The implementation of  the **anticipation velocity model (AVM)** can be found in [AVMModel.cpp](https://github.com/xuqiancheng/jpscore/blob/AnticipationVelocityModel/math/AVMModel.cpp).
-For more information about jupedsim, see [documentation](https://www.jupedsim.org/).
+**jpscore** is the core module of [jupedsim](https://www.jupedsim.org/jupedsim_introduction.html) for preforming the simulation (i.e. computing the trajectories).  
+This branch is used to demonstrate the work of paper [Anticipation in velocity-based model for pedestrian dynamics](https://arxiv.org/abs/2107.00624).  
+The implementation of  the **anticipation velocity model (AVM)** can be found in [AVMModel.cpp](https://github.com/xuqiancheng/jpscore/blob/AnticipationVelocityModel/math/AVMModel.cpp).  
+For more information about jupedsim, see [documentation](https://www.jupedsim.org/). 
 
 ## Installation
 
-See [Build jupedsim from source](https://www.jupedsim.org/jupedsim_requirements.html) for reference.
+See [Build jupedsim from source](https://www.jupedsim.org/jupedsim_requirements.html) for reference.  
 Contact q.xu@fz-juelich.de if you meet any problems.
 
 ## Quick start
@@ -18,10 +18,10 @@ See [Getting started with jupedsim](http://www.jupedsim.org/jpscore_introduction
 
 ## Parameters setting
 
-Please read this paper first: [Anticipation in velocity-based model for pedestrian dynamics](https://arxiv.org/abs/2107.00624).
-The parameters of simulations are set in the inifile.xml, see [example](https://github.com/xuqiancheng/jpscore/blob/AnticipationVelocityModel/demos/scenario_1_binary_unidirectional/inifile.xml).
-The meaning of each parameter can be found in [jpscore inifile](https://www.jupedsim.org/jpscore_inifile.html).
-For the parameters of the AVM.
+Please read this paper first: [Anticipation in velocity-based model for pedestrian dynamics](https://arxiv.org/abs/2107.00624).  
+The parameters of simulations are set in the inifile.xml, see [example](https://github.com/xuqiancheng/jpscore/blob/AnticipationVelocityModel/demos/scenario_1_binary_unidirectional/inifile.xml).  
+The meaning of each parameter can be found in [jpscore inifile](https://www.jupedsim.org/jpscore_inifile.html).  
+For the parameters of the AVM.   
 
 ```
 <model_parameters>
@@ -34,45 +34,45 @@ For the parameters of the AVM.
 ```
 - model_type using:  **0** means using the CSM, **1** means using the GCVM, **2** means using the AVM.
 + force_ped:
-	- D: the parameter used to calibrate range of impact from neighbours. corresponding to $D$ in [equation (3)](https://arxiv.org/pdf/2107.00624.pdf). 
-	- a: the parameter used to calibrate the strength of impact from neighbours. Corresponding to $k$ in [equation (4)](https://arxiv.org/pdf/2107.00624.pdf).
+	- D: the parameter used to calibrate the range of impact from neighbours. corresponding to ![](http://latex.codecogs.com/gif.latex?D) in [equation (3)](https://arxiv.org/pdf/2107.00624.pdf). 
+	- a: the parameter used to calibrate the strength of impact from neighbours. Corresponding to ![](http://latex.codecogs.com/gif.latex?k) in [equation (4)](https://arxiv.org/pdf/2107.00624.pdf).
 + force_wall:
-	- D: the parameter used to calibrate range of impact from walls.  
+	- D: the parameter used to calibrate the range of impact from walls.  
 	- a: the parameter used to calibrate the strength of impact from walls.
 + GCVM:
-	- Td: the relaxation parameter adjusting the rate of the turning process. Corresponding to $\tau$ in [equation (7)](https://arxiv.org/pdf/2107.00624.pdf).
-	- Ts: the slope of the speed-headway relationship. Corresponding to $T$ in [equation (10)](https://arxiv.org/pdf/2107.00624.pdf).	
+	- Td: the relaxation parameter adjusting the rate of the turning process. Corresponding to ![](http://latex.codecogs.com/gif.latex?\tau) in [equation (7)](https://arxiv.org/pdf/2107.00624.pdf).
+	- Ts: the slope of the speed-headway relationship. Corresponding to ![](http://latex.codecogs.com/gif.latex?T) in [equation (10)](https://arxiv.org/pdf/2107.00624.pdf).	
 + AVM:
-	- AntiTime: the prediction time. Corresponding to $t^\text{a}$ in [equation (2)](https://arxiv.org/pdf/2107.00624.pdf).
-	- ConstantAlpha: **true** means using constant $\alpha$ in [equation (4)](https://arxiv.org/pdf/2107.00624.pdf), **false** means using dynamic $\alpha$ in [equation (4)](https://arxiv.org/pdf/2107.00624.pdf).
+	- AntiTime: the prediction time. Corresponding to ![](http://latex.codecogs.com/gif.latex?t^\text{a}) in [equation (2)](https://arxiv.org/pdf/2107.00624.pdf).
+	- ConstantAlpha: **true** means using constant ![](http://latex.codecogs.com/gif.latex?\alpha) in [equation (4)](https://arxiv.org/pdf/2107.00624.pdf), **false** means using dynamic ![](http://latex.codecogs.com/gif.latex?\alpha) in [equation (4)](https://arxiv.org/pdf/2107.00624.pdf).
 
 
 ## Demos
 
 The following demos are provided for testing. They can be found in [demos](https://github.com/xuqiancheng/jpscore/tree/AnticipationVelocityModel/demos).
 
-- scenario_1_binary_unidirectional
+- scenario_1_binary_unidirectional  
   One agent moves behind another.
 
-- scenario_2_binary_counter
+- scenario_2_binary_counter  
   Two agents move toward each other.
 
-- scenario_3_binary_cross
+- scenario_3_binary_cross  
   Two agents move across each other's path.
 
-- scenario_4_crowd_unidirectional
+- scenario_4_crowd_unidirectional  
   200 agents move toward the same direction in a corridor (length: 26 meters, width: 4 meters) with periodic boundary conditions.
 
-- scenario_5_crowd_counter
+- scenario_5_crowd_counter  
   Two groups of agents (120 in each) move toward others in a corridor (length: 26 meters, width: 4 meters) with periodic boundary conditions. 
   
-- scenario_6_crowd_bottleneck
+- scenario_6_crowd_bottleneck  
   100 agents move through a bottleneck (1.2-meter wide).
   
-- scenario_7_crowd_cross_twoDirection
+- scenario_7_crowd_cross_twoDirection  
   Two groups of agents (50 in each) from two directions move in a cross scenario (6-meter wide) with periodic boundary conditions.
   
-- scenario_8_crowd_cross_fourDirection
+- scenario_8_crowd_cross_fourDirection  
   Four groups of agents (15 in each) from four directions move in a cross scenario (6-meter wide) with periodic boundary conditions.
 
 ## Support
