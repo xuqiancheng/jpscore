@@ -53,6 +53,7 @@ The following demos are provided for testing. They can be found in [demos](https
 
 - scenario_1_binary_unidirectional  
   One agent moves behind another.
+  [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/R0uufIdWCD4/0.jpg)](https://www.youtube.com/watch?v=bQf1JVLLKvA)
 
 - scenario_2_binary_counter  
   Two agents move toward each other.
