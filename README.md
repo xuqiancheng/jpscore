@@ -55,28 +55,49 @@ The following demos are provided for testing. They can be found in [demos](https
   One agent moves behind another.  
   <a href="https://www.youtube.com/watch?v=bQf1JVLLKvA
   " target="_blank"><img src="demos/scenario_1_binary_unidirectional/Demonstration.PNG" 
-  alt="scenario_1"  height="180"  /></a>  
+  alt="scenario_1"  height="150"  /></a>  
 
 - scenario_2_binary_counter  
-  Two agents move toward each other.
+  Two agents move toward each other.  
+  <a href="https://www.youtube.com/watch?v=enKuC2DhCCI
+  " target="_blank"><img src="demos/scenario_2_binary_counter/Demonstration.PNG" 
+  alt="scenario_2"  height="150"  /></a>  
 
 - scenario_3_binary_cross  
-  Two agents move across each other's path.
+  Two agents move across each other's path.  
+  <a href="https://www.youtube.com/watch?v=IStIh0dlqtU
+  " target="_blank"><img src="demos/scenario_3_binary_cross/Demonstration.PNG" 
+  alt="scenario_3"  height="300"  /></a>  
 
 - scenario_4_crowd_unidirectional  
-  200 agents move toward the same direction in a corridor (length: 26 meters, width: 4 meters) with periodic boundary conditions.
+  200 agents move toward the same direction in a corridor (length: 26 meters, width: 4 meters) with periodic boundary conditions.  
+  <a href="https://www.youtube.com/watch?v=-rLlQpQbkOU
+  " target="_blank"><img src="demos/scenario_4_crowd_unidirectional/Demonstration.PNG" 
+  alt="scenario_4"  height="150"  /></a>  
 
 - scenario_5_crowd_counter  
-  Two groups of agents (120 in each) move toward others in a corridor (length: 26 meters, width: 4 meters) with periodic boundary conditions. 
+  Two groups of agents (120 in each) move toward others in a corridor (length: 26 meters, width: 4 meters) with periodic boundary conditions.   
+  <a href="https://www.youtube.com/watch?v=KzC-ngEtn5I&t=69s
+  " target="_blank"><img src="demos/scenario_5_crowd_counter/Demonstration.PNG" 
+  alt="scenario_5"  height="150"  /></a>  
   
 - scenario_6_crowd_bottleneck  
-  100 agents move through a bottleneck (1.2-meter wide).
+  100 agents move through a bottleneck (1.2-meter wide).  
+  <a href="https://www.youtube.com/watch?v=-k2Jv2bMSFM
+  " target="_blank"><img src="demos/scenario_6_crowd_bottleneck/Demonstration.PNG" 
+  alt="scenario_6"  height="300"  /></a>  
   
 - scenario_7_crowd_cross_twoDirection  
-  Two groups of agents (50 in each) from two directions move in a cross scenario (6-meter wide) with periodic boundary conditions.
+  Two groups of agents (50 in each) from two directions move in a cross scenario (6-meter wide) with periodic boundary conditions.  
+  <a href="https://www.youtube.com/watch?v=-5N66x4qFGM
+  " target="_blank"><img src="demos/scenario_7_crowd_cross_twoDirection/Demonstration.PNG" 
+  alt="scenario_7"  height="400"  /></a>  
   
 - scenario_8_crowd_cross_fourDirection  
-  Four groups of agents (15 in each) from four directions move in a cross scenario (6-meter wide) with periodic boundary conditions.
+  Four groups of agents (15 in each) from four directions move in a cross scenario (6-meter wide) with periodic boundary conditions.  
+  <a href="https://www.youtube.com/watch?v=iQsMnU-ByT4
+  " target="_blank"><img src="demos/scenario_8_crowd_cross_fourDirection/Demonstration.PNG" 
+  alt="scenario_8"  height="400"  /></a>  
 
 ## Support
 
