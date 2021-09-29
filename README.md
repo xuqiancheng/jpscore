@@ -52,8 +52,10 @@ For the parameters of the AVM.
 The following demos are provided for testing. They can be found in [demos](https://github.com/xuqiancheng/jpscore/tree/AnticipationVelocityModel/demos).
 
 - scenario_1_binary_unidirectional  
-  One agent moves behind another.
-  [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/R0uufIdWCD4/0.jpg)](https://www.youtube.com/watch?v=bQf1JVLLKvA)
+  One agent moves behind another.  
+  <a href="https://www.youtube.com/watch?v=bQf1JVLLKvA
+  " target="_blank"><img src="demos/scenario_1_binary_unidirectional/Demonstration.PNG" 
+  alt="scenario_1"  height="180"  /></a>  
 
 - scenario_2_binary_counter  
   Two agents move toward each other.
