@@ -49,7 +49,9 @@ For the parameters of the AVM.
 
 ## Demos
 
-The following demos are provided for testing. They can be found in [demos](https://github.com/xuqiancheng/jpscore/tree/AnticipationVelocityModel/demos).
+The following demos are provided for testing. They can be found in [demos](https://github.com/xuqiancheng/jpscore/tree/AnticipationVelocityModel/demos).  
+
+Click pictures to show videos.  
 
 - scenario_1_binary_unidirectional  
   One agent moves behind another.  
