@@ -1,33 +1,35 @@
-# JPScore
-
-[![Build Status](https://gitlab.version.fz-juelich.de/jupedsim/jpscore/badges/develop/build.svg)](https://gitlab.version.fz-juelich.de/JuPedSim/jpscore/pipelines)
 [![GitHub license](https://img.shields.io/badge/license-GPL-blue.svg)](https://raw.githubusercontent.com/JuPedSim/jpscore/master/LICENSE)
-[![DOI](https://zenodo.org/badge/36440436.svg)](https://zenodo.org/badge/latestdoi/36440436)
 
-The core module for performing the simulation (i.e. computing the trajectories). See the [online documentation](http://jupedsim.org/jpscore/)
+## Introduction
 
-## Get the source code
+**jpscore** is the core module of [jupedsim](https://www.jupedsim.org/jupedsim_introduction.html) for preforming the simulation (i.e. computing the trajectories).  
+This branch is used to demonstrate the work of paper [Prolonged clogs in bottleneck simulations for pedestrian dynamics](https://www.sciencedirect.com/science/article/abs/pii/S0378437121002065).  
+For more information about jupedsim, see [documentation](https://www.jupedsim.org/). 
 
-- The project is being developed in a [Gitlab repository](https://gitlab.version.fz-juelich.de/jupedsim/jpscore).
-- Our [GitHub repository](https://github.com/JuPedSim/jpscore) is used to host selected tags and releases, only.
+## Installation
 
-So, get the code from Gitlab and the releases from GitHub. :-)
+See [Build jupedsim from source](https://www.jupedsim.org/jupedsim_requirements.html) for reference.  
+Contact q.xu@fz-juelich.de if you meet any problems.
 
 ## Quick start
 
-See [installation and configuration](http://jupedsim.org/jpscore/2016-11-02-quickstart.html)
+See [Getting started with jupedsim](http://www.jupedsim.org/jpscore_introduction.html).
 
-## Showcase and tutorials
 
-To highlight some features of JuPedSim we have uploaded some videos on our [YouTube channel](https://www.youtube.com/channel/UCKS8w8CUClHEeN4K1SUSMBA).
+## Demos
+
+A demo is provided for testing, which can be found in [demo](https://github.com/xuqiancheng/jpscore/tree/CLOG/demos/scenario_1_clogging).  
 
 
 ## Support
 
 We are heavily working on this project which means that:
 
-- It’s not done. We will be releasing new enhancements, bug fixes etc.
-- We love your support. If you find any errors or have suggestions, please write an issue in our [issue-tracker](https://gitlab.version.fz-juelich.de/jupedsim/jpscore/issues). We will try hard to fix it.
+- It's not done. We will be releasing new enhancements, bug fixes etc.
+- We love your support. If you find any errors or have suggestions, please write an issue in our [issue-tracker](https://github.com/JuPedSim/jpscore/issues). We will try hard to fix it.
 - Be patient. We are scientists and PhD/master students. Therefore, we primarily care about our research and theses.
 
+If you meet any problems with this branch, feel free to contact q.xu@fz-juelich.de.
+
 Enjoy!
+
