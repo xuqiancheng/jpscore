@@ -90,7 +90,8 @@ long Simulation::GetPedsNumber() const
     return _nPeds;
 }
 
-bool Simulation::InitArgs()
+bool Simulation::
+InitArgs()
 {
     char tmp[CLENGTH];
     string s = "Parameter:\n";

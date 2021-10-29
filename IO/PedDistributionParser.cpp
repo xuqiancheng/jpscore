@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with JuPedSim. If not, see <http://www.gnu.org/licenses/>.
  **/
-//
-// Created by laemmel on 31.03.16.
-//
+ //
+ // Created by laemmel on 31.03.16.
+ //
 #define NOMINMAX
 #include "PedDistributionParser.h"
 #include <cstdarg> // va_start and va_end
@@ -25,18 +25,18 @@
 namespace fs = std::filesystem;
 
 PedDistributionParser::PedDistributionParser(const Configuration* configuration)
-        :_configuration(configuration)
+    :_configuration(configuration)
 {
 
 }
 
 PedDistributionParser::~PedDistributionParser() {
-      // delete _configuration;
+    // delete _configuration;
 }
 
 bool PedDistributionParser::LoadPedDistribution(vector<std::shared_ptr<StartDistribution> >& startDis,
-        vector<std::shared_ptr<StartDistribution> >& startDisSub,
-        std::vector<std::shared_ptr<AgentsSource> >& startDisSources)
+    vector<std::shared_ptr<StartDistribution> >& startDisSub,
+    std::vector<std::shared_ptr<AgentsSource> >& startDisSources)
 {
     Log->Write("INFO: \tLoading and parsing the persons attributes");
 
@@ -56,7 +56,7 @@ bool PedDistributionParser::LoadPedDistribution(vector<std::shared_ptr<StartDist
 
     TiXmlNode* xDist = xRootNode->FirstChild("agents_distribution");
     for (TiXmlElement* e = xDist->FirstChildElement("group"); e;
-         e = e->NextSiblingElement("group")) {
+        e = e->NextSiblingElement("group")) {
 
         int room_id = xmltoi(e->Attribute("room_id"));
         int group_id = xmltoi(e->Attribute("group_id"));
@@ -81,15 +81,31 @@ bool PedDistributionParser::LoadPedDistribution(vector<std::shared_ptr<StartDist
         double x_max = xmltof(e->Attribute("x_max"), FLT_MAX);
         double y_min = xmltof(e->Attribute("y_min"), -FLT_MAX);
         double y_max = xmltof(e->Attribute("y_max"), FLT_MAX);
-        double bounds[4] = {x_min, x_max, y_min, y_max};
+        double bounds[4] = { x_min, x_max, y_min, y_max };
 
         //sanity check
-        if ((x_max<x_min) || (y_max<y_min)) {
+        if ((x_max < x_min) || (y_max < y_min)) {
             Log->Write(
-                    "ERROR:\tinvalid bounds [%0.2f,%0.2f,%0.2f,%0.2f] of the group [%d]. Max and Min values mismatched?",
-                    group_id, x_min, x_max, y_min, y_max);
+                "ERROR:\tinvalid bounds [%0.2f,%0.2f,%0.2f,%0.2f] of the group [%d]. Max and Min values mismatched?",
+                group_id, x_min, x_max, y_min, y_max);
             return false;
         }
+
+        //Circle_experiemnt
+        int circle = xmltoi(e->Attribute("circle"), 0);
+        float radius = xmltof(e->Attribute("radius"), 10);
+        if (circle == 1)
+        {
+            if (number % 2 == 1 || number < 2)
+            {
+                Log->Write("ERROR:\tThe number of agents should be even and more than 2.");
+                return false;
+            }
+            Log->Write("INFO:\tAgents (number=%d) are distributed in Circle (r=%.2f).", number, radius);
+            //todo:Check if the space is enough for so many agents
+        }
+
+
         auto dis = std::shared_ptr<StartDistribution>(new StartDistribution(_configuration->GetSeed()));
         dis->SetRoomID(room_id);
         dis->SetSubroomID(subroom_id);
@@ -107,17 +123,19 @@ bool PedDistributionParser::LoadPedDistribution(vector<std::shared_ptr<StartDist
         dis->InitPremovementTime(premovement_mean, premovement_sigma);
         dis->SetPositionsDir(positions_dir);
         dis->SetUnitTraj(unit_traj);
+        dis->SetCircle(circle);
+        dis->SetRadius(radius);
 
         if (dis->GetPositionsDir().length())
         {
-              Log->Write("INFO:\tPositions_dir = <%s>\n", dis->GetPositionsDir().c_str());
+            Log->Write("INFO:\tPositions_dir = <%s>\n", dis->GetPositionsDir().c_str());
         }
         if (e->Attribute("risk_tolerance_mean") && e->Attribute("risk_tolerance_sigma")) {
             std::string distribution_type = "normal";
             double risk_tolerance_mean = xmltof(e->Attribute("risk_tolerance_mean"), NAN);
             double risk_tolerance_sigma = xmltof(e->Attribute("risk_tolerance_sigma"), NAN);
             Log->Write("INFO:\trisk tolerance mu = %f, risk tolerance sigma = %f\n", risk_tolerance_mean,
-                    risk_tolerance_sigma);
+                risk_tolerance_sigma);
             dis->InitRiskTolerance(distribution_type, risk_tolerance_mean, risk_tolerance_sigma);
         }
         else if (e->Attribute("risk_tolerance_alpha") && e->Attribute("risk_tolerance_beta")) {
@@ -125,7 +143,7 @@ bool PedDistributionParser::LoadPedDistribution(vector<std::shared_ptr<StartDist
             double risk_tolerance_alpha = xmltof(e->Attribute("risk_tolerance_alpha"), NAN);
             double risk_tolerance_beta = xmltof(e->Attribute("risk_tolerance_beta"), NAN);
             Log->Write("INFO:\trisk tolerance alpha = %f, risk tolerance beta = %f\n", risk_tolerance_alpha,
-                    risk_tolerance_beta);
+                risk_tolerance_beta);
             dis->InitRiskTolerance(distribution_type, risk_tolerance_alpha, risk_tolerance_beta);
         }
         else {
@@ -133,24 +151,24 @@ bool PedDistributionParser::LoadPedDistribution(vector<std::shared_ptr<StartDist
             double risk_tolerance_mean = 0.;
             double risk_tolerance_sigma = 1.;
             Log->Write("INFO:\trisk tolerance mu = %f, risk tolerance sigma = %f\n", risk_tolerance_mean,
-                    risk_tolerance_sigma);
+                risk_tolerance_sigma);
             dis->InitRiskTolerance(distribution_type, risk_tolerance_mean, risk_tolerance_sigma);
         }
 
-        if (subroom_id==-1) { // no subroom was supplied
+        if (subroom_id == -1) { // no subroom was supplied
             startDis.push_back(dis);
         }
         else {
             startDisSub.push_back(dis);
         }
 
-        if (_configuration->GetAgentsParameters().count(agent_para_id)==0) {
+        if (_configuration->GetAgentsParameters().count(agent_para_id) == 0) {
             Log->Write(
-                    "ERROR:\t Please specify which set of agents parameters (agent_parameter_id) to use for the group [%d]!",
-                    group_id);
+                "ERROR:\t Please specify which set of agents parameters (agent_parameter_id) to use for the group [%d]!",
+                group_id);
             Log->Write("ERROR:\t Default values are not implemented yet");
 
-            std::cout << "\n >> Exit with failure. See <" << _configuration->GetErrorLogFile() <<"> for details << \n";
+            std::cout << "\n >> Exit with failure. See <" << _configuration->GetErrorLogFile() << "> for details << \n";
             exit(EXIT_FAILURE);
             return false;
         }
@@ -167,53 +185,53 @@ bool PedDistributionParser::LoadPedDistribution(vector<std::shared_ptr<StartDist
     //Parse the sources
     TiXmlNode* xSources = xRootNode->FirstChild("agents_sources");
     if (xSources) {
-         Log->Write("INFO:\tLoading sources");
-         // ------ parse sources from inifile
+        Log->Write("INFO:\tLoading sources");
+        // ------ parse sources from inifile
         for (TiXmlElement* e = xSources->FirstChildElement("source"); e;
-             e = e->NextSiblingElement("source")) {
-             startDisSources.push_back(parseSourceNode(e));
+            e = e->NextSiblingElement("source")) {
+            startDisSources.push_back(parseSourceNode(e));
         }//for
         TiXmlNode* xFileNode = xSources->FirstChild("file");
         //------- parse sources from external file
-        if(xFileNode)
+        if (xFileNode)
         {
-             fs::path p(_configuration->GetProjectRootDir());
-             std::string sourceFilename = xFileNode->FirstChild()->ValueStr();
-             p /= sourceFilename;
-             sourceFilename = p.string();
-             Log->Write("Info:\t  Source file found <%s>", sourceFilename.c_str());
-             TiXmlDocument docSource(sourceFilename);
-             if (!docSource.LoadFile()) {
-               Log->Write("ERROR: \t%s", docSource.ErrorDesc());
-               Log->Write("ERROR: \t could not parse the sources file.");
-               return false;
-             }
-             TiXmlElement* xRootNodeSource = docSource.RootElement();
-             if (!xRootNodeSource) {
-                  Log->Write("ERROR:\tRoot element does not exist in source file.");
-                  return false;
-             }
+            fs::path p(_configuration->GetProjectRootDir());
+            std::string sourceFilename = xFileNode->FirstChild()->ValueStr();
+            p /= sourceFilename;
+            sourceFilename = p.string();
+            Log->Write("Info:\t  Source file found <%s>", sourceFilename.c_str());
+            TiXmlDocument docSource(sourceFilename);
+            if (!docSource.LoadFile()) {
+                Log->Write("ERROR: \t%s", docSource.ErrorDesc());
+                Log->Write("ERROR: \t could not parse the sources file.");
+                return false;
+            }
+            TiXmlElement* xRootNodeSource = docSource.RootElement();
+            if (!xRootNodeSource) {
+                Log->Write("ERROR:\tRoot element does not exist in source file.");
+                return false;
+            }
 
-             if (xRootNodeSource->ValueStr() != "JPScore") {
-                  Log->Write("ERROR:\tRoot element value in source file is not 'JPScore'.");
-                  return false;
-             }
-             TiXmlNode* xSourceF = xRootNodeSource->FirstChild("agents_sources");
-             if (!xSourceF) {
-                  Log->Write("ERROR:\tNo agents_sources tag in file not found.");
-                  return false;
-             }
-             Log->Write("INFO:\t  Loading sources from file");
-             TiXmlNode* xSourceNodeF = xSourceF->FirstChild("source");
-             if(xSourceNodeF)
-             {
-                  for (TiXmlElement* e = xSourceF->FirstChildElement("source"); e;
-                       e = e->NextSiblingElement("source")) {
-                       startDisSources.push_back(parseSourceNode(e));
-                  }//for
-             }
-             else
-                  Log->Write("Info:\t  no source info found in source file");
+            if (xRootNodeSource->ValueStr() != "JPScore") {
+                Log->Write("ERROR:\tRoot element value in source file is not 'JPScore'.");
+                return false;
+            }
+            TiXmlNode* xSourceF = xRootNodeSource->FirstChild("agents_sources");
+            if (!xSourceF) {
+                Log->Write("ERROR:\tNo agents_sources tag in file not found.");
+                return false;
+            }
+            Log->Write("INFO:\t  Loading sources from file");
+            TiXmlNode* xSourceNodeF = xSourceF->FirstChild("source");
+            if (xSourceNodeF)
+            {
+                for (TiXmlElement* e = xSourceF->FirstChildElement("source"); e;
+                    e = e->NextSiblingElement("source")) {
+                    startDisSources.push_back(parseSourceNode(e));
+                }//for
+            }
+            else
+                Log->Write("Info:\t  no source info found in source file");
         } // source file found
     }//sources
 
@@ -223,80 +241,80 @@ bool PedDistributionParser::LoadPedDistribution(vector<std::shared_ptr<StartDist
 
 std::shared_ptr<AgentsSource> PedDistributionParser::parseSourceNode(TiXmlElement* e)
 {
-     int id = xmltoi(e->Attribute("id"), -1);
-     int frequency = xmltoi(e->Attribute("frequency"), -1);
-     int agents_max = xmltoi(e->Attribute("agents_max"), -1);
-     int group_id = xmltoi(e->Attribute("group_id"), -1);
-     string caption = xmltoa(e->Attribute("caption"), "no caption");
-     string str_greedy = xmltoa(e->Attribute("greedy"), "false");
-     float percent = xmltof(e->Attribute("percent"), 1);
-     float rate = xmltof(e->Attribute("rate"), 1);
-     double time = xmltof(e->Attribute("time"), 0);
-     int agent_id = xmltoi(e->Attribute("agent_id"), -1);
-     float startx = xmltof(e->Attribute("startX"), std::numeric_limits<float>::quiet_NaN());
-     float starty = xmltof(e->Attribute("startY"), std::numeric_limits<float>::quiet_NaN());
-     bool greedy = (str_greedy == "true")?true:false;
-     float xmin =  xmltof(e->Attribute("x_min"), std::numeric_limits<float>::lowest());
-     float xmax =  xmltof(e->Attribute("x_max"), FLT_MAX);
-     float ymin =  xmltof(e->Attribute("y_min"), std::numeric_limits<float>::lowest());
-     float ymax =  xmltof(e->Attribute("y_max"), FLT_MAX);
-     float chunkAgents = xmltof(e->Attribute("N_create"), 1);
-     int timeMin = xmltof(e->Attribute("time_min"), std::numeric_limits<int>::min());
-     int timeMax = xmltof(e->Attribute("time_max"), std::numeric_limits<int>::max());
-     std::vector<float> boundaries = {xmin, xmax, ymin, ymax};
-     std::vector<int> lifeSpan = {timeMin, timeMax};
-     float SizeBB = 1;
-     bool isBigEnough = (abs(xmin-xmax) > SizeBB) && (abs(ymin-ymax) > SizeBB);
-     if(!isBigEnough )
-     {
-          Log->Write("Warning: Source %d got too small bounding box.\n\t BB [Dx, Dy] should be such Dx>%.2f and Dy>%.2f. Ignoring BB!!", id, SizeBB, SizeBB);
-          xmin = std::numeric_limits<float>::min();
-          xmax = std::numeric_limits<float>::max();
-          ymin = std::numeric_limits<float>::min();
-          ymax = std::numeric_limits<float>::max();
-     }
-     if(timeMin > timeMax)
-     {
-          Log->Write("Warning: Source %d given wrong life span. Assuming timeMin = timeMax.", id);
-          timeMin = timeMax;
-     }
-     if(time > 0)
-     {
-          timeMin = std::numeric_limits<int>::min();
-          timeMax = std::numeric_limits<int>::max();
-          Log->Write("Warning: Source %d. Planned time %d. Ignoring timeMin and timeMax (in case they are specified)", id, time);
-     }
-     if (agent_id >= 0){
-          agents_max = 1;
-          frequency = 1;
-     }
-     if(percent > 1)
-     {
-          Log->Write("Warning: Source %d. Passed erronuous percent <%.2f>. Set percent=1", id, percent);
-          percent = 1.0;
-     }
-     else if(percent < 0)
-     {
-          Log->Write("Warning: Source %d. Passed erronuous percent <%.2f>. Set percent=0 (this source is kinda inactive)", id, percent);
-          percent = 0.0;
-     }
-     auto source = std::shared_ptr<AgentsSource>(
-          new AgentsSource(id,
-                           caption,
-                           agents_max,
-                           group_id,
-                           frequency,
-                           greedy,
-                           time,
-                           agent_id,
-                           startx,
-                           starty,
-                           percent,
-                           rate,
-                           chunkAgents,
-                           boundaries,
-                           lifeSpan));
+    int id = xmltoi(e->Attribute("id"), -1);
+    int frequency = xmltoi(e->Attribute("frequency"), -1);
+    int agents_max = xmltoi(e->Attribute("agents_max"), -1);
+    int group_id = xmltoi(e->Attribute("group_id"), -1);
+    string caption = xmltoa(e->Attribute("caption"), "no caption");
+    string str_greedy = xmltoa(e->Attribute("greedy"), "false");
+    float percent = xmltof(e->Attribute("percent"), 1);
+    float rate = xmltof(e->Attribute("rate"), 1);
+    double time = xmltof(e->Attribute("time"), 0);
+    int agent_id = xmltoi(e->Attribute("agent_id"), -1);
+    float startx = xmltof(e->Attribute("startX"), std::numeric_limits<float>::quiet_NaN());
+    float starty = xmltof(e->Attribute("startY"), std::numeric_limits<float>::quiet_NaN());
+    bool greedy = (str_greedy == "true") ? true : false;
+    float xmin = xmltof(e->Attribute("x_min"), std::numeric_limits<float>::lowest());
+    float xmax = xmltof(e->Attribute("x_max"), FLT_MAX);
+    float ymin = xmltof(e->Attribute("y_min"), std::numeric_limits<float>::lowest());
+    float ymax = xmltof(e->Attribute("y_max"), FLT_MAX);
+    float chunkAgents = xmltof(e->Attribute("N_create"), 1);
+    int timeMin = xmltof(e->Attribute("time_min"), std::numeric_limits<int>::min());
+    int timeMax = xmltof(e->Attribute("time_max"), std::numeric_limits<int>::max());
+    std::vector<float> boundaries = { xmin, xmax, ymin, ymax };
+    std::vector<int> lifeSpan = { timeMin, timeMax };
+    float SizeBB = 1;
+    bool isBigEnough = (abs(xmin - xmax) > SizeBB) && (abs(ymin - ymax) > SizeBB);
+    if (!isBigEnough)
+    {
+        Log->Write("Warning: Source %d got too small bounding box.\n\t BB [Dx, Dy] should be such Dx>%.2f and Dy>%.2f. Ignoring BB!!", id, SizeBB, SizeBB);
+        xmin = std::numeric_limits<float>::min();
+        xmax = std::numeric_limits<float>::max();
+        ymin = std::numeric_limits<float>::min();
+        ymax = std::numeric_limits<float>::max();
+    }
+    if (timeMin > timeMax)
+    {
+        Log->Write("Warning: Source %d given wrong life span. Assuming timeMin = timeMax.", id);
+        timeMin = timeMax;
+    }
+    if (time > 0)
+    {
+        timeMin = std::numeric_limits<int>::min();
+        timeMax = std::numeric_limits<int>::max();
+        Log->Write("Warning: Source %d. Planned time %d. Ignoring timeMin and timeMax (in case they are specified)", id, time);
+    }
+    if (agent_id >= 0) {
+        agents_max = 1;
+        frequency = 1;
+    }
+    if (percent > 1)
+    {
+        Log->Write("Warning: Source %d. Passed erronuous percent <%.2f>. Set percent=1", id, percent);
+        percent = 1.0;
+    }
+    else if (percent < 0)
+    {
+        Log->Write("Warning: Source %d. Passed erronuous percent <%.2f>. Set percent=0 (this source is kinda inactive)", id, percent);
+        percent = 0.0;
+    }
+    auto source = std::shared_ptr<AgentsSource>(
+        new AgentsSource(id,
+            caption,
+            agents_max,
+            group_id,
+            frequency,
+            greedy,
+            time,
+            agent_id,
+            startx,
+            starty,
+            percent,
+            rate,
+            chunkAgents,
+            boundaries,
+            lifeSpan));
 
-     Log->Write("INFO:\t  Source with id %d will be parsed (greedy = %d)!", id, greedy);
-     return source;
+    Log->Write("INFO:\t  Source with id %d will be parsed (greedy = %d)!", id, greedy);
+    return source;
 }

@@ -48,7 +48,8 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     double aped, double Dped, double awall, double Dwall,
     double Ts, double Td,
     double AntiT, bool calpha,
-    double lb, double rb, double ub, double db, double co)
+    double lb, double rb, double ub, double db, double co,
+    bool circle)
 {
     _direction = dir;
     _Model = model;
@@ -74,6 +75,9 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     _UpBoundary = ub;
     _DownBoundary = db;
     _CutOff = co;
+
+    //circle_antipode
+    _Circle_Antipode = circle;
 }
 
 
@@ -131,6 +135,23 @@ bool AVMModel::Init(Building* building)
     {
         Pedestrian* ped = allPeds[p];
         double cosPhi, sinPhi;
+        //CircleExperiment
+        if (_Circle_Antipode)
+        {
+            Point target = Point(0, 0) - ped->GetPos();
+            ped->SetAlwaysTarget(target);
+            Point d = target - ped->GetPos();
+            double dist = d.Norm();
+            cosPhi = d._x / dist;
+            sinPhi = d._y / dist;
+            ped->InitV0(target);
+
+            JEllipse E = ped->GetEllipse();
+            E.SetCosPhi(cosPhi);
+            E.SetSinPhi(sinPhi);
+            ped->SetEllipse(E);
+            continue;
+        }
         //a destination could not be found for that pedestrian
         if (ped->FindRoute() == -1) {
             Log->Write(
@@ -327,9 +348,13 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
 /*----------Functions important----------*/
 Point AVMModel::DesireDirection(Pedestrian* ped, Room* room) const
 {
-
     Point target = this->GetDirection()->GetTarget(room, ped);
     Point desiredDirection;
+    
+    if (_Circle_Antipode)
+    {
+        target = ped->GetAlwaysTarget();
+    }
     const Point pos = ped->GetPos();
     double dist = (target - pos).Norm();
     if (dist > J_EPS_GOAL)

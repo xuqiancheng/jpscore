@@ -1,16 +1,19 @@
 <JuPedSim>
-  <seed>1.0</seed>
+  <seed>1</seed>
   <num_threads>8</num_threads>
   <max_sim_time unit="sec">200</max_sim_time>
+  <logfile>log.txt</logfile>
   <geometry>geometry.xml</geometry>
-  <trajectories embed_mesh="false" format="xml-plain" fps="20">
-    <file location="trajectory.xml" />
+  <circle_antipode>1</circle_antipode>
+  <trajectories color_mode="group" embed_mesh="false" format="xml-plain" fps="10">
+    <file location="trajectory.xml" /> 
   </trajectories>
-
+  <show_statistics>false</show_statistics>
+  
   <agents operational_model_id="8">
     <agents_distribution>
-      <group agent_parameter_id="1" goal_id="-1" group_id="0" number="100" room_id="0" router_id="1" subroom_id="2" />	
-    </agents_distribution>
+		<group agent_parameter_id="1" group_id="1" number="16" room_id="0" router_id="1" subroom_id="0" circle="1" radius="10"/>	
+	</agents_distribution>
   </agents>
  
   <operational_models>
@@ -20,12 +23,13 @@
         <stepsize>0.05</stepsize>
 		<periodic>0</periodic>
         <exit_crossing_strategy>3</exit_crossing_strategy>
-        <linkedcells cell_size="300" enabled="true" />
+        <linkedcells cell_size="20" enabled="true" />
         <model_type using="2" />
-        <force_ped D="0.01" a="6.0" />
+        <force_ped D="0.1" a="3.0" />
         <force_wall D="0.05" a="6" />
-		<GCVM Td="0.3" Ts="0.5" />
-        <AVM AntiTime="1.0" ConstantAlpha="false"/>
+		<GCVM Td="0.3" Ts="1.06" />
+        <AVM AntiTime="1.0" ConstantAlpha="false"
+        />
       </model_parameters>
       <agent_parameters agent_parameter_id="1">
         <v0 mu="1.34" sigma="0.26" />
@@ -35,19 +39,14 @@
         <atau mu="0.0" sigma="0.00000" />
 		<tau mu="0.0" sigma="0.000" />
       </agent_parameters>
-	  <agent_parameters agent_parameter_id="2">
-        <v0 mu="1.34" sigma="0.26" />
-        <bmax mu="0.20" sigma="0.00000" /> 
-        <bmin mu="0.15" sigma="0.00000" />
-        <amin mu="0.18" sigma="0.00000" />
-        <atau mu="0.0" sigma="0.00000" />
-		<tau mu="0.0" sigma="0.000" />
-      </agent_parameters>
-	</model>    
+	</model> 
   </operational_models>
 
   <route_choice_models>
     <router description="local_shortest" router_id="1">
+      <parameters>
+        
+      </parameters>
     </router>
   </route_choice_models>
 

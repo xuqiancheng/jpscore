@@ -156,6 +156,9 @@ public:
         //for random numbers
         _rdGenerator = RandomNumberGenerator();
 
+        //circle experiment
+        _circle_experiment = false;
+
 
     }
     std::shared_ptr<WalkingSpeed> GetWalkingSpeed() { return _walkingSpeed; };
@@ -468,6 +471,9 @@ public:
 
     void SetddType(int ddtype) { _ddType = ddtype; };
 
+    void SetCirlceExperiment(bool circle) { _circle_experiment = circle; };
+
+    bool GetCircleExperiment() const { return _circle_experiment; };
 #ifdef _JPS_AS_A_SERVICE
 
     const bool GetRunAsService() const { return _runAsService; };
@@ -554,6 +560,9 @@ private:
     bool _ConstantAlpha;
     int _ddType;
     //Todo: anticipation error
+
+    //circle experiment
+    bool _circle_experiment;
 
     //ff router quickest
     double _recalc_interval;

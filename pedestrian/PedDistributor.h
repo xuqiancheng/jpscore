@@ -39,8 +39,8 @@
 #include "StartDistribution.h"
 #include "../general/ArgumentParser.h"
 
-//typedef vector<Point> tPoints;
-//typedef vector<tPoints> GridPoints;
+ //typedef vector<Point> tPoints;
+ //typedef vector<tPoints> GridPoints;
 
 
 class PedDistributor {
@@ -52,10 +52,10 @@ private:
     //std::map<int, AgentsParameters*> _agentsParameters;
 
     std::vector<Point> PositionsOnFixX(double max_x, double min_x, double max_y,
-                                              double min_y, const SubRoom &r, double bufx, double bufy, double dy) const;
+        double min_y, const SubRoom &r, double bufx, double bufy, double dy) const;
 
     std::vector<Point> PositionsOnFixY(double max_x, double min_x, double max_y,
-                                              double min_y, const SubRoom &r, double bufx, double bufy, double dx) const;
+        double min_y, const SubRoom &r, double bufx, double bufy, double dx) const;
 
     const Configuration * _configuration;
 public:
@@ -74,11 +74,17 @@ public:
      */
     vector<Point> PossiblePositions(const SubRoom &r) const;
 
+
+    /**
+     * Return the possible positions for distributing the agents in a circle
+     */
+    vector<Point> CirclePositions(int number, float radius) const;
+
     /**
      * Distribute the pedestrians in the Subroom with the given parameters
      */
     void DistributeInSubRoom(int N, std::vector<Point> &positions, int *pid,
-                             StartDistribution *parameters, Building *building) const;
+        StartDistribution *parameters, Building *building) const;
 
     /**
      *
@@ -96,14 +102,14 @@ public:
     /**
      * Get positions from filename
      * Only for frame's position for every id is given
-     * WARNING: It is assumed that positions should be in the corresponding room/subroom. 
+     * WARNING: It is assumed that positions should be in the corresponding room/subroom.
      * checks with n if the file delivers the right number of peds
      */
     const vector<Point>  GetPositionsFromFile(std::string filename, int n, std::string unit) const;
 
-	double GetA_dist() const;
+    double GetA_dist() const;
 
-	double GetB_dist() const;
+    double GetB_dist() const;
 };
 
 #endif  /* _PEDDISTRIBUTOR_H */

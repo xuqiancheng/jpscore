@@ -174,6 +174,18 @@ bool IniFileParser::Parse(std::string iniFile)
         // srand(_config->GetSeed());
         Log->Write("INFO:\trandom seed <%d>", _config->GetSeed());
 
+        //circle_antipode_experiment
+        if (xHeader->FirstChild("circle_antipode")) {
+            const char* runCircle = xHeader->FirstChildElement("circle_antipode")->FirstChild()->Value();
+            if (atoi(runCircle) == 1)
+            {
+                _config->SetCirlceExperiment(true);
+                Log->Write("INFO: \tYou are runing circle antipode experiment.");
+            }
+            else
+                _config->SetCirlceExperiment(false);
+        }
+
         // max simulation time
         if (xHeader->FirstChild("max_sim_time")) {
             const char* tmax =
@@ -328,6 +340,18 @@ bool IniFileParser::Parse(std::string iniFile)
         }
         // srand(_config->GetSeed());
         Log->Write("INFO:\trandom seed <%d>", _config->GetSeed());
+
+        //circle_antipode_experiment
+        if (xMainNode->FirstChild("circle_antipode")) {
+            const char* runCircle = xMainNode->FirstChildElement("circle_antipode")->FirstChild()->Value();
+            if (atoi(runCircle) == 1)
+            {
+                _config->SetCirlceExperiment(true);
+                Log->Write("INFO: \tYou are runing circle antipode experiment.");
+            }
+            else
+                _config->SetCirlceExperiment(false);
+        }
 
         // max simulation time
         if (xMainNode->FirstChild("max_sim_time")) {
@@ -1283,10 +1307,10 @@ void IniFileParser::ParseAgentParameters(TiXmlElement* operativModel, TiXmlNode*
                 _config->SetDistEffMaxWall(_config->GetDistEffMaxPed());
             }
 
-            if (_model == 8) { // AGCVM
+            if (_model == 8) { // AVM
                 double max_Eb = 2 * agentParameters->GetBmax();
-                _config->SetDistEffMaxPed(max_Eb + _config->GetTs()*agentParameters->GetV0());
-                _config->SetDistEffMaxWall(_config->GetDistEffMaxPed());
+                //_config->SetDistEffMaxPed(max_Eb + _config->GetTs()*agentParameters->GetV0());
+                //_config->SetDistEffMaxWall(_config->GetDistEffMaxPed());
             }
         }
     }
@@ -2074,6 +2098,7 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
         _config->GetaPed(), _config->GetDPed(), _config->GetaWall(), _config->GetDWall(),
         _config->GetTs(), _config->GetTd(),
         _config->GetAntiT(), _config->GetConstantAlpha(),
-        _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff())));
+        _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
+        _config->GetCircleExperiment())));
     return true;
 }

@@ -77,6 +77,9 @@ private:
     double _DownBoundary;
     double _CutOff;
 
+    //Circle experiment
+    bool _Circle_Antipode;
+
 
     // Functions 
     Point DesireDirection(Pedestrian *ped, Room* room) const;
@@ -102,7 +105,8 @@ public:
         double aped, double Dped, double awall, double Dwall,
         double Ts, double Td,
         double AntiT, bool calpha,
-        double lb, double rb, double ub, double db, double co);
+        double lb, double rb, double ub, double db, double co,
+        bool circle);
     ~AVMModel(void);
 
     std::string GetDescription() override;
