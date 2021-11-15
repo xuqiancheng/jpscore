@@ -49,7 +49,7 @@ For the parameters used in the simulation of this work:
 	<contact_para number="50" checkTimeRate="0.1" checkDisRate="0.003" socialDis="0" />
 </model_parameters>
 ```
-- covid: **1** means run simulations in confined room, **2**  means run simulations in normal case, **5** means run simulations in supermarket case
+- covid: **1** means run simulations in confined room case, **2**  means run simulations in normal case, **5** means run simulations in supermarket case.
 + contact_para:
 	- number: the max allowable number of customers in the supermarket at the same time, corresponds to ![](http://latex.codecogs.com/gif.latex?L_\text{max}) in [supermarket case](https://www.mdpi.com/2071-1050/12/22/9385).  
 	- checkTimeRate: the rate between checkout time and shopping time, ![](http://latex.codecogs.com/gif.latex?\alpha) in [equation (5) of supermarket case](https://www.mdpi.com/2071-1050/12/22/9385).
