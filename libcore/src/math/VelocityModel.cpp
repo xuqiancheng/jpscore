@@ -223,7 +223,7 @@ void VelocityModel::ComputeNextTimeStep(
                 if(!isVisible)
                     continue;
                 if(ped->GetUniqueRoomID() == ped1->GetUniqueRoomID()) {
-                    repPed += ForceRepPed(ped, ped1, periodic);
+                    repPed += ForceRepPed(ped, ped1, periodic, _isCovid);
                     if(_isCovid == 5 &&
                        InRightRoom(room, {"checkout1", "checkout2", "checkout3", "supermarket"})) {
                         virus += VirusContactAmount(ped, ped1);
@@ -237,7 +237,7 @@ void VelocityModel::ComputeNextTimeStep(
                     Room * room1  = building->GetRoom(ped1->GetRoomID());
                     SubRoom * sb2 = room1->GetSubRoom(ped1->GetSubRoomID());
                     if(subroom->IsDirectlyConnectedWith(sb2)) {
-                        repPed += ForceRepPed(ped, ped1, periodic);
+                        repPed += ForceRepPed(ped, ped1, periodic, _isCovid);
                         if(_isCovid == 5 &&
                            InRightRoom(
                                room, {"checkout1", "checkout2", "checkout3", "supermarket"}) &&
@@ -533,7 +533,8 @@ VelocityModel::GetSpacing(Pedestrian * ped1, Pedestrian * ped2, Point ei, int pe
     else
         return my_pair(FLT_MAX, ped2->GetID());
 }
-Point VelocityModel::ForceRepPed(Pedestrian * ped1, Pedestrian * ped2, int periodic) const
+Point VelocityModel::ForceRepPed(Pedestrian * ped1, Pedestrian * ped2, int periodic, int covid)
+    const
 {
     Point F_rep(0.0, 0.0);
     // x- and y-coordinate of the distance between p1 and p2
@@ -577,6 +578,9 @@ Point VelocityModel::ForceRepPed(Pedestrian * ped1, Pedestrian * ped2, int perio
     JEllipse Eped1 = ped1->GetEllipse();
     JEllipse Eped2 = ped2->GetEllipse();
     dist           = Eped1.EffectiveDistanceToEllipse(Eped2, &dist);
+    if(covid == 1 && _socialDistance > 0) {
+        dist = Distance - _socialDistance;
+    }
     //dist           = dist > 0 ? dist : 0;
     R_ij  = -_aPed * exp((-dist) / _DPed);
     F_rep = ep12 * R_ij;

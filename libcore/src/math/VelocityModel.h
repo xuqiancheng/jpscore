@@ -125,7 +125,7 @@ private:
       *
       * @return Point
       */
-    Point ForceRepPed(Pedestrian * ped1, Pedestrian * ped2, int periodic) const;
+    Point ForceRepPed(Pedestrian * ped1, Pedestrian * ped2, int periodic, int covid) const;
     /**
       * Repulsive force acting on pedestrian <ped> from the walls in
       * <subroom>. The sum of all repulsive forces of the walls in <subroom> is calculated
