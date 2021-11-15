@@ -20,7 +20,7 @@ See [Getting started with jupedsim](http://www.jupedsim.org/jpscore_introduction
 
 A demo is provided for testing clogging simulation, which can be found in [demo](https://github.com/xuqiancheng/jpscore/tree/CLOG/demos/scenario_1_clogging).  
 
-![](G:\Jpscore_CLOG\jpscore\demos\scenario_1_clogging\clogging.png)  
+![](demos\scenario_1_clogging\clogging.png)  
 
 
 
