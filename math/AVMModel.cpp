@@ -216,6 +216,10 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         building->GetGrid()->GetNeighbourhood(ped1, neighbours);
         int size = (int)neighbours.size();
 
+        // Just test for detour，it will be interesting --
+        IniDirection = DetourDirection(ped1, room1, neighbours);
+        //---------------------------------------------------------
+
         Point repPed = Point(0, 0); //CSM effect
         // Calculate the influence from neighbours
         for (int i = 0; i < size; i++)
@@ -254,6 +258,10 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         // Turning process
         Point direction = Point(0, 0);
         Point dDirection = IniDirection + repPed + repWall;
+
+        // test----------------------------------------------------
+        //dDirection = IniDirection;
+        //---------------------------------------------------------
         switch (GetModel())
         {
         case 0:
@@ -350,7 +358,7 @@ Point AVMModel::DesireDirection(Pedestrian* ped, Room* room) const
 {
     Point target = this->GetDirection()->GetTarget(room, ped);
     Point desiredDirection;
-    
+
     if (_Circle_Antipode)
     {
         target = ped->GetAlwaysTarget();
@@ -365,6 +373,151 @@ Point AVMModel::DesireDirection(Pedestrian* ped, Room* room) const
     }
     desiredDirection = ped->GetLastE0();
     return desiredDirection;
+}
+
+Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian*> neighbours) const
+{
+    Point target = this->GetDirection()->GetTarget(room, ped);
+    Point desiredDirection;
+    if (_Circle_Antipode)
+    {
+        target = ped->GetAlwaysTarget();
+    }
+    const Point pos = ped->GetPos();
+    double dist = (target - pos).Norm();
+    if (dist > J_EPS_GOAL)
+    {
+        Point NewE0;
+        NewE0 = (target - pos).Normalized();
+        ped->SetLastE0(NewE0);
+    }
+    desiredDirection = ped->GetLastE0();
+
+    // check if the pedestrian need detour
+    int left = 0, right = 0;
+    vector<double> frontPed;
+    frontPed.reserve(neighbours.size());
+    double predicted_distance = GetAntiT()*ped->GetV0Norm();
+    for (int i = 0; i < neighbours.size(); i++)
+    {
+        Pedestrian * ped2 = neighbours[i];
+        // I need to judge if ped2 on ped1's moving path
+        Point pos2 = ped2->GetPos();
+        Point distp12 = pos2 - pos; //ped1 ---> ped2
+        double Distance = distp12.Norm();
+        Point ep12;
+        if (Distance >= J_EPS)
+        {
+            ep12 = distp12.Normalized();
+        }
+        else
+        {
+            printf("ERROR: \tIn AGCVMModel::GetSpacing() ep12 can not be calculated!!!\n");
+            exit(EXIT_FAILURE);
+        }
+        double condition1 = desiredDirection.ScalarProduct(ep12);
+        double l = ped->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax();
+        // Rotate(0,1) turning left for 90 degree [Rotate(double ctheta, double stheta)]
+        double condition2 = desiredDirection.Rotate(0, 1).ScalarProduct(ep12);
+        if (condition2 > 0)
+        {
+            left++;
+        }
+        else
+        {
+            right++;
+            condition2 = -condition2;
+        }
+        if ((condition1 > 0) && (condition2 < l / Distance) && (Distance <= predicted_distance))
+        {
+            double ProjV2 = ped2->GetV().ScalarProduct(desiredDirection);
+            // only conisder the person who moves in the same direction, 
+            // otherwise it will be wrong, but I don't know what's the right answer
+            if (ProjV2 > 0)
+            {
+                frontPed.push_back(ProjV2);
+            }
+        }
+    }
+    if (frontPed.empty())
+    {
+        return desiredDirection;
+    }
+    double sum = 0;
+    for (vector<double>::iterator it = frontPed.begin(); it != frontPed.end(); it++)
+    {
+        sum += *it;
+    }
+    double average = sum / frontPed.size();
+    double angle = (1 - average / ped->GetV0Norm())*M_PI / 1.5;
+    angle = left < right ? angle : -angle;
+    Point detourDirection = desiredDirection.Rotate(cos(angle), sin(angle));
+    double myPatience = 0.3;
+    // sum or average, I need to think about it
+    if (sum / ped->GetV0Norm() < myPatience)
+    {
+        return detourDirection;
+    }
+    else
+    {
+        return desiredDirection;
+    }
+    // To see is this direction desire to detour, but this part maybe useless
+    /*
+    frontPed.clear();
+    for (int i = 0; i < neighbours.size(); i++)
+    {
+        Pedestrian * ped2 = neighbours[i];
+        // I need to judge if ped2 on ped1's moving path
+        Point pos2 = ped2->GetPos();
+        Point distp12 = pos2 - pos; //ped1 ---> ped2
+        double Distance = distp12.Norm();
+        Point ep12;
+        if (Distance >= J_EPS)
+        {
+            ep12 = distp12.Normalized();
+        }
+        else
+        {
+            printf("ERROR: \tIn AGCVMModel::GetSpacing() ep12 can not be calculated!!!\n");
+            exit(EXIT_FAILURE);
+        }
+        double condition1 = detourDirection.ScalarProduct(ep12);
+        double l = ped->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax();
+        // Rotate(0,1) turning left for 90 degree [Rotate(double ctheta, double stheta)]
+        double condition2 = detourDirection.Rotate(0, 1).ScalarProduct(ep12);
+        if (condition2 > 0)
+        {
+        }
+        else
+        {
+            condition2 = -condition2;
+        }
+        if ((condition1 > 0) && (condition2 < l / Distance) && (Distance <= predicted_distance))
+        {
+            double ProjV2 = ped2->GetV().ScalarProduct(desiredDirection);
+            frontPed.push_back(ProjV2);
+        }
+    }
+    if (frontPed.empty())
+    {
+        return detourDirection;
+    }
+    sum = 0;
+    for (vector<double>::iterator it = frontPed.begin(); it != frontPed.end(); it++)
+    {
+        sum += *it;
+    }
+    double newAverage= sum / frontPed.size();
+    if (newAverage > average)
+    {
+        return detourDirection;
+    }
+    else
+    {
+        return desiredDirection;
+    }
+    */
 }
 
 Point AVMModel::ForceRepPedCSM(Pedestrian * ped1, Pedestrian * ped2, Building * building, int periodic) const

@@ -83,6 +83,8 @@ private:
 
     // Functions 
     Point DesireDirection(Pedestrian *ped, Room* room) const;
+    // Here is a new function used to calculate the new desired direction after detour
+    Point DetourDirection(Pedestrian *ped, Room* room, vector<Pedestrian*> neighbours) const;
 
     Point ForceRepPedGCVM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     Point ForceRepPedCSM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
