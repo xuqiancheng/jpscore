@@ -128,6 +128,12 @@ Pedestrian::Pedestrian()
     _try_coop = 0;
     _dynamic_V0 = 1.3;
     _alwaysTarget = Point(0, 0);
+
+    //detour
+    _detour = false;
+    _detourAngle = 0;
+    _detourPatient = 0;
+    _detourCenter = Point(0, 0);
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -217,6 +223,12 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
     _try_coop = 0;
     _dynamic_V0 = 1.3;
     _alwaysTarget = Point(0, 0);
+
+    //detour
+    _detour = false;
+    _detourAngle = 0;
+    _detourPatient = 0;
+    _detourCenter = Point(0, 0);
 }
 
 
@@ -675,7 +687,7 @@ double Pedestrian::GetV0Norm() const
 #ifdef JPSFIRE
     if (_WalkingSpeed && _WalkingSpeed->ReduceWalkingSpeed()) {
         walking_speed = _WalkingSpeed->WalkingInSmoke(this, walking_speed);
-}
+    }
 #endif
     //WHERE should the call to that routine be placed properly?
     //only executed every 3 seconds
@@ -1251,7 +1263,7 @@ bool Pedestrian::Relocate(std::function<void(const Pedestrian&)> flowupdater) {
             auto sub_in =
                 std::find_if(subrooms.begin(), subrooms.end(), [&](std::pair<int, std::shared_ptr<SubRoom>> iterator) {
                 return (iterator.second->IsInSubRoom(this));
-            });
+                    });
             if (sub_in != subrooms.end()) {
                 ClearMentalMap(); // reset the destination
                 SetRoomID(room->GetID(), room->GetCaption());
@@ -1271,7 +1283,7 @@ bool Pedestrian::Relocate(std::function<void(const Pedestrian&)> flowupdater) {
         map<int, std::shared_ptr<SubRoom> >::iterator sub =
             std::find_if(subrooms.begin(), subrooms.end(), [&](std::pair<int, std::shared_ptr<SubRoom>> iterator) {
             return ((iterator.second->IsDirectlyConnectedWith(allRooms[_roomID]->GetSubRoom(_subRoomID))) && iterator.second->IsInSubRoom(this));
-        });
+                });
         if (sub != subrooms.end()) {
             flowupdater(*this); //@todo: ar.graf : this call should move into a critical region? check plz
             ClearMentalMap(); // reset the destination
@@ -1413,4 +1425,44 @@ Point Pedestrian::GetAlwaysTarget() const
 void Pedestrian::SetAlwaysTarget(Point target)
 {
     _alwaysTarget = target;
+}
+
+void Pedestrian::SetDetour(bool detour)
+{
+    _detour = detour;
+}
+
+bool Pedestrian::GetDetour() const
+{
+    return _detour;
+}
+
+void Pedestrian::SetDetourAngle(double da)
+{
+    _detourAngle = da;
+}
+
+double Pedestrian::GetDetourAngle() const
+{
+    return _detourAngle;
+}
+
+void Pedestrian::SetDetourPatient(double dp)
+{
+    _detourPatient = dp;
+}
+
+double Pedestrian::GetDetourPatient() const
+{
+    return _detourPatient;
+}
+
+void Pedestrian::SetDetourCenter(Point cen)
+{
+    _detourCenter = cen;
+}
+
+Point Pedestrian::GetDetourCenter() const
+{
+    return _detourCenter;
 }

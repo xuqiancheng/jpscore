@@ -169,6 +169,12 @@ private:
 
     Point _alwaysTarget;
 
+    // detour parameters
+    bool _detour;
+    double _detourAngle;
+    double _detourPatient;
+    Point  _detourCenter;
+
 public:
     // public member
     int _ticksInThisRoom;
@@ -562,6 +568,23 @@ public:
     Point GetAlwaysTarget() const;
 
     void SetAlwaysTarget(Point target);
+
+    // functions used for detour model
+    void SetDetour(bool detour);
+
+    bool GetDetour() const;
+
+    void SetDetourAngle(double da);
+
+    double GetDetourAngle() const;
+
+    void SetDetourPatient(double dp);
+
+    double GetDetourPatient() const;
+
+    void SetDetourCenter(Point cen);
+
+    Point GetDetourCenter() const;
 };
 
 #endif  /* _PEDESTRIAN_H */
