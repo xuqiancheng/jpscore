@@ -450,7 +450,7 @@ void Line::pointIntersectionWithCircle(std::vector<Point> & interP, const Point&
 {
     Point p1 = GetPoint1() - centre;
     Point p2 = GetPoint2() - centre;
-
+    //printf("p1 (%f,%f) p2(%f,%f).\n", p1._x, p1._y, p2._x, p2._y);
     //line x=b; b^2+y^2=radius^2
     if (p1._x == p2._x)
     {
@@ -459,7 +459,7 @@ void Line::pointIntersectionWithCircle(std::vector<Point> & interP, const Point&
         {
             return;
         }
-        else if (delta = 0)
+        else if (delta == 0)
         {
             Point pTemp = Point(p1._x, sqrt(delta)) + centre;
             if (isBetween(pTemp))
@@ -491,11 +491,12 @@ void Line::pointIntersectionWithCircle(std::vector<Point> & interP, const Point&
         double b = 2 * k1*k2;
         double c = k2 * k2 - radius * radius;
         double delta = b * b - 4 * a*c;
+        //printf("k1=%f, k2=%f, a=%f, b=%f, c=%f.\n", k1, k2, a, b, c);
         if (delta < 0)
         {
             return;
         }
-        else if (delta = 0)
+        else if (delta == 0)
         {
             double x = -b / (2 * a);
             double y = k1 * x + k2;
@@ -514,6 +515,7 @@ void Line::pointIntersectionWithCircle(std::vector<Point> & interP, const Point&
             double y2 = k1 * x2 + k2;
             Point pTemp1 = Point(x1, y1) + centre;
             Point pTemp2 = Point(x2, y2) + centre;
+            //printf("deta is %f, pTemp1 (%f,%f) pTemp2(%f,%f).\n", delta, pTemp1._x, pTemp1._y, pTemp2._x, pTemp2._y);
             if (isBetween(pTemp1))
             {
                 interP.push_back(pTemp1);
@@ -902,7 +904,7 @@ double Line::GetObstacleDeviationAngle(const std::vector<Wall>& owalls, const st
 #endif
 
 
-    }// owalls
+        }// owalls
 
 
     if (minAngle == std::numeric_limits<double>::infinity()) {
@@ -914,4 +916,4 @@ double Line::GetObstacleDeviationAngle(const std::vector<Wall>& owalls, const st
 #endif
     return minAngle;
 
-}
+    }

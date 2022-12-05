@@ -384,8 +384,7 @@ Point AVMModel::DesireDirection(Pedestrian* ped, Room* room) const
 // Check if pedestrian need to detour
 Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian*> neighbours, int periodic) const
 {
-    double maxPatience = 0.0; // patient time (this value is set for test)
-    double angleStep = 30; //discrete angle step, also for test
+    double maxPatience = 0.0; // patient time (the parameter is not used now)
     double currentPatience = ped->GetDetourPatient();
     ped->SetDetourPatient(currentPatience + 0.05);
     //printf("ped %d have %f second to wait.\n", ped->GetID(), ped->GetPatienceTime());
@@ -445,6 +444,10 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
     // else, which pedestrian don't have patience, want to detour
     ped->SetDetour(false);
     ped->SetDetourPatient(0);
+
+    // Debug
+    //printf("The position of ped %d is (%f,%f), and the target is (%f,%f).\n", ped->GetID(), pos._x, pos._y, target._x, target._y);
+    // Debug
 
     // check the current direction
     vector<double> pedOnway;
@@ -510,6 +513,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
     //Debug--------------------------------------------------------------------------------------------------------------------
 
     // find the best detour router
+    double angleStep = 30; //discrete angle step, also for test (it should be set in the infile, different discrete size)
     vector<int> angles;
     for (int i = -90; i <= 90; i += angleStep)
     {
@@ -528,7 +532,17 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         double dist2Center = abs(dist / (2 * sin(angles[i] * M_PI / 180)));
         Point dir2Center = angles[i] > 0 ? Point(da._y, -da._x) : Point(-da._y, da._x);
         Point Center = pos + dir2Center * dist2Center;
-
+        /*
+        //Debug--------------------------------------------------------------------------------------------------------------------
+        printf("deviation angle is %d.\n", angles[i]);
+        printf("ped %d angleTarget is %f.\n", ped->GetID(), angleTarget);
+        printf("ped %d deviation angle is (%f, %f).\n", ped->GetID(), da._x, da._y);
+        printf("ped %d distance to center is %f.\n", ped->GetID(), dist2Center);
+        printf("ped %d postion is (%f,%f).\n", ped->GetID(), ped->GetPos()._x, ped->GetPos()._y);
+        printf("ped %d direction to center is (%f,%f).\n", ped->GetID(), dir2Center._x, dir2Center._y);
+        printf("ped %d detour center is (%f,%f).\n", ped->GetID(), Center._x, Center._y);
+        //Debug--------------------------------------------------------------------------------------------------------------------
+        */
         // Check is there any wall on the way.
         SubRoom* subroom = room->GetSubRoom(ped->GetSubRoomID());
         bool intersectionWall = false;
@@ -542,11 +556,13 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
             // check if the intersection points are on the arc
             for (auto interp : inters)
             {
-                double tempc1 = (interp - Center).ScalarProduct(pos - Center);
-                double tempc2 = (interp - Center).ScalarProduct(target - Center);
+                //printf("IMPORTANT: interpoint is (%f,%f).\n", interp._x, interp._y);
+                double tempc1 = (interp - Center).CrossProduct(pos - Center);
+                double tempc2 = (interp - Center).CrossProduct(target - Center);
                 if (tempc1*tempc2 <= 0)
                 {
                     intersectionWall = true;
+                    //printf("ERROR: the intersection point is (%f,%f).\n", interp._x, interp._y);
                     break;
                 }
             }
@@ -566,20 +582,10 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         }
         if (intersectionWall == true)
         {
+            //printf("ERROR: the detour direciton is bad.\n");
             continue;
         }
 
-        /*
-        //Debug--------------------------------------------------------------------------------------------------------------------
-        printf("deviation angle is %d.\n", angles[i]);
-        printf("ped %d angleTarget is %f.\n", ped->GetID(), angleTarget);
-        printf("ped %d deviation angle is (%f, %f).\n", ped->GetID(), da._x, da._y);
-        printf("ped %d distance to center is %f.\n", ped->GetID(), dist2Center);
-        printf("ped %d postion is (%f,%f).\n", ped->GetID(), ped->GetPos()._x, ped->GetPos()._y);
-        printf("ped %d direction to center is (%f,%f).\n", ped->GetID(), dir2Center._x, dir2Center._y);
-        printf("ped %d detour center is (%f,%f).\n", ped->GetID(), Center._x, Center._y);
-        //Debug--------------------------------------------------------------------------------------------------------------------
-        */
 
         //check if any pedestrian on the way
         double newDist = dist2Center * abs(2 * angles[i] * M_PI / 180);
@@ -796,7 +802,7 @@ Point AVMModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& centro
     Point F_wrep = Point(0.0, 0.0);
     Point pt = w.ShortestPoint(ped->GetPos());
     Point dist = pt - ped->GetPos(); // ped ---> wall
-    double Distance = dist.Norm(); //Distance between the center of pedestrian and walls 
+    double Distance = dist.Norm(); //Distance between the center of pedestrian and walls
     Point e_iw = Point(0.0, 0.0);
     if (Distance > J_EPS)
     {
@@ -809,7 +815,7 @@ Point AVMModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& centro
         //exit(EXIT_FAILURE);
     }
 
-    //rule: wall in behind has no influence 
+    //rule: wall in behind has no influence
     Point pt1 = w.GetPoint1();
     Point pt2 = w.GetPoint2();
     Point dist_pt1 = pt1 - ped->GetPos();
