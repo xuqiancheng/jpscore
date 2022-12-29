@@ -219,11 +219,11 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         // Just test for detour，it will be interesting --
 
         //Debug--------------------------------------------------------------------------------------------------------------------
-        //if (ped1->GetID() == 26)
-            //printf("\nCurrent Time: %f.\n", current);
+        if (ped1->GetID() == -1)
+            printf("\nCurrent Time: %f.\n", current);
         //Debug--------------------------------------------------------------------------------------------------------------------
 
-        IniDirection = DetourDirection(ped1, room1, neighbours, periodic);
+        //IniDirection = DetourDirection(ped1, room1, neighbours, periodic);
         //---------------------------------------------------------
 
         Point repPed = Point(0, 0); //CSM effect
@@ -266,15 +266,15 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         Point direction = Point(0, 0);
         Point dDirection = IniDirection + repPed + repWall;
 
-        /*
+
         // Debug------------------------------------------------------
-        if (ped1->GetID() == 26)
+        if (ped1->GetID() == -1)
         {
             printf("The IniDirection of ped %d is (%.3f, %.3f), and repPed is (%.3f, %.3f), repWall is (%.3f, %.3f).\n",
                 ped1->GetID(), IniDirection._x, IniDirection._y, repPed._x, repPed._y, repWall._x, repWall._y);
         }
         //---------------------------------------------------------------
-        */
+
 
         // test----------------------------------------------------
         //dDirection = IniDirection + repWall;
@@ -290,6 +290,7 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
             double angleTau = GetTd();
             // The new method for turning direction-------------------------------------------------------
             dDirection = dDirection.Normalized();
+            /*
             double Theta = 0;
             double cpTemp1 = aDirection.CrossProduct(IniDirection);
             double cpTemp2 = dDirection.CrossProduct(IniDirection);
@@ -321,26 +322,40 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
                 direction = aDirection.Rotate(cos(ThetaTemp), sin(-ThetaTemp)); // then turn right
             }
             //------------------------------------------------------------------------------
-
+            */
             // orignal method----------------------------------------------------------
             Point AccTu = Point(0, 0);
             AccTu = (dDirection.Normalized() - aDirection) / angleTau;
             direction = aDirection + AccTu * deltaT;
-            if (IniDirection.ScalarProduct(dDirection)*IniDirection.ScalarProduct(aDirection) < 0)
+            /*
+            if (IniDirection.ScalarProduct(dDirection)* IniDirection.ScalarProduct(aDirection) < 0 && aDirection.ScalarProduct(dDirection) < -0.9)
             {
-                //direction = dDirection;
+                //direction = dDirection.Normalized();
             }
+            */
+            /*
+            Point target = this->GetDirection()->GetTarget(room1, ped1);
+            Point desiredDirection;
+            if (_Circle_Antipode)
+            {
+                target = ped1->GetAlwaysTarget();
+                double dist = (target - p1).Norm();
+                if (dist < 0.5)
+                {
+                    direction = dDirection.Normalized();
+                }
+            }
+            */
             //---------------------------------------------------------------------------------
 
-            /*
+
             //Debug---------------------------------------------------------------------------------
-            if (ped1->GetID() == 26)
+            if (ped1->GetID() == -1)
             {
-                printf("aDirection (%.3f,%.3f), dDirection (%.3f,%.3f), Theta %.3f, ThetaTemp %.3f,  direction (%.3f,%.3f)\n",
-                    aDirection._x, aDirection._y, dDirection._x, dDirection._y, Theta, direction.Normalized()._x, direction.Normalized()._y);
+                printf("aDirection (%.3f,%.3f), dDirection (%.3f,%.3f),  direction (%.3f,%.3f)\n",
+                    aDirection._x, aDirection._y, dDirection._x, dDirection._y, direction.Normalized()._x, direction.Normalized()._y);
             }
             //------------------------------------------------------------------------------------------------------------
-            */
 
             break;
         }
@@ -398,6 +413,11 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         Point ei = ped1->GetMoveDirection();
         speed = ei * OptimalSpeed(ped1, spacing);
         resultAcc.push_back(speed);
+
+        // Debug
+        if (ped1->GetID() == -1)
+            printf("spacing is %.3f, speed is %.3f.\n", spacing, speed.Norm());
+        // Debug
     }
 
     //Update everything
@@ -442,13 +462,16 @@ Point AVMModel::DesireDirection(Pedestrian* ped, Room* room) const
 // Check if pedestrian need to detour
 Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian*> neighbours, int periodic) const
 {
-
+    // Anticipation time for detour part
+    double detourAntiT = 1;
+    /*
     // NOTUSE: Set the patience of pedestrians------------------------------------------------------------------------
     double maxPatience = 0.0; // patient time (the parameter is not used now)
     double currentPatience = ped->GetDetourPatient();
     ped->SetDetourPatient(currentPatience + 0.05);
     //printf("ped %d have %f second to wait.\n", ped->GetID(), ped->GetPatienceTime());
     //--------------------------------------------------------------------------------------------------------------------------------
+    */
 
     // First get the target point----------------------------------------------------------------------------------------------
     Point target = this->GetDirection()->GetTarget(room, ped);
@@ -469,12 +492,15 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         ped->SetLastE0(NewE0);
     }
     desiredDirection = ped->GetLastE0();
+    /*
     if (dist <= 0.5) // already very close to the target, so don't need to detour
     {
         return desiredDirection;
     }
+    */
     //---------------------------------------------------------------------------------------------------------------------------------
 
+    /*
     // NOTUSE: Check if pedestrian already in detour and still have patience----------------------------------------
     if (ped->GetDetour() && currentPatience < maxPatience)
     {
@@ -491,16 +517,14 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         {
             desiredDirection = c2p.Rotate(0, 1); // turn left
         }
-        /*
-        printf("Ped %d detourAngle is %f.\n", ped->GetID(), ped->GetDetourAngle());
-        printf("Ped %d center is (%f, %f).\n", ped->GetID(), center._x, center._y);
-        printf("Ped %d c2p is (%f, %f).\n", ped->GetID(), c2p._x, c2p._y);
-        printf("Ped %d c2t is (%f, %f).\n", ped->GetID(), c2t._x, c2t._y);
-        printf("Ped %d desired direction is (%f, %f).\n", ped->GetID(), desiredDirection._x, desiredDirection._y);
-        */
+        //printf("Ped %d detourAngle is %f.\n", ped->GetID(), ped->GetDetourAngle());
+        //printf("Ped %d center is (%f, %f).\n", ped->GetID(), center._x, center._y);
+        //printf("Ped %d c2p is (%f, %f).\n", ped->GetID(), c2p._x, c2p._y);
+        //printf("Ped %d c2t is (%f, %f).\n", ped->GetID(), c2t._x, c2t._y);
+        //printf("Ped %d desired direction is (%f, %f).\n", ped->GetID(), desiredDirection._x, desiredDirection._y);
         return desiredDirection;
     }
-    //printf("ped %d current patience is %f.\n", ped->GetID(), currentPatience);
+    // printf("ped %d current patience is %f.\n", ped->GetID(), currentPatience);
     // although pedestains are not in the detour, but still have patience
     if (currentPatience < maxPatience)
     {
@@ -510,12 +534,13 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
     // else, which pedestrian don't have patience, want to detour
     ped->SetDetour(false);
     ped->SetDetourPatient(0);
+    */
     //-------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Check if the current direction good enough-------------------------------------------------------------------------------------------------------------------
     // Debug
-    //if (ped->GetID() == 26)
-        //printf("The position of ped %d is (%f,%f), and the target is (%f,%f).\n", ped->GetID(), pos._x, pos._y, target._x, target._y);
+    if (ped->GetID() == -1)
+        printf("The position of ped %d is (%f,%f), and the target is (%f,%f).\n", ped->GetID(), pos._x, pos._y, target._x, target._y);
     // Debug
     vector<double> pedOnway;
     Point UsefulDistance = Point(dist, 0); // x: free distance, y: congestion distance
@@ -525,7 +550,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         // Judge if ped2 is on ped1's moving path
         Point pos2 = periodic ? GetPosPeriodic(ped, ped2) : ped2->GetPos();
         // if we need Anticipation ? we need to check it
-        pos2 = pos2 + ped2->GetV() * 1;
+        pos2 = pos2 + ped2->GetV() * detourAntiT;
         Point distp12 = pos2 - pos; //ped1 ---> ped2
         double Distance = distp12.Norm();
         Point ep12 = distp12.Normalized();
@@ -537,10 +562,11 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         if ((condition1 > 0) && (condition2 < l / Distance) && (Distance < dist))
         {
             // Debug--------------------------------------------------------------------------------------
-            //if (ped->GetID() == 26)
+            //if (ped->GetID() == -1)
                 //printf("Stupid ped %d is on the way, pos is (%.3f, %.3f).\n", ped2->GetID(), ped2->GetPos()._x, ped2->GetPos()._y);
             // Debug--------------------------------------------------------------------------------------
             pedOnway.push_back(ped2->GetV().ScalarProduct(desiredDirection)); // the projection of speed on the desired direction
+            /*
             if (Distance < UsefulDistance._x)
             {
                 UsefulDistance._x = Distance;
@@ -549,33 +575,37 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
                 //printf("ped %d distance1 %f, distance2 %f.\n", ped->GetID(), UsefulDistance._x, UsefulDistance._y);
                 //Debug--------------------------------------------------------------------------------------------------------------------
             }
+            */
         }
     }
     // this current path is free
-    if (pedOnway.empty())
+    double  average = ped->GetV0Norm();
+    if (!pedOnway.empty())
     {
-        return desiredDirection;
+        double sum = 0;
+        for (vector<double>::iterator it = pedOnway.begin(); it != pedOnway.end(); it++)
+        {
+            sum += *it;
+        }
+        average = sum / pedOnway.size(); // average speed
     }
-    // otherwise check the heurist fucntion value
-    double sum = 0;
-    for (vector<double>::iterator it = pedOnway.begin(); it != pedOnway.end(); it++)
-    {
-        sum += *it;
-    }
-    double average = sum / pedOnway.size(); // average speed
+
     // I have to say this function is very important, maybe there is a better way
-    double publish = 500000;
-    double heurist = average > 0 ? UsefulDistance._x / ped->GetV0Norm() + publish * UsefulDistance._y / average : FLT_MAX;
-    heurist = (pedOnway.size() + 1) / exp(average) / exp(average);
+    // double punish = 500000;
+    // double heurist = average > 0 ? UsefulDistance._x / ped->GetV0Norm() + punish * UsefulDistance._y / average : FLT_MAX;
+    // heurist = (pedOnway.size() + 1) / exp(average) / exp(average);
+    double angel2Current = desiredDirection.ScalarProduct(ped->GetMoveDirection()) + 1;
+    double heurist = (pedOnway.size() + 1)* dist / angel2Current / exp(average);
+    //heurist = (pedOnway.size() + 1) / exp(average) / angelTemp;
 
     //Debug--------------------------------------------------------------------------------------------------------------------
-    //if (ped->GetID() == 26)
-       // printf("ped %d dist is %f, pedOnway is %d,  average is %f, heurist is %f.\n", ped->GetID(), dist, pedOnway.size(), average, heurist);
+    if (ped->GetID() == -1)
+        printf("ped %d dist is %f, pedOnway is %d,  average is %f, angelTemp is %f,  heurist is %f.\n", ped->GetID(), dist, pedOnway.size(), average, angel2Current, heurist);
     //Debug--------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Find if there is a better detour router--------------------------------------------------------------------------------------------------------------
-    double angleStep = 30; //discrete angle step, also for test (it should be set in the infile, different discrete size)
+    double angleStep = 10; //discrete angle step, also for test (it should be set in the infile, different discrete size)
     vector<int> angles;
     for (int i = -90; i <= 90; i += angleStep)
     {
@@ -605,6 +635,11 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         printf("ped %d detour center is (%f,%f).\n", ped->GetID(), Center._x, Center._y);
         //Debug--------------------------------------------------------------------------------------------------------------------
         */
+        //Debug--------------------------------------------------------------------------------------------------------------------
+        if (ped->GetID() == -1)
+            printf("deviation angle is %d.\n", angles[i]);
+        //Debug--------------------------------------------------------------------------------------------------------------------
+
         // 2. Check is there any wall on the detour route
         SubRoom* subroom = room->GetSubRoom(ped->GetSubRoomID());
         bool intersectionWall = false;
@@ -645,8 +680,8 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         {
             Pedestrian* ped2 = neighbours[j];
             Point pos2 = periodic ? GetPosPeriodic(ped, ped2) : ped2->GetPos();
-            // Anticipation hew, do we need it?
-            pos2 = ped2->GetPos() + ped2->GetV() * 1;
+            // Anticipation here, do we need it?
+            pos2 = ped2->GetPos() + ped2->GetV() * detourAntiT;
             Point Ped2Center = pos2 - Center;
             bool condition1 = Ped2Center.Norm() > dist2Center - ped->GetEllipse().GetBmax() && Ped2Center.Norm() < dist2Center + ped->GetEllipse().GetBmax();
             Point midPoint = (target + pos) / 2;
@@ -664,6 +699,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
             }
             if (condition1&&condition2)
             {
+                /*
                 double angleTemp = abs(acos(Ped2Center.ScalarProduct(c2t) / (Ped2Center.Norm()*c2t.Norm())));
                 double distTemp = dist2Center * angleTemp;
                 if (distTemp < UsefulDistance._x)
@@ -671,7 +707,12 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
                     UsefulDistance._x = distTemp;
                     UsefulDistance._y = newDist - distTemp;
                 }
+                */
                 //  the projection of speed on the tagent direction of detour path
+                // Debug------------------------------------------------------------------------------
+                //if (ped->GetID() == -1)
+                    //printf("Stupid ped %d is on the way, pos is (%.3f, %.3f).\n", ped2->GetID(), ped2->GetPos()._x, ped2->GetPos()._y);
+                // Debug------------------------------------------------------------------------------
                 pedOnway.push_back(ped2->GetV().ScalarProduct(tangleDirection.Normalized()));
             }
         }
@@ -681,7 +722,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         }
         else
         {
-            sum = 0;
+            double sum = 0;
             //average speed;
             for (vector<double>::iterator it = pedOnway.begin(); it != pedOnway.end(); it++)
             {
@@ -691,13 +732,17 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
             //average = average / pedOnway.size();
         }
         // This function has to be checked, very important
-        double newHeurist = average > 0 ? UsefulDistance._x / ped->GetV0Norm() + publish * UsefulDistance._y / average : FLT_MAX;
-        newHeurist = (pedOnway.size() + 1) / exp(average) / exp(average);
+        //double newHeurist = average > 0 ? UsefulDistance._x / ped->GetV0Norm() + punish * UsefulDistance._y / average : FLT_MAX;
+        //newHeurist = (pedOnway.size() + 1) / exp(average) / exp(average);
+        angel2Current = da.ScalarProduct(ped->GetMoveDirection()) + 1;
+        //newHeurist = (pedOnway.size() + 1)* newDist / angelTemp / exp(average);
+        double newHeurist = (pedOnway.size() + 1)* newDist / exp(average) / angel2Current;
+
         //Debug--------------------------------------------------------------------------------------------------------------------
-        //if (ped->GetID() == 26)
-            //printf("ped %d newdist is %f, pedOnway is %d, newaverage is %f, newheurist is %f.\n", ped->GetID(), newDist, pedOnway.size(), average, newHeurist);
+        if (ped->GetID() == -1)
+            printf("ped %d newdist is %f, pedOnway is %d, newaverage is %f, angelTemp is %f,  newheurist is %f.\n", ped->GetID(), newDist, pedOnway.size(), average, angel2Current, newHeurist);
         //Debug--------------------------------------------------------------------------------------------------------------------
-         // 4. Check if this path is better than others
+     // 4. Check if this path is better than others
         if (newHeurist < heurist)
         {
             ped->SetDetour(true);
@@ -709,6 +754,10 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         else if (newHeurist == heurist) // for the same heuristic value, choose one randomly
         {
             int random = rand() % 10000;
+            //Debug--------------------------------------------------------------------------------------------------------------------
+            if (ped->GetID() == -1)
+                printf("random value is %d.\n", random);
+            //Debug--------------------------------------------------------------------------------------------------------------------
             if (random > 5000)
             {
                 ped->SetDetour(true);
@@ -719,16 +768,19 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
             }
         }
     }
-    /*
+
     //Debug--------------------------------------------------------------------------------------------------------------------
-    printf("ped %d detour angle is %f, detour center is (%f,%f).\n", ped->GetID(), ped->GetDetourAngle(), ped->GetDetourCenter()._x, ped->GetDetourCenter()._y);
-    printf("ped %d desired direction is (%f,%f).\n", ped->GetID(), desiredDirection._x, desiredDirection._y);
-    if (ped->GetDetour())
+    if (ped->GetID() == -1)
     {
-        printf("ped %d is in detour jetzt.\n\N", ped->GetID());
+        printf("ped %d detour angle is %f, detour center is (%f,%f).\n", ped->GetID(), ped->GetDetourAngle(), ped->GetDetourCenter()._x, ped->GetDetourCenter()._y);
+        printf("ped %d desired direction is (%f,%f).\n", ped->GetID(), desiredDirection._x, desiredDirection._y);
+        if (ped->GetDetour())
+        {
+            printf("ped %d is in detour jetzt.\n", ped->GetID());
+        }
     }
     //Debug--------------------------------------------------------------------------------------------------------------------
-    */
+
     return desiredDirection;
 }
 
@@ -810,10 +862,12 @@ Point AVMModel::ForceRepPedAVM(Pedestrian* ped1, Pedestrian* ped2, Building* bui
     double condition1 = d1.ScalarProduct(ep12);
     double condition2 = e1.ScalarProduct(ep12);
     // for testing the detour model, pedestrians only influence others when they are too close
+    /*
     if (Distance > 0.5)
     {
         //return FRep;
     }
+    */
     if (condition1 >= 0 || condition2 >= 0)
     {
         double S_Gap = (ped1->GetV() - ped2->GetV()).ScalarProduct(ep12);
@@ -1108,7 +1162,7 @@ void AVMModel::UpdatePed(Pedestrian* ped, Point speed, Point direction, double d
         bool alreadyArriving = (ped->GetPos() - ped->GetAlwaysTarget()).Norm() < ped->GetEllipse().GetBmax();
         if (alreadyArriving)
         {
-            ped->SetV(0);
+            ped->SetV(Point(0, 0));
             return;
         }
     }
