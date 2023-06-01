@@ -47,7 +47,7 @@
         <exit_crossing_strategy>3</exit_crossing_strategy>
         <linkedcells cell_size="300" enabled="true" />
         <model_type using="2" />
-        <force_ped D="0.01" a="6.0" />
+        <force_ped D="0.1" a="3.0" />
         <force_wall D="0.05" a="6" />
 		<GCVM Td="0.3" Ts="0.5" />
         <AVM AntiTime="1.0" ConstantAlpha="false"/>

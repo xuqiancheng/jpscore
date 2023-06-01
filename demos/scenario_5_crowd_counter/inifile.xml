@@ -34,8 +34,8 @@
   
   <agents operational_model_id="8">
     <agents_distribution>
-		<group agent_parameter_id="1" goal_id="0" group_id="0" number="120" room_id="0" router_id="1" subroom_id="0" x_max="8" x_min="0" />
-		<group agent_parameter_id="1" goal_id="1" group_id="1" number="120" room_id="0" router_id="1" subroom_id="0" x_max="26" x_min="18" />			
+		<group agent_parameter_id="1" goal_id="0" group_id="0" number="100" room_id="0" router_id="1" subroom_id="0" x_max="8" x_min="0" />
+		<group agent_parameter_id="1" goal_id="1" group_id="1" number="100" room_id="0" router_id="1" subroom_id="0" x_max="26" x_min="18" />			
 	</agents_distribution>
   </agents>
  
@@ -44,14 +44,14 @@
       <model_parameters>
         <solver>euler</solver>
         <stepsize>0.05</stepsize>
-		<periodic>1</periodic>
+		<periodic>0</periodic>
         <exit_crossing_strategy>3</exit_crossing_strategy>
         <linkedcells cell_size="300" enabled="true" />
         <model_type using="2" />
-        <force_ped D="0.01" a="6.0" />
+        <force_ped D="0.1" a="3.0" />
         <force_wall D="0.05" a="6" />
 		<GCVM Td="0.3" Ts="1.06" />
-        <AVM AntiTime="1.0" ConstantAlpha="false"/>
+        <AVM AntiTime="0" ConstantAlpha="false"/>
 		<boundary cutoff="10" down="-100" left="0" right="26" up="100" />
       </model_parameters>
       <agent_parameters agent_parameter_id="1">

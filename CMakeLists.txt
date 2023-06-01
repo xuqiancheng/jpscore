@@ -11,6 +11,7 @@
 #--------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+SET(BOOST_ROOT "E:\\boost_1_67_0")
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 IF (POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)

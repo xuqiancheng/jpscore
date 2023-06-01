@@ -1,18 +1,18 @@
 <JuPedSim>
-  <seed>1</seed>
+  <seed>1000</seed>
   <num_threads>8</num_threads>
-  <max_sim_time unit="sec">200</max_sim_time>
+  <max_sim_time unit="sec">20</max_sim_time>
   <logfile>log.txt</logfile>
   <geometry>geometry.xml</geometry>
   <circle_antipode>1</circle_antipode>
-  <trajectories color_mode="group" embed_mesh="false" format="xml-plain" fps="10">
-    <file location="trajectory.xml" /> 
+  <trajectories color_mode="group" embed_mesh="false" format="plain" fps="20">
+    <file location="trajectory.txt" /> 
   </trajectories>
   <show_statistics>false</show_statistics>
   
   <agents operational_model_id="8">
     <agents_distribution>
-		<group agent_parameter_id="1" group_id="1" number="16" room_id="0" router_id="1" subroom_id="0" circle="1" radius="10"/>	
+		<group agent_parameter_id="1" group_id="1" number="64" room_id="0" router_id="1" subroom_id="0" circle="1" radius="5"/>	
 	</agents_distribution>
   </agents>
  
@@ -25,14 +25,14 @@
         <exit_crossing_strategy>3</exit_crossing_strategy>
         <linkedcells cell_size="20" enabled="true" />
         <model_type using="2" />
-        <force_ped D="0.1" a="3.0" />
+        <force_ped D="0.01" a="6" />
         <force_wall D="0.05" a="6" />
 		<GCVM Td="0.3" Ts="1.06" />
-        <AVM AntiTime="1.0" ConstantAlpha="false"
-        />
+        <AVM AntiTime="0" ConstantAlpha="true"/>
+        <detour DAntiTime="1" DAngleStep="10" />
       </model_parameters>
       <agent_parameters agent_parameter_id="1">
-        <v0 mu="1.34" sigma="0.26" />
+        <v0 mu="2.5" sigma="0.26" />
         <bmax mu="0.18" sigma="0.00000" /> 
         <bmin mu="0.18" sigma="0.00000" />
         <amin mu="0.18" sigma="0.00000" />

@@ -69,7 +69,7 @@
         <force_ped D="0.1" a="3.0" />
         <force_wall D="0.05" a="6" />
 		<GCVM Td="0.3" Ts="1.06" />
-        <AVM AntiTime="1.0" ConstantAlpha="false"/>
+        <AVM AntiTime="0.0" ConstantAlpha="true"/>
       </model_parameters>
       <agent_parameters agent_parameter_id="1">
         <v0 mu="1" sigma="0.00" />

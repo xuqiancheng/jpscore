@@ -4,7 +4,7 @@
   <max_sim_time unit="sec">20</max_sim_time>
   <logfile>log.txt</logfile>
   <geometry>geometry.xml</geometry>
-  <trajectories color_mode="group" embed_mesh="false" format="xml-plain" fps="10">
+  <trajectories color_mode="group" embed_mesh="false" format="xml-plain" fps="20">
     <file location="trajectory.xml" /> 
   </trajectories>
   <show_statistics>false</show_statistics>

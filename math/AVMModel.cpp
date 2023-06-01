@@ -223,7 +223,8 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
             printf("\nCurrent Time: %f.\n", current);
         //Debug--------------------------------------------------------------------------------------------------------------------
 
-        //IniDirection = DetourDirection(ped1, room1, neighbours, periodic);
+        // Detour is here, I don't know if it is useful
+        IniDirection = DetourDirection(ped1, room1, neighbours, periodic);
         //---------------------------------------------------------
 
         Point repPed = Point(0, 0); //CSM effect
@@ -589,6 +590,10 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         }
         average = sum / pedOnway.size(); // average speed
     }
+    else
+    {
+        return desiredDirection;
+    }
 
     // I have to say this function is very important, maybe there is a better way
     // double punish = 500000;
@@ -683,7 +688,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
             // Anticipation here, do we need it?
             pos2 = ped2->GetPos() + ped2->GetV() * detourAntiT;
             Point Ped2Center = pos2 - Center;
-            bool condition1 = Ped2Center.Norm() > dist2Center - ped->GetEllipse().GetBmax() && Ped2Center.Norm() < dist2Center + ped->GetEllipse().GetBmax();
+            bool condition1 = Ped2Center.Norm() > dist2Center - 2 * ped->GetEllipse().GetBmax() && Ped2Center.Norm() < dist2Center + 2 * ped->GetEllipse().GetBmax();
             Point midPoint = (target + pos) / 2;
             bool condition2 = Ped2Center.ScalarProduct(midPoint - Center) > (pos - Center).ScalarProduct(midPoint - Center);
             Point c2t = (target - Center).Normalized();
@@ -770,7 +775,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
     }
 
     //Debug--------------------------------------------------------------------------------------------------------------------
-    if (ped->GetID() == -1)
+    if (ped->GetID() < 0)
     {
         printf("ped %d detour angle is %f, detour center is (%f,%f).\n", ped->GetID(), ped->GetDetourAngle(), ped->GetDetourCenter()._x, ped->GetDetourCenter()._y);
         printf("ped %d desired direction is (%f,%f).\n", ped->GetID(), desiredDirection._x, desiredDirection._y);

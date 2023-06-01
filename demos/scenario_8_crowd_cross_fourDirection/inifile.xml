@@ -52,10 +52,10 @@
   
   <agents operational_model_id="8">
     <agents_distribution>
-		<group agent_parameter_id="1" goal_id="0" group_id="1" number="15" room_id="0" router_id="1" subroom_id="1" x_max="-8" x_min="-12" y_max="6" y_min="0" />
-		<group agent_parameter_id="1" goal_id="1" group_id="2" number="15" room_id="0" router_id="1" subroom_id="2" x_max="6" x_min="2" y_max="6" y_min="0" />
-		<group agent_parameter_id="1" goal_id="3" group_id="4" number="15" room_id="0" router_id="1" subroom_id="3" x_max="0" x_min="-6" y_max="12" y_min="8" />
-		<group agent_parameter_id="1" goal_id="2" group_id="3" number="15" room_id="0" router_id="1" subroom_id="4" x_max="0" x_min="-6" y_max="-2" y_min="-6" />			
+		<group agent_parameter_id="1" goal_id="0" group_id="1" number="20" room_id="0" router_id="1" subroom_id="1" x_max="-8" x_min="-12" y_max="6" y_min="0" />
+		<group agent_parameter_id="1" goal_id="1" group_id="2" number="20" room_id="0" router_id="1" subroom_id="2" x_max="6" x_min="2" y_max="6" y_min="0" />
+		<group agent_parameter_id="1" goal_id="3" group_id="4" number="20" room_id="0" router_id="1" subroom_id="3" x_max="0" x_min="-6" y_max="12" y_min="8" />
+		<group agent_parameter_id="1" goal_id="2" group_id="3" number="20" room_id="0" router_id="1" subroom_id="4" x_max="0" x_min="-6" y_max="-2" y_min="-6" />			
 	</agents_distribution>
   </agents>
  
