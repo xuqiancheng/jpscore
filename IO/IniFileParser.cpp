@@ -2056,6 +2056,23 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
             Log->Write("INFO: \tAVM AntiTime=%0.2f, ConstantAlpha=false.", _config->GetAntiT());
     }
 
+    // Detour patameter
+    if (xModelPara->FirstChild("detour")) {
+        if (!xModelPara->FirstChildElement("detour")->Attribute("DAntiTime"))
+            _config->SetDAntiTime(0);
+        else {
+            string DAntiTime = xModelPara->FirstChildElement("detour")->Attribute("DAntiTime");
+            _config->SetDAntiTime(atof(DAntiTime.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("detour")->Attribute("DAngleStep"))
+            _config->SetDAngleStep(10);
+        else {
+            string DAngleStep = xModelPara->FirstChildElement("detour")->Attribute("DAngleStep");
+            _config->SetDAngleStep(atof(DAngleStep.c_str()));
+        }
+        Log->Write("INFO: \tdetour DAntiTime=%0.2f, DAngleStep=%.2f", _config->GetDAntiTime(), _config->GetDAngleStep());
+    }
+
     if (xModelPara->FirstChild("boundary")) {
         if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
             _config->SetLeftBoundary(-100);
@@ -2099,6 +2116,6 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
         _config->GetTs(), _config->GetTd(),
         _config->GetAntiT(), _config->GetConstantAlpha(),
         _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
-        _config->GetCircleExperiment())));
+        _config->GetCircleExperiment(), _config->GetDAntiTime(), _config->GetDAngleStep())));
     return true;
 }

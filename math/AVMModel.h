@@ -79,6 +79,8 @@ private:
 
     //Circle experiment
     bool _Circle_Antipode;
+    double _DAntiTime;
+    double _DAngleStep;
 
 
     // Functions 
@@ -108,7 +110,7 @@ public:
         double Ts, double Td,
         double AntiT, bool calpha,
         double lb, double rb, double ub, double db, double co,
-        bool circle);
+        bool circle, double Dtime, double Dangle);
     ~AVMModel(void);
 
     std::string GetDescription() override;
@@ -131,5 +133,8 @@ public:
     double GetUpBoundary() const { return _UpBoundary; };
     double GetDownBoundary() const { return _DownBoundary; };
     double GetCutoff() const { return _CutOff; };
+
+    double GetDAntiTime() const { return _DAntiTime; };
+    double GetDAngleStep() const { return _DAngleStep; };
 };
 #endif 

@@ -49,7 +49,7 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     double Ts, double Td,
     double AntiT, bool calpha,
     double lb, double rb, double ub, double db, double co,
-    bool circle)
+    bool circle, double Dtime, double Dangle)
 {
     _direction = dir;
     _Model = model;
@@ -78,6 +78,8 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
 
     //circle_antipode
     _Circle_Antipode = circle;
+    _DAntiTime = Dtime;
+    _DAngleStep = Dangle;
 }
 
 
@@ -464,7 +466,8 @@ Point AVMModel::DesireDirection(Pedestrian* ped, Room* room) const
 Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian*> neighbours, int periodic) const
 {
     // Anticipation time for detour part
-    double detourAntiT = 1;
+    double detourAntiT = GetDAntiTime();
+    //printf("DAntiTime=%.2f\n", detourAntiT);
     /*
     // NOTUSE: Set the patience of pedestrians------------------------------------------------------------------------
     double maxPatience = 0.0; // patient time (the parameter is not used now)
@@ -610,7 +613,8 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
     //-------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Find if there is a better detour router--------------------------------------------------------------------------------------------------------------
-    double angleStep = 10; //discrete angle step, also for test (it should be set in the infile, different discrete size)
+    double angleStep = GetDAngleStep(); //discrete angle step, also for test (it should be set in the infile, different discrete size)
+    //printf("DAngleStep=%.2f\n", angleStep);
     vector<int> angles;
     for (int i = -90; i <= 90; i += angleStep)
     {

@@ -116,6 +116,8 @@ public:
         _CoreSize = 0.1;
         _ConstantAlpha = false;
         _ddType = 0;
+        _DAntiTime = 0;
+        _DAngleStep = 10;
 
         //--------  boundary ------
         _left_boundary = -100;
@@ -474,6 +476,15 @@ public:
     void SetCirlceExperiment(bool circle) { _circle_experiment = circle; };
 
     bool GetCircleExperiment() const { return _circle_experiment; };
+
+    void SetDAntiTime(double time) { _DAntiTime = time; };
+
+    double GetDAntiTime() const { return _DAntiTime; };
+
+    void SetDAngleStep(double step) { _DAngleStep = step; };
+
+    double GetDAngleStep() const { return   _DAngleStep; };
+
 #ifdef _JPS_AS_A_SERVICE
 
     const bool GetRunAsService() const { return _runAsService; };
@@ -559,6 +570,8 @@ private:
     double _CoreSize;
     bool _ConstantAlpha;
     int _ddType;
+    double _DAntiTime;
+    double _DAngleStep;
     //Todo: anticipation error
 
     //circle experiment
