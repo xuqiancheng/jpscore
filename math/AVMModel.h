@@ -81,6 +81,7 @@ private:
     bool _Circle_Antipode;
     double _DAntiTime;
     double _DAngleStep;
+    double _DWeight;
 
 
     // Functions 
@@ -110,7 +111,7 @@ public:
         double Ts, double Td,
         double AntiT, bool calpha,
         double lb, double rb, double ub, double db, double co,
-        bool circle, double Dtime, double Dangle);
+        bool circle, double Dtime, double Dangle, double Dweight);
     ~AVMModel(void);
 
     std::string GetDescription() override;
@@ -136,5 +137,6 @@ public:
 
     double GetDAntiTime() const { return _DAntiTime; };
     double GetDAngleStep() const { return _DAngleStep; };
+    double GetDWeight() const { return _DWeight; };
 };
 #endif 

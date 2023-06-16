@@ -2070,7 +2070,13 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
             string DAngleStep = xModelPara->FirstChildElement("detour")->Attribute("DAngleStep");
             _config->SetDAngleStep(atof(DAngleStep.c_str()));
         }
-        Log->Write("INFO: \tdetour DAntiTime=%0.2f, DAngleStep=%.2f", _config->GetDAntiTime(), _config->GetDAngleStep());
+        if (!xModelPara->FirstChildElement("detour")->Attribute("DWeight"))
+            _config->SetDWeight(1);
+        else {
+            string DWeight = xModelPara->FirstChildElement("detour")->Attribute("DWeight");
+            _config->SetDWeight(atof(DWeight.c_str()));
+        }
+        Log->Write("INFO: \tdetour DAntiTime=%0.2f, DAngleStep=%.2f, DWeight=%.2f.", _config->GetDAntiTime(), _config->GetDAngleStep(), _config->GetDWeight());
     }
 
     if (xModelPara->FirstChild("boundary")) {
@@ -2116,6 +2122,6 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
         _config->GetTs(), _config->GetTd(),
         _config->GetAntiT(), _config->GetConstantAlpha(),
         _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
-        _config->GetCircleExperiment(), _config->GetDAntiTime(), _config->GetDAngleStep())));
+        _config->GetCircleExperiment(), _config->GetDAntiTime(), _config->GetDAngleStep(), _config->GetDWeight())));
     return true;
 }

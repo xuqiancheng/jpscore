@@ -118,6 +118,7 @@ public:
         _ddType = 0;
         _DAntiTime = 0;
         _DAngleStep = 10;
+        _DWeight = 1;
 
         //--------  boundary ------
         _left_boundary = -100;
@@ -485,6 +486,10 @@ public:
 
     double GetDAngleStep() const { return   _DAngleStep; };
 
+    void SetDWeight(double weight) { _DWeight = weight; };
+
+    double GetDWeight() const { return   _DWeight; };
+
 #ifdef _JPS_AS_A_SERVICE
 
     const bool GetRunAsService() const { return _runAsService; };
@@ -572,6 +577,7 @@ private:
     int _ddType;
     double _DAntiTime;
     double _DAngleStep;
+    double _DWeight;
     //Todo: anticipation error
 
     //circle experiment

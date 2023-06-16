@@ -49,7 +49,7 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     double Ts, double Td,
     double AntiT, bool calpha,
     double lb, double rb, double ub, double db, double co,
-    bool circle, double Dtime, double Dangle)
+    bool circle, double Dtime, double Dangle, double Dweight)
 {
     _direction = dir;
     _Model = model;
@@ -80,6 +80,7 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     _Circle_Antipode = circle;
     _DAntiTime = Dtime;
     _DAngleStep = Dangle;
+    _DWeight = Dweight;
 }
 
 
@@ -465,6 +466,8 @@ Point AVMModel::DesireDirection(Pedestrian* ped, Room* room) const
 // Check if pedestrian need to detour
 Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian*> neighbours, int periodic) const
 {
+    // 
+    int debug_id = -1;
     // Anticipation time for detour part
     double detourAntiT = GetDAntiTime();
     //printf("DAntiTime=%.2f\n", detourAntiT);
@@ -543,7 +546,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
 
     // Check if the current direction good enough-------------------------------------------------------------------------------------------------------------------
     // Debug
-    if (ped->GetID() == -1)
+    if (ped->GetID() == debug_id)
         printf("The position of ped %d is (%f,%f), and the target is (%f,%f).\n", ped->GetID(), pos._x, pos._y, target._x, target._y);
     // Debug
     vector<double> pedOnway;
@@ -604,11 +607,19 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
     // heurist = (pedOnway.size() + 1) / exp(average) / exp(average);
     double angel2Current = desiredDirection.ScalarProduct(ped->GetMoveDirection()) + 1;
     double heurist = (pedOnway.size() + 1)* dist / angel2Current / exp(average);
+    // We propose a better function here 2023.06.02
+    heurist = 1 + (angel2Current - 1) + average / ped->GetV0Norm() + exp(-1.0 * pedOnway.size());
+    heurist = 1 + average / ped->GetV0Norm() + exp(-1.0 * pedOnway.size());
+    double weight = GetDWeight();
+    heurist = 1 + weight * average / ped->GetV0Norm();
     //heurist = (pedOnway.size() + 1) / exp(average) / angelTemp;
 
     //Debug--------------------------------------------------------------------------------------------------------------------
-    if (ped->GetID() == -1)
+    if (ped->GetID() == debug_id)
+    {
         printf("ped %d dist is %f, pedOnway is %d,  average is %f, angelTemp is %f,  heurist is %f.\n", ped->GetID(), dist, pedOnway.size(), average, angel2Current, heurist);
+        printf("ped %d dist / newDist is %f, exp(-pedOnway.size()) is %f, average / ped->GetV0Norm() is %f, angel2Current is %f,  heurist is %f.\n", ped->GetID(), 1, exp(-1.0 * pedOnway.size()), average / ped->GetV0Norm(), angel2Current - 1, heurist);
+    }
     //Debug--------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -645,7 +656,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         //Debug--------------------------------------------------------------------------------------------------------------------
         */
         //Debug--------------------------------------------------------------------------------------------------------------------
-        if (ped->GetID() == -1)
+        if (ped->GetID() == debug_id)
             printf("deviation angle is %d.\n", angles[i]);
         //Debug--------------------------------------------------------------------------------------------------------------------
 
@@ -746,13 +757,19 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         angel2Current = da.ScalarProduct(ped->GetMoveDirection()) + 1;
         //newHeurist = (pedOnway.size() + 1)* newDist / angelTemp / exp(average);
         double newHeurist = (pedOnway.size() + 1)* newDist / exp(average) / angel2Current;
-
+        // peopose a new heurist function here
+        newHeurist = dist / newDist + (angel2Current - 1) + average / ped->GetV0Norm() + exp(-1.0*pedOnway.size());
+        newHeurist = dist / newDist + average / ped->GetV0Norm() + exp(-1.0*pedOnway.size());
+        newHeurist = dist / newDist + weight * average / ped->GetV0Norm();
         //Debug--------------------------------------------------------------------------------------------------------------------
-        if (ped->GetID() == -1)
+        if (ped->GetID() == debug_id)
+        {
             printf("ped %d newdist is %f, pedOnway is %d, newaverage is %f, angelTemp is %f,  newheurist is %f.\n", ped->GetID(), newDist, pedOnway.size(), average, angel2Current, newHeurist);
+            printf("ped %d dist / newDist is %f, exp(-pedOnway.size()) is %f, average / ped->GetV0Norm() is %f, angel2Current is %f,  newheurist is %f.\n", ped->GetID(), dist / newDist, exp(-1.0*pedOnway.size()), average / ped->GetV0Norm(), angel2Current - 1, newHeurist);
+        }
         //Debug--------------------------------------------------------------------------------------------------------------------
-     // 4. Check if this path is better than others
-        if (newHeurist < heurist)
+ // 4. Check if this path is better than others
+        if (newHeurist > heurist)
         {
             ped->SetDetour(true);
             ped->SetDetourAngle(angles[i]);
@@ -779,7 +796,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
     }
 
     //Debug--------------------------------------------------------------------------------------------------------------------
-    if (ped->GetID() < 0)
+    if (ped->GetID() == debug_id)
     {
         printf("ped %d detour angle is %f, detour center is (%f,%f).\n", ped->GetID(), ped->GetDetourAngle(), ped->GetDetourCenter()._x, ped->GetDetourCenter()._y);
         printf("ped %d desired direction is (%f,%f).\n", ped->GetID(), desiredDirection._x, desiredDirection._y);
