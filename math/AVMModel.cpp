@@ -612,7 +612,15 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
     heurist = 1 + average / ped->GetV0Norm() + exp(-1.0 * pedOnway.size());
     double weight = GetDWeight();
     heurist = 1 + weight * average / ped->GetV0Norm();
+    // 2023.06.27 a new exponentail function
+    heurist = 1 + weight * exp(average - ped->GetV0Norm());
+    // 2023.06.28 a double exponentail function
+    heurist = 1 + weight * exp(average - ped->GetV0Norm());
+    // 2023.06.30 a double exponentail function
+    heurist = 1 + exp(weight*(average - ped->GetV0Norm()));
     //heurist = (pedOnway.size() + 1) / exp(average) / angelTemp;
+    // 2023.07.31 considering something new
+    heurist = weight * (ped->GetV0Norm() - average);
 
     //Debug--------------------------------------------------------------------------------------------------------------------
     if (ped->GetID() == debug_id)
@@ -761,6 +769,14 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         newHeurist = dist / newDist + (angel2Current - 1) + average / ped->GetV0Norm() + exp(-1.0*pedOnway.size());
         newHeurist = dist / newDist + average / ped->GetV0Norm() + exp(-1.0*pedOnway.size());
         newHeurist = dist / newDist + weight * average / ped->GetV0Norm();
+        // 2023.06.27 a new exponentail function
+        newHeurist = dist / newDist + weight * exp(average - ped->GetV0Norm());
+        // 2023.06.28 a double exponentail function
+        newHeurist = exp(dist - newDist) + weight * exp(average - ped->GetV0Norm());
+        // 2023.06.29 a double exponentail function
+        newHeurist = dist / newDist + exp(weight*(average - ped->GetV0Norm()));
+        // 2023.07.31 considering something new
+        newHeurist = (newDist - dist) + weight * (ped->GetV0Norm() - average);
         //Debug--------------------------------------------------------------------------------------------------------------------
         if (ped->GetID() == debug_id)
         {
@@ -769,7 +785,7 @@ Point AVMModel::DetourDirection(Pedestrian * ped, Room * room, vector<Pedestrian
         }
         //Debug--------------------------------------------------------------------------------------------------------------------
  // 4. Check if this path is better than others
-        if (newHeurist > heurist)
+        if (newHeurist < heurist)
         {
             ped->SetDetour(true);
             ped->SetDetourAngle(angles[i]);

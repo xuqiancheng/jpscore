@@ -1,7 +1,7 @@
 <JuPedSim>
   <seed>1000</seed>
   <num_threads>8</num_threads>
-  <max_sim_time unit="sec">20</max_sim_time>
+  <max_sim_time unit="sec">40</max_sim_time>
   <logfile>log.txt</logfile>
   <geometry>geometry.xml</geometry>
   <circle_antipode>1</circle_antipode>
@@ -25,11 +25,11 @@
         <exit_crossing_strategy>3</exit_crossing_strategy>
         <linkedcells cell_size="20" enabled="true" />
         <model_type using="2" />
-        <force_ped D="0.01" a="6" />
+        <force_ped D="0.05" a="3" />
         <force_wall D="0.05" a="6" />
 		<GCVM Td="0.3" Ts="1.06" />
         <AVM AntiTime="0" ConstantAlpha="true"/>
-        <detour DAntiTime="1" DAngleStep="10" />
+        <detour DAntiTime="0" DAngleStep="5" DWeight="5" />
       </model_parameters>
       <agent_parameters agent_parameter_id="1">
         <v0 mu="2.5" sigma="0.26" />
