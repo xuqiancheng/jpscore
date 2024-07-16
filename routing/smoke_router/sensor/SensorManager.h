@@ -37,6 +37,7 @@ class Pedestrian;
 
 #include<unordered_map>
 #include<vector>
+#include<iostream>
 //c++11 alias: Container to store options for the router (i. a. sensors)
 using optStorage = std::unordered_map<std::string,std::vector<std::string> >;
 
