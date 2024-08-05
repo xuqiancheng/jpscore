@@ -84,14 +84,21 @@ private:
     Point ForceRepPedGCVM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     Point ForceRepPedCSM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
     Point ForceRepPedAVM(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
+    Point ForceConPed(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const;
 
     Point ForceRepRoom(Pedestrian* ped, SubRoom* subroom) const;
     Point ForceRepWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside) const;
+
+    Point ForceConRoom(Pedestrian* ped, SubRoom* subroom) const;
+    Point ForceConWall(Pedestrian* ped, const Line& l, const Point& centroid, bool inside) const;
 
     my_pair GetSpacing(Pedestrian* ped1, Pedestrian* ped2, int periodic) const;
     double GetSpacingRoom(Pedestrian* ped, SubRoom* subroom) const;
     double GetSpacingWall(Pedestrian* ped, const Line& l) const;
     double OptimalSpeed(Pedestrian* ped, double spacing) const;
+
+    //make changes here, speed for pushing
+    double PushSpeed(Pedestrian* ped, double spacing) const;
 
     Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;//Get the periodic position of ped2 for ped1
     Point GetInfDirection(Point e0, Point ep12) const;

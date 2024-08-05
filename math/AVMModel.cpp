@@ -179,6 +179,9 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
     vector< Point > resultDir = vector<Point >();
     resultDir.reserve(nSize);
 
+    vector<Point> resultForce = vector<Point>();
+    resultForce.reserve(nSize);
+
     int start = 0;
     int end = nSize - 1;
 
@@ -303,9 +306,44 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         // Optimal speed function
         Point speed;
         Point ei = ped1->GetMoveDirection();
-        speed = ei * OptimalSpeed(ped1, spacing);
+        //speed = ei * OptimalSpeed(ped1, spacing);
+        speed = ei * PushSpeed(ped1, spacing);
         resultAcc.push_back(speed);
     }
+
+    // Calculate the pushing force
+    for (int p = start; p <= end; ++p)
+    {
+        Pedestrian* ped1 = allPeds[p];
+        Point p1 = ped1->GetPos();
+        Room* room1 = building->GetRoom(ped1->GetRoomID());
+        SubRoom* subroom1 = room1->GetSubRoom(ped1->GetSubRoomID());
+        vector<Pedestrian*> neighbours;
+        building->GetGrid()->GetNeighbourhood(ped1, neighbours);
+        int size = (int)neighbours.size();
+
+        Point contactForce = Point(0, 0); //Contacting results in force.
+        // Calculate the influence from neighbours
+        for (int i = 0; i < size; i++)
+        {
+            Pedestrian* ped2 = neighbours[i];
+            Point p2 = ped2->GetPos();
+            //Check if two pedestrians can see each other
+            SubRoom* subroom2 = building->GetRoom(ped2->GetRoomID())->GetSubRoom(ped2->GetSubRoomID());
+            vector<SubRoom*> emptyVector;
+            emptyVector.push_back(subroom1);
+            emptyVector.push_back(subroom2);
+            bool isVisible = building->IsVisible(p1, p2, emptyVector, false);
+            if (ped1->GetUniqueRoomID() == ped2->GetUniqueRoomID() || subroom1->IsDirectlyConnectedWith(subroom2))
+            {
+                // Different model with different effect
+                contactForce += ForceConPed(ped1, ped2, building, periodic);
+            }
+            contactForce += ForceConRoom(ped1, subroom1);
+        } //for i
+         resultForce.push_back(contactForce);
+    }
+
 
     //Update everything
     for (int p = start; p <= end; ++p)
@@ -313,6 +351,10 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         Pedestrian* ped = allPeds[p];
         Point vNeu = resultAcc[p];
         Point dirNeu = resultDir[p];
+        Point force = resultForce[p];
+        Point FinalV = vNeu + force*deltaT;
+        vNeu = FinalV;
+        dirNeu=FinalV.Normalized();
         UpdatePed(ped, vNeu, dirNeu, deltaT, periodic);
     }
 
@@ -438,6 +480,29 @@ Point AVMModel::ForceRepPedAVM(Pedestrian* ped1, Pedestrian* ped2, Building* bui
     return FRep;
 }
 
+Point AVMModel::ForceConPed(Pedestrian* ped1, Pedestrian* ped2, Building* building, int periodic) const
+{
+    Point FCon(0.0, 0.0);
+    Point p1 = ped1->GetPos();
+    Point p2 = periodic ? GetPosPeriodic(ped1, ped2) : ped2->GetPos();
+    //Direction
+    Point distp12 = p2 - p1;
+    Point ep12 = distp12.Normalized();
+
+    // Distance
+    double Distance = distp12.Norm();
+    double dist = Distance - (ped1->GetEllipse().GetBmax() + ped2->GetEllipse().GetBmax());
+    if (dist >= 0)
+    {
+        return FCon;
+    }
+    double aForce = 0.5;
+    double DForce = 0.5;
+    double R_ij = aForce * exp((-dist) / DForce);
+    FCon = ep12 * (-R_ij);
+    return FCon;
+}
+
 Point AVMModel::ForceRepRoom(Pedestrian* ped, SubRoom* subroom) const
 {
     Point f(0., 0.);
@@ -522,6 +587,64 @@ Point AVMModel::ForceRepWall(Pedestrian* ped, const Line& w, const Point& centro
     {
         F_wrep = e_iw * R_iw*-1;//original method
     }
+    return F_wrep;
+}
+
+Point AVMModel::ForceConRoom(Pedestrian* ped, SubRoom* subroom) const
+{
+    Point f(0., 0.);
+    const Point& centroid = subroom->GetCentroid();
+    bool inside = subroom->IsInSubRoom(centroid);
+    //first the walls
+    for (const auto& wall : subroom->GetAllWalls())
+    {
+        f += ForceConWall(ped, wall, centroid, inside);
+    }
+    //then the obstacles
+    for (const auto& obst : subroom->GetAllObstacles())
+    {
+        if (obst->Contains(ped->GetPos()))
+        {
+            Log->Write("ERROR:\t Agent [%d] is trapped in obstacle in room/subroom [%d/%d]",
+                ped->GetID(), subroom->GetRoomID(), subroom->GetSubRoomID());
+            exit(EXIT_FAILURE);
+        }
+        for (const auto& wall : obst->GetAllWalls())
+        {
+            f += ForceConWall(ped, wall, centroid, inside);
+        }
+    }
+    return f;
+}
+
+Point AVMModel::ForceConWall(Pedestrian* ped, const Line& w, const Point& centroid, bool inside) const
+{
+    Point F_wrep = Point(0.0, 0.0);
+    Point pt = w.ShortestPoint(ped->GetPos());
+    Point dist = pt - ped->GetPos(); // ped ---> wall
+    double Distance = dist.Norm(); //Distance between the center of pedestrian and walls 
+    Point e_iw = Point(0.0, 0.0);
+    if (Distance > J_EPS)
+    {
+        e_iw = dist.Normalized();
+    }
+    else
+    {
+        e_iw = (centroid - pt).Normalized();
+        printf("ERROR: \tIn ID=%d, AGCVMModel::ForceRepWall() eiw can not be calculated!!!\n", ped->GetID());
+        //exit(EXIT_FAILURE);
+    }
+
+    // The distance between the real body(which is r2 > r1)
+    double effdis = Distance - ped->GetEllipse().GetBmax(); //Using circle now.
+    if (effdis>=0)
+    {
+        return F_wrep;
+    }
+    double aForce = 1;
+    double DForce = 0.2;
+    double R_iw = aForce * exp((-effdis) / DForce);
+    F_wrep = e_iw * (-R_iw);
     return F_wrep;
 }
 
@@ -654,6 +777,29 @@ double AVMModel::OptimalSpeed(Pedestrian* ped, double spacing) const
     return speed;
 }
 
+
+double AVMModel::PushSpeed(Pedestrian* ped, double spacing) const
+{
+    int plevel = 0;
+    int random = rand() % 10000;
+    if (random > 5000)
+    {
+        plevel = 1;
+    }
+    double v0 = ped->GetV0Norm();
+    v0 = v0 < 0.1 ? 0.1 : v0; //To avoid pedestrians who's desired speed is zero
+    double d = 0;
+    double T = 0.5;
+    if (plevel == 1)
+    {
+        d = 0.2;
+        T = 0.1;
+    }
+    double speed = (spacing+d) / T;
+    speed = (speed > 0) ? speed : 0;
+    speed = (speed < v0) ? speed : v0;
+    return speed;
+}
 
 /*----------Functions helpful----------*/
 Point AVMModel::GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const
