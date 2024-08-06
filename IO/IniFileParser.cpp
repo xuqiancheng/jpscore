@@ -2032,6 +2032,43 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
             Log->Write("INFO: \tAVM AntiTime=%0.2f, ConstantAlpha=false.", _config->GetAntiT());
     }
 
+    // PVM parameter: for the model with pushing behavior
+    if (xModelPara->FirstChild("PVM")) {
+        if (!xModelPara->FirstChildElement("PVM")->Attribute("apush"))
+            _config->SetaPedPush(1);
+        else {
+            string apush = xModelPara->FirstChildElement("PVM")->Attribute("apush");
+            _config->SetaPedPush(atof(apush.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("PVM")->Attribute("Dpush"))
+            _config->SetDPedPush(0.1);
+        else {
+            string Dpush = xModelPara->FirstChildElement("PVM")->Attribute("Dpush");
+            _config->SetDPedPush(atof(Dpush.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("PVM")->Attribute("Tpush"))
+            _config->SetTPush(0.2);
+        else {
+            string Tpush = xModelPara->FirstChildElement("PVM")->Attribute("Tpush");
+            _config->SetTPush(atof(Tpush.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("PVM")->Attribute("Spush"))
+            _config->SetSPush(0.2);
+        else {
+            string Spush = xModelPara->FirstChildElement("PVM")->Attribute("Spush");
+            _config->SetSPush(atof(Spush.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("PVM")->Attribute("Snorm"))
+            _config->SetSNorm(0.05);
+        else {
+            string Snorm = xModelPara->FirstChildElement("PVM")->Attribute("Snorm");
+            _config->SetSNorm(atof(Snorm.c_str()));
+        }
+        Log->Write("INFO: \tPVM apush=%0.2f, Dpush=%0.2f, Tpush=%0.2f, Spush=%0.2f, Snorm=%0.2f", 
+            _config->GetaPedPush(), _config->GetDPedPush(), _config->GetTPush(), _config->GetSPush(), _config->GetSNorm());
+    }
+
+    // Periodic boundary parameter 
     if (xModelPara->FirstChild("boundary")) {
         if (!xModelPara->FirstChildElement("boundary")->Attribute("left"))
             _config->SetLeftBoundary(-100);
@@ -2074,6 +2111,7 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
         _config->GetaPed(), _config->GetDPed(), _config->GetaWall(), _config->GetDWall(),
         _config->GetTs(), _config->GetTd(),
         _config->GetAntiT(), _config->GetConstantAlpha(),
-        _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff())));
+        _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
+        _config->GetaPedPush(), _config->GetDPedPush(), _config->GetTPush(), _config->GetSPush(), _config->GetSNorm())));
     return true;
 }

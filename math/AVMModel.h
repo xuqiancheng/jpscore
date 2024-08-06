@@ -77,6 +77,13 @@ private:
     double _DownBoundary;
     double _CutOff;
 
+    //Model Parameters (PVM)
+    double _aPush;
+    double _DPush;
+    double _TPush;
+    double _Spush;
+    double _Snorm;
+
 
     // Functions 
     Point DesireDirection(Pedestrian *ped, Room* room) const;
@@ -109,7 +116,8 @@ public:
         double aped, double Dped, double awall, double Dwall,
         double Ts, double Td,
         double AntiT, bool calpha,
-        double lb, double rb, double ub, double db, double co);
+        double lb, double rb, double ub, double db, double co,
+        double apush, double Dpush, double Tpush, double Spush, double Snorm);
     ~AVMModel(void);
 
     std::string GetDescription() override;
@@ -132,5 +140,18 @@ public:
     double GetUpBoundary() const { return _UpBoundary; };
     double GetDownBoundary() const { return _DownBoundary; };
     double GetCutoff() const { return _CutOff; };
+
+    double GetaPush() const { return _aPush; };
+    double GetDPush() const { return _DPush; };
+    double GetTPush() const {
+        return _TPush;
+    };
+    double GetSPush() const {
+        return _Spush;
+    };
+    double GetSNorm() const {
+        return _Snorm;
+    };
+
 };
 #endif 

@@ -48,7 +48,8 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     double aped, double Dped, double awall, double Dwall,
     double Ts, double Td,
     double AntiT, bool calpha,
-    double lb, double rb, double ub, double db, double co)
+    double lb, double rb, double ub, double db, double co,
+    double apush, double Dpush, double Tpush, double Spush, double Snorm)
 {
     _direction = dir;
     _Model = model;
@@ -74,6 +75,13 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     _UpBoundary = ub;
     _DownBoundary = db;
     _CutOff = co;
+
+    // PVM Parameter
+    _aPush = apush;
+    _DPush = Dpush;
+    _TPush = Tpush;
+    _Spush = Spush;
+    _Snorm = Snorm;
 }
 
 
@@ -499,9 +507,10 @@ Point AVMModel::ForceConPed(Pedestrian* ped1, Pedestrian* ped2, Building* buildi
     {
         return FCon;
     }
-    //TODO: the value of aForce and DForce should be set from inifile
-    double aForce = 0.2;
-    double DForce = 0.5;
+    // the value of aForce and DForce should be set from inifile
+    double aForce = GetaPush();
+    double DForce = GetDPush();
+    // printf("Test: aForce is %0.2f, DForce is %0.2f.\n", aForce, DForce);
     double R_ij = aForce * exp((-dist) / DForce);
     FCon = ep12 * (-R_ij);
     return FCon;
@@ -645,9 +654,10 @@ Point AVMModel::ForceConWall(Pedestrian* ped, const Line& w, const Point& centro
     {
         return F_wrep;
     }
-    //TODO: the value of aForce and DForce should be set from inifile
-    double aForce = 0.2;
-    double DForce = 0.5;
+    // the value of aForce and DForce should be set from inifile
+    double aForce = GetaPush();
+    double DForce = GetDPush();
+   //  printf("Test: aForce is %0.2f, DForce is %0.2f.\n", aForce, DForce);
     double R_iw = aForce * exp((-effdis) / DForce);
     F_wrep = e_iw * (-R_iw);
     return F_wrep;
@@ -793,18 +803,19 @@ double AVMModel::PushSpeed(Pedestrian* ped, double spacing) const
     {
         plevel = 1;
     }
-    //
+    //-------------------------------------------------------------------------------------------
     double v0 = ped->GetV0Norm();
     v0 = v0 < 0.1 ? 0.1 : v0; //To avoid pedestrians who's desired speed is zero
-    // TODO: the value of d and T are set from the inifile
-    double d = 0;
-    double T = 0.5;
+    // the value of d and T are set from the inifile
+    double extraSpace = GetSNorm();
+    double T = GetTs();
     if (plevel == 1)
     {
-        d = 0.2;
-        T = 0.1;
+        extraSpace = GetSPush();
+        T = GetTPush();
     }
-    double speed = (spacing+d) / T;
+    // printf("Test: Plevel is %d, extraSpace is %0.2f, T is %0.2f.\n", plevel,extraSpace,T);
+    double speed = (spacing+extraSpace) / T;
     speed = (speed > 0) ? speed : 0;
     speed = (speed < v0) ? speed : v0;
     return speed;

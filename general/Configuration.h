@@ -105,9 +105,7 @@ public:
         _SubmodelSpeed = 0;
         _RealModelType = 2;
         _AreaSize = 1;
-        // --------  AGCVM model ------
-        _aPedPush = 1;
-        _DPedPush = 0.1;
+        // --------  AVM model ------
         _Anticipation = 0;
         _Cooperation = 0;
         _Pushing = 0;
@@ -116,7 +114,12 @@ public:
         _CoreSize = 0.1;
         _ConstantAlpha = false;
         _ddType = 0;
-
+        // --------  PVM model ------
+        _aPedPush = 1;
+        _DPedPush = 0.1;
+        _TPush = 0.2;
+        _SPush = 0.2;
+        _SNorm = 0.05;
         //--------  boundary ------
         _left_boundary = -100;
         _right_boundary = 100;
@@ -468,6 +471,18 @@ public:
 
     void SetddType(int ddtype) { _ddType = ddtype; };
 
+    double GetTPush() const { return _TPush; };
+
+    void SetTPush(double TPush) { _TPush = TPush; };
+   
+    double GetSPush() const { return _SPush; };
+
+    void SetSPush(double SPush) { _SPush = SPush; };
+
+    double GetSNorm() const { return _SNorm; };
+
+    void SetSNorm(double SNorm) { _SNorm = SNorm; };
+
 #ifdef _JPS_AS_A_SERVICE
 
     const bool GetRunAsService() const { return _runAsService; };
@@ -542,9 +557,7 @@ private:
     int _SubmodelSpeed;
     int _RealModelType;
     double _AreaSize;
-    //AGCVMmodel
-    double _aPedPush;
-    double _DPedPush;
+    //AVMmodel
     int _Anticipation;
     int _Cooperation;
     double _AntiT;
@@ -553,6 +566,12 @@ private:
     double _CoreSize;
     bool _ConstantAlpha;
     int _ddType;
+    //PVMmodel
+    double _aPedPush;
+    double _DPedPush;
+    double _TPush;
+    double _SPush;
+    double _SNorm; 
     //Todo: anticipation error
 
     //ff router quickest
