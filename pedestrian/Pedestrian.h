@@ -169,6 +169,12 @@ private:
 
     Point _alwaysTarget;
 
+    //the current plevel
+    double _plevel;
+    // the mean value of plevel
+    double _P0;
+
+
 public:
     // public member
     int _ticksInThisRoom;
@@ -562,6 +568,14 @@ public:
     Point GetAlwaysTarget() const;
 
     void SetAlwaysTarget(Point target);
+
+    void SetPlevel(double plevel);
+
+    double GetPlevel() const;
+
+    void SetP0(double p0);
+
+    double GetP0() const;
 };
 
 #endif  /* _PEDESTRIAN_H */

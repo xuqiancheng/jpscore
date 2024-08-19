@@ -701,8 +701,8 @@ double Simulation::RunBody(double maxSimTime)
         }// Transitions
         if (frameNr % 1000 == 0)
         {
-            Log->Write("INFO:\tUpdate door statistics at t=%.2f", t);
-            PrintStatistics(t);
+            //Log->Write("INFO:\tUpdate door statistics at t=%.2f", t);
+            //PrintStatistics(t);
         }
     }// while time
     return t;

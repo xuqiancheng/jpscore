@@ -235,6 +235,7 @@ Pedestrian* StartDistribution::GenerateAgent(Building* building, int* pid, vecto
           );
      ped->SetSwayParameters(_groupParameters->GetSwayFreqA(), _groupParameters->GetSwayFreqB(),
                             _groupParameters->GetSwayAmpA(), _groupParameters->GetSwayAmpB());
+     ped->SetP0(_groupParameters->GetP0());
      // first default Position
      int index = -1;
 

@@ -153,6 +153,17 @@ public:
 
 
     /**
+    * Initialize the mean plevel distribution (bimodal distribution)
+    * @param mean1, mean value1
+    * @param stv1, standard deviation1
+    * @param mean2, mean value2
+    * @param stv1, standard deviation2
+    * @param perc, The proportion of distribution 1
+    */
+    void InitP0(double mean1,double  stv1, double mean2, double stv2, double perc);
+
+
+    /**
      * @return a random number following the distribution
      */
     double GetV0();
@@ -240,6 +251,11 @@ public:
 
 	double GetBmaxMean();
 
+    /**
+     * @return a random number following the distribution
+     */
+    double GetP0();
+
 private:
     int _id;
     //std::random_device _rd;
@@ -263,6 +279,11 @@ private:
     double _swayAmpA = -0.14;
     double _swayAmpB = 0.21;
 	const double judge = 10000;
+    // the distribution of the mean plevel satisfies the bimodal distribution 
+    std::uniform_real_distribution<double> _randperc;
+    std::normal_distribution<double> _P01;
+    std::normal_distribution<double> _P02;
+    double _Pperc;
 };
 
 #endif /* AGENTSPARAMETERS_H_ */

@@ -128,6 +128,9 @@ Pedestrian::Pedestrian()
     _try_coop = 0;
     _dynamic_V0 = 1.3;
     _alwaysTarget = Point(0, 0);
+
+    _plevel = 0;
+    _P0 = 2;
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -217,6 +220,9 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
     _try_coop = 0;
     _dynamic_V0 = 1.3;
     _alwaysTarget = Point(0, 0);
+    _plevel = 0;
+    _P0 = 2;
+
 }
 
 
@@ -1414,3 +1420,25 @@ void Pedestrian::SetAlwaysTarget(Point target)
 {
     _alwaysTarget = target;
 }
+
+void Pedestrian::SetPlevel(double plevel)
+{
+    _plevel = plevel;
+}
+
+double Pedestrian::GetPlevel() const
+{
+    return _plevel;
+}
+
+void Pedestrian::SetP0(double p0)
+{
+    _P0 = p0;
+}
+
+double Pedestrian::GetP0() const
+{
+    return _P0;
+}
+
+

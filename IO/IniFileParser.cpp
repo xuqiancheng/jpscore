@@ -1170,6 +1170,16 @@ void IniFileParser::ParseAgentParameters(TiXmlElement* operativModel, TiXmlNode*
                 Log->Write("INFO: \tdesired speed idle escalator downstairs mu=%f , sigma=%f", mu, sigma);
             }
             //------------------------------------------------------------------------
+            //mean plevel
+            if (xAgentPara->FirstChild("p0")) {
+                double mu1 = xmltof(xAgentPara->FirstChildElement("p0")->Attribute("mu1"));
+                double sigma1 = xmltof(xAgentPara->FirstChildElement("p0")->Attribute("sigma1"));
+                double mu2 = xmltof(xAgentPara->FirstChildElement("p0")->Attribute("mu2"));
+                double sigma2 = xmltof(xAgentPara->FirstChildElement("p0")->Attribute("sigma2"));
+                double perc= xmltof(xAgentPara->FirstChildElement("p0")->Attribute("perc"));
+                agentParameters->InitP0(mu1, sigma1, mu2, sigma2, perc);
+                Log->Write("INFO: \tp0 bimodel distribution mu1=%f, sigma1=%f, mu2=%f, sigma2=%f, perc=%f", mu1, sigma1, mu2, sigma2, perc);
+            }
 
             //bmax
             if (xAgentPara->FirstChild("bmax")) {

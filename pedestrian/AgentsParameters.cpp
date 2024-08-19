@@ -181,6 +181,14 @@ void AgentsParameters::EnableStretch(bool stretch)
 
 
 
+void AgentsParameters::InitP0(double mean1, double stv1, double mean2, double stv2, double perc)
+{
+	_randperc = std::uniform_real_distribution<double>(0.0, 1.0);
+	_P01 = std::normal_distribution<double>(mean1, stv1);
+	_P02 = std::normal_distribution<double>(mean2, stv2);
+	_Pperc = perc;
+}
+
 double AgentsParameters::GetV0()
 {
 	if (_V0.stddev() == judge)
@@ -440,5 +448,14 @@ double AgentsParameters::GetBmaxMean() {
 	return _Bmax.mean();
 }
 
+double AgentsParameters::GetP0()
+{
+	double random = _randperc(_generator);
+	if (random <_Pperc)
+	{
+		return _P01(_generator);
+	}
+	return _P02(_generator);
+}
 
 
