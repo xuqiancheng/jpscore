@@ -111,6 +111,13 @@ private:
     Point GetInfDirection(Point e0, Point ep12) const;
     void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
 
+    // Functions for predicting the pushing level
+    void add_vectors(double* v1, double* v2, int size, double* result) const;
+    void mul_vector_number(double* v1, double num, int size, double* result) const;
+    void score(double* input, double* output) const;
+    //----------------------------------------------------
+
+
 public:
     AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
         double aped, double Dped, double awall, double Dwall,
