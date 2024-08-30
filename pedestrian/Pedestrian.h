@@ -173,6 +173,8 @@ private:
     double _plevel;
     // the mean value of plevel
     double _P0;
+    // density
+    double _density;
 
 
 public:
@@ -576,6 +578,11 @@ public:
     void SetP0(double p0);
 
     double GetP0() const;
+
+    void SetDensity(double density);
+
+    double GetDensity() const;
+
 };
 
 #endif  /* _PEDESTRIAN_H */

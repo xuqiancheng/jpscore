@@ -870,6 +870,7 @@ void TrajectoriesJPSV05::WriteGeometry(Building* building)
      _outputHandler->Write("\t\t<property tag=\"v0\" description=\"freeSpeed\"/>");
      _outputHandler->Write("\t\t<property tag=\"p0\" description=\"meanPlevel\"/>");
      _outputHandler->Write("\t\t<property tag=\"pL\" description=\"currentPlevel\"/>");
+     _outputHandler->Write("\t\t<property tag=\"de\" description=\"density\"/>");
      _outputHandler->Write("\t</AttributeDescription>\n");
 }
 
@@ -899,10 +900,10 @@ void TrajectoriesJPSV05::WriteFrame(int frameNr, Building* building)
                     "z=\"%.6f\"\t"
                     "rA=\"%.2f\"\trB=\"%.2f\"\t"
                     "eO=\"%.2f\"\teC=\"%d\"\ted=\"%.2f\"\t"
-                    "v0=\"%.3f\"\tp0=\"%.3f\"\tpL=\"%.2f\"/>\n",
+                    "v0=\"%.3f\"\tp0=\"%.3f\"\tpL=\"%.2f\"\tde=\"%.2f\"/>\n",
                     ped->GetID(), (ped->GetPos()._x) * FAKTOR,
                     (ped->GetPos()._y) * FAKTOR,(ped->GetElevation()) * FAKTOR ,a * FAKTOR, b * FAKTOR,
-                    phi * RAD2DEG, color, ephi* RAD2DEG,ped->GetV0Norm(),ped->GetP0(),ped->GetPlevel());
+                    phi * RAD2DEG, color, ephi* RAD2DEG,ped->GetV0Norm(),ped->GetP0(),ped->GetPlevel(),ped->GetDensity());
           data.append(s);
      }
      data.append("</frame>\n");

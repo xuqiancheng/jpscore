@@ -193,7 +193,75 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
     int start = 0;
     int end = nSize - 1;
 
-    // calculate direction of each agent
+    // Step 1: update the density of agents based on the number of pedestrians in the surrounding square area （2*2） 
+    for (int p = start; p <= end; ++p)
+    {
+        Pedestrian* ped1 = allPeds[p];
+        Point p1 = ped1->GetPos();
+        Room* room1 = building->GetRoom(ped1->GetRoomID());
+        SubRoom* subroom1 = room1->GetSubRoom(ped1->GetSubRoomID());
+        // Calculate the area of the measurement ares (square area 2*2)
+        double radius = 1;
+        // the distance to wall on each direction
+        vector<Point> directions = { Point(1,0),Point(0,1),Point(-1,0),Point(0,-1) };
+        vector<double> spaces;
+        for (int j = 0; j < 4; j++)
+        {
+            Point direction = directions[j];
+            double space =radius;
+            for (const auto& wall : subroom1->GetAllWalls())
+            {
+                double distance = GetSpacingWallDirection(ped1, wall, direction) + ped1->GetEllipse().GetBmax();
+                space = distance < space ? distance : space;
+            }
+            for (const auto& goal : subroom1->GetAllTransitions())
+            {
+                double distance = GetSpacingWallDirection(ped1, *(static_cast<Line*>(goal)), direction) + ped1->GetEllipse().GetBmax();
+                space = distance < space ? distance : space;
+            }
+            for (const auto& goal : subroom1->GetAllCrossings())
+            {
+                double distance = GetSpacingWallDirection(ped1, *(static_cast<Line*>(goal)), direction) + ped1->GetEllipse().GetBmax();
+                space = distance < space ? distance : space;
+            }
+            spaces.push_back(space);
+        }
+        double area = (spaces[0] + spaces[2]) * (spaces[1] + spaces[3]);
+        // printf("pos=(%f,%f)\n", p1._x, p1._y);
+        // printf("spaces=(%f,%f,%f,%f)\n", spaces[0], spaces[1], spaces[2], spaces[3]);
+        // printf("area=%f\n", area);
+        // calculate the numebr of agents in the square region
+        vector<Pedestrian*> neighbours;
+        building->GetGrid()->GetNeighbourhood(ped1, neighbours);
+        int size = (int)neighbours.size();
+        int number = 1;
+        for (int i = 0; i < size; i++)
+        {
+            Pedestrian* ped2 = neighbours[i];
+            Point p2 = ped2->GetPos();
+            double dis12 = (p2 - p1).Norm();
+            Point ep12 = (p2 - p1).Normalized();
+            for (int j = 0; j < 4; j++)
+            {
+                Point direction = directions[j];
+                if (dis12 * ep12.ScalarProduct(direction) > spaces[j])
+                {
+                    //printf("ped2 (%f,%f) not in the region\n", p2._x, p2._y);
+                    break;
+                }
+                if (j == 3)
+                {
+                   //printf("ped2 (%f,%f) in the region\n", p2._x, p2._y);
+                    number++;
+                }
+            }
+        }
+        // printf("number=%d\n", number);
+        ped1->SetDensity(number / area);
+        // printf("density=%f\n\n", ped1->GetDensity());
+    }
+    
+    // Step 2: calculate the direction of movement for each agent
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped1 = allPeds[p];
@@ -266,7 +334,7 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         resultDir.push_back(direction);
     }
 
-    // Update direction of each pedestrian
+    // Step 3: update the direction of movement for each agent
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped = allPeds[p];
@@ -274,7 +342,7 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         ped->SetMoveDirection(direction);
     }
 
-    // Calculate speed
+    // Step 4: calculate the speed for each agent
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped1 = allPeds[p];
@@ -316,11 +384,11 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         Point ei = ped1->GetMoveDirection();
         //speed = ei * OptimalSpeed(ped1, spacing);
         // Here this speed model can create space
-        speed = ei * PushSpeed(ped1, spacing);
+        speed = ei * PushSpeed(ped1, spacing, neighbours,room1);
         resultAcc.push_back(speed);
     }
 
-    // Calculate the pushing force, from both neighbors and walls
+    // Step 5: calculate the pushing efforts from neighbors and walls
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped1 = allPeds[p];
@@ -348,13 +416,14 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
                 // Different model with different effect
                 contactForce += ForceConPed(ped1, ped2, building, periodic);
             }
+            // the wall also has contact force, without looks better]
             contactForce += ForceConRoom(ped1, subroom1);
         } //for i
          resultForce.push_back(contactForce);
     }
 
 
-    //Update everything
+    //Step 6: update everything, position, speed
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped = allPeds[p];
@@ -366,6 +435,21 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         Point FinalV = vNeu + force*deltaT;
         vNeu = FinalV;
         dirNeu=FinalV.Normalized();
+        /*
+        // Avoid agents cross the wall
+        Room* room = building->GetRoom(ped->GetRoomID());
+        double maxSpace = FLT_MAX;
+        for (auto it = room->GetAllSubRooms().begin(); it != room->GetAllSubRooms().end(); ++it)
+        {
+            SubRoom* subroom = room->GetSubRoom(it->first);
+            double space2wall = GetSpacingRoomDirection(ped, subroom, dirNeu) + 0.1;
+            maxSpace = space2wall < maxSpace ? space2wall : maxSpace;
+        }
+        vNeu = vNeu.Norm() * deltaT > maxSpace ? dirNeu * maxSpace / deltaT : vNeu;
+        // printf("ped pos=(%f,%f)\n", ped->GetPos()._x, ped->GetPos()._y);
+        // printf("direction=(%f,%f)\n", dirNeu._x, dirNeu._y);
+        // printf("maxSpace=%f\n\n", maxSpace);
+        */
         UpdatePed(ped, vNeu, dirNeu, deltaT, periodic);
         // check if pedestrian cross wall----------------------------------------------------------------------------------
         Point posNew = ped->GetPos();
@@ -673,8 +757,8 @@ Point AVMModel::ForceConWall(Pedestrian* ped, const Line& w, const Point& centro
         return F_wrep;
     }
     // the value of aForce and DForce should be set from inifile
-    double aForce = GetaPush();
-    double DForce = GetDPush();
+    double aForce = GetaPush()/10;
+    double DForce = GetDPush()*10;
    //  printf("Test: aForce is %0.2f, DForce is %0.2f.\n", aForce, DForce);
     double R_iw = aForce * exp((-effdis) / DForce);
     F_wrep = e_iw * (-R_iw);
@@ -810,25 +894,118 @@ double AVMModel::OptimalSpeed(Pedestrian* ped, double spacing) const
     return speed;
 }
 
+double AVMModel::GetSpacingRoomDirection(Pedestrian* ped, SubRoom* subroom, Point direction) const
+{
+    double spacing = FLT_MAX;
+    //first the walls
+    for (const auto& wall : subroom->GetAllWalls())
+    {
+        double distance = GetSpacingWallDirection(ped, wall,direction);
+        spacing = spacing > distance ? distance : spacing;
+    }
+    //then the obstacles
+    for (const auto& obst : subroom->GetAllObstacles())
+    {
+        for (const auto& wall : obst->GetAllWalls())
+        {
+            double distance = GetSpacingWallDirection(ped, wall, direction);
+            spacing = spacing > distance ? distance : spacing;
+        }
+    }
+    //and finally the doors
+    for (const auto& goal : subroom->GetAllTransitions())
+    {
+           double distance = GetSpacingWallDirection(ped, *(static_cast<Line*>(goal)),direction);
+           spacing = spacing > distance ? distance : spacing;
+    }
+   
+    return spacing;
+}
 
-double AVMModel::PushSpeed(Pedestrian* ped, double spacing) const
+double AVMModel::GetSpacingWallDirection(Pedestrian* ped, const Line& l, Point direction) const
+{
+    double spacing = FLT_MAX;
+    Point pp = ped->GetPos();
+    Point pt = l.ShortestPoint(ped->GetPos());
+    Point p1 = l.GetPoint1();
+    Point p2 = l.GetPoint2();
+    Point dist = pt - pp;
+    Point ei_vertical;
+    Point ei = direction;
+    ei_vertical._x = -ei.Normalized()._y;
+    ei_vertical._y = ei.Normalized()._x;
+    //--------------------------------------------------------
+    double b = ped->GetEllipse().GetBmax();
+    //--------------------------------------------------------
+    Point A1 = pp + ei_vertical * b;
+    Point A2 = pp - ei_vertical * b;
+    Point p1_A1 = p1 - A1;
+    Point p2_A1 = p2 - A1;
+    Point p12 = p1 - p2;
+    double A1_result1 = ei.CrossProduct(p1_A1);
+    double A1_result2 = ei.CrossProduct(p2_A1);
+    double result3 = ei.ScalarProduct(dist);
+    Point p1_A2 = p1 - A2;
+    Point p2_A2 = p2 - A2;
+    double A2_result1 = ei.CrossProduct(p1_A2);
+    double A2_result2 = ei.CrossProduct(p2_A2);
+    if (result3 <= 0)
+    {
+        return spacing;
+    }
+    if (A1_result1 * A1_result2 > 0 && A2_result1 * A2_result2 > 0 && A1_result1 * A2_result1 > 0 && A1_result2 * A2_result2 > 0)
+    {
+        return spacing;
+    }
+    double effdis = dist.Norm() - b;
+    double cosangle = dist.ScalarProduct(ei) / (dist.Norm() * ei.Norm());
+    if (cosangle < 0.00001)
+    {
+        return spacing;
+    }
+    spacing = effdis / cosangle;
+    return spacing;
+}
+
+
+double AVMModel::PushSpeed(Pedestrian* ped, double spacing, vector<Pedestrian*> neighbours, Room* room) const
 {
     double meanPlevel = ped->GetP0();
     double plevel = ped->GetPlevel();
-    // The plevel of pedestrians should be generated by the RF classifier
-    // Here the RF classifier code is generated by m2cgen
-    // The input should be the surrouding neighbors
-    double input[9] = { 2.434, 0.092, 0.043, 0.206, 0.19, 3.588, 2.42, 2.167, 2.0 };
+    // The plevel of pedestrians is predicted by the RF classifier
+    // The RF classifier code is generated by m2cgen from python
+    // Calculate the features for prediction-----------------------------------------------------------------------
+    vector<double> features = vector<double >();
+    int N =2; // the value of N will be determined by the result of mechine learning part
+    int featureNum = 1 + N * 4;
+    features.reserve(2*featureNum);
+    NeighborInfoMLFeatures(features, N, ped, neighbours, room);
+    /*
+    printf("\nsize is %d\n", features.size());
+    for (int i = 0; i < features.size(); i++)
+    {
+        printf("index %d is %f\n", i, features[i]);
+    }
+    */
+    // Predict the pushing level based on the extracted features------------------------------------------------
+    double* input = new double[features.size()];
+    memcpy(input, &features[0], features.size() * sizeof(double));
+    /* check if input is correct
+    for (int i = 0; i < features.size(); i++)
+    {
+        printf("i=%d,feature=%f,input=%f.\n", i, features[i], input[i]);
+    }
+    */
     double output=-1;
     double *po=&output;
     score(input, po);
-    // pushing: score<0.5, nonpushing: score>0.5
+    //the prediction result is pushing: score<0.5, nonpushing: score>0.5
     if (output < 0.5)
     {
         plevel = 1;
         ped->SetPlevel(plevel);
     }
-    //-------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------
     double v0 = ped->GetV0Norm();
     v0 = v0 < 0.1 ? 0.1 : v0; //To avoid pedestrians who's desired speed is zero
     // the value of d and T are set from the inifile
@@ -1950,5 +2127,104 @@ void AVMModel::score(double* input, double* output) const
     add_vectors(var2, var41, 2, var1);
     mul_vector_number(var1, 0.047619047619047616, 2, var0);
     memcpy(output, var0, 2 * sizeof(double));
+}
+
+void AVMModel::NeighborInfoMLFeatures(vector<double>& features, const int N,  Pedestrian* ped, const vector<Pedestrian*> neighbours, Room* room) const
+{
+    // the first feature is the mean plevel
+    double mplevel = ped->GetP0();
+    features.push_back(mplevel);
+    // ped information
+    Point pos1 = ped->GetPos();
+    Point desiredDirection = DesireDirection(ped, room);
+    SubRoom* subroom = room->GetSubRoom(ped->GetSubRoomID());
+    // space, speed, density, plevel 
+    vector<double> feaSpaces = vector<double>();
+    vector<double> feaSpeeds = vector<double>();
+    vector<double> feaDensitys = vector<double>();
+    vector<double> feaPlevels = vector<double>();
+    // neighbor information
+    int size = (int)neighbours.size();
+    for (int index = 0; index < N; index++)
+    {
+        vector<double> spaces = vector<double>();
+        vector<double> speeds = vector<double>();
+        vector<double> densitys = vector<double>();
+        vector<double> plevels = vector<double>();
+        double angle = index * M_PI *2 / N;
+        //printf("index=%d, angle=%f\n", index, angle);
+        Point direction = desiredDirection.Rotate(cos(angle), sin(angle));
+        /*
+        printf("angle=%f, cos=%f, sin=%f\n", angle, cos(angle), sin(angle));
+        printf("desiredDirection=(%f,%f)\n", desiredDirection._x, desiredDirection._y);
+        printf("direction=(%f,%f)\n\n", direction._x, direction._y);
+        */
+        for (int i = 0; i < size; i++)
+        {
+            Pedestrian* ped2 = neighbours[i];
+            Point pos2 = ped2->GetPos();
+            double dist12 = (pos2 - pos1).Norm();
+            Point ep12 = (pos2 - pos1).Normalized();
+            double temp = ep12.ScalarProduct(direction);
+            temp = temp > 1 ? 1 : temp;
+            temp = temp < -1 ? -1 : temp;
+            double angle2dir = acos(temp);
+            // ped2 is in the range
+            // printf("ped1=(%f,%f), ped2=(%f,%f)\n", pos1._x, pos1._y, pos2._x, pos2._y);
+            // printf("direction=(%f,%f)\n ", direction._x, direction._y);
+            if (angle2dir < M_PI / N)
+            {
+                //printf("ped %d in range\n\n", ped2->GetID());
+                spaces.push_back(dist12);
+                double projSpeed = ped2->GetV().ScalarProduct(desiredDirection);
+                //printf("ped2v=(%f,%f)\n", ped2->GetV()._x, ped2->GetV()._y);
+                //printf("desiredDirection=(%f,%f)\n", desiredDirection._x, desiredDirection._y);
+                //printf("projSpeed = % f\n\n", projSpeed);
+                speeds.push_back(projSpeed);
+                double density = ped2->GetDensity();
+                densitys.push_back(density);
+                // Since we don't have the real plevel, this step unifies the dimensions of simulation and experimental data.
+                double plevel = ped2->GetPlevel() + 2;
+                plevels.push_back(plevel);
+            }
+        }
+        // the space 2 walls
+        for (auto it = room->GetAllSubRooms().begin(); it != room->GetAllSubRooms().end(); ++it)
+        {
+            SubRoom* subroom2 = room->GetSubRoom(it->first);
+            double space2wall = GetSpacingRoomDirection(ped, subroom2, direction) + ped->GetEllipse().GetBmax();
+            spaces.push_back(space2wall);
+        }
+        double spaceMin = *min_element(spaces.begin(), spaces.end());
+        double speedMean = 0;
+        double densityMean = 0;
+        double plevelMean = 0;
+        if (speeds.size() != 0)
+        {
+            speedMean = MeanVector(speeds);
+            densityMean = MeanVector(densitys);
+            plevelMean = MeanVector(plevels);
+        }
+        feaSpaces.push_back(spaceMin);
+        feaSpeeds.push_back(speedMean);
+        feaDensitys.push_back(densityMean);
+        feaPlevels.push_back(plevelMean);
+    }
+    for (int i = 0; i < feaSpaces.size(); i++)
+    {
+        features.push_back(feaSpaces[i]);
+    }
+    for (int i = 0; i < feaSpeeds.size(); i++)
+    {
+        features.push_back(feaSpeeds[i]);
+    }
+    for (int i = 0; i < feaDensitys.size(); i++)
+    {
+        features.push_back(feaDensitys[i]);
+    }
+    for (int i = 0; i < feaPlevels.size(); i++)
+    {
+        features.push_back(feaPlevels[i]);
+    }
 }
 

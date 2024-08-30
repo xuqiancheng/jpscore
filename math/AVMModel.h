@@ -104,8 +104,12 @@ private:
     double GetSpacingWall(Pedestrian* ped, const Line& l) const;
     double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
+    // Calculate the space of walls on the direciton
+    double GetSpacingRoomDirection(Pedestrian* ped, SubRoom* subroom, Point direction) const;
+    double GetSpacingWallDirection(Pedestrian* ped, const Line& l,Point direction) const;
+
     //make changes here, speed for pushing
-    double PushSpeed(Pedestrian* ped, double spacing) const;
+    double PushSpeed(Pedestrian* ped, double spacing, vector<Pedestrian*> neighbours, Room* room) const;
 
     Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;//Get the periodic position of ped2 for ped1
     Point GetInfDirection(Point e0, Point ep12) const;
@@ -117,7 +121,9 @@ private:
     void score(double* input, double* output) const;
     //----------------------------------------------------
 
-
+    // Generate the surrounding information
+    void NeighborInfoMLFeatures(vector<double>& features, const int N,  Pedestrian* ped, const  vector<Pedestrian*> neighbours, Room* room) const;
+    
 public:
     AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
         double aped, double Dped, double awall, double Dwall,
@@ -159,6 +165,13 @@ public:
     double GetSNorm() const {
         return _Snorm;
     };
-
+    double MeanVector(vector<double> & vec) const {
+        double sum = 0;
+        for (int i = 0; i < vec.size(); i++)
+        {
+            sum += vec[i];
+        }
+        return sum / vec.size();
+    }
 };
 #endif 

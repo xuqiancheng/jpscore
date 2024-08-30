@@ -131,6 +131,7 @@ Pedestrian::Pedestrian()
 
     _plevel = 0;
     _P0 = 2;
+    _density = 0.25;
 }
 
 //const shared_ptr<ToxicityAnalysis> &Pedestrian::getToxicityAnalysis() { return _ToxicityAnalysis; }
@@ -222,7 +223,7 @@ Pedestrian::Pedestrian(const StartDistribution& agentsParameters, Building& buil
     _alwaysTarget = Point(0, 0);
     _plevel = 0;
     _P0 = 2;
-
+    _density = 0.25;
 }
 
 
@@ -1439,6 +1440,16 @@ void Pedestrian::SetP0(double p0)
 double Pedestrian::GetP0() const
 {
     return _P0;
+}
+
+void Pedestrian::SetDensity(double density)
+{
+    _density = density;
+}
+
+double Pedestrian::GetDensity() const
+{
+    return _density;
 }
 
 
