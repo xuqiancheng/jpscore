@@ -105,7 +105,7 @@ private:
     double OptimalSpeed(Pedestrian* ped, double spacing) const;
 
     // Calculate the space of walls on the direciton
-    double GetSpacingRoomDirection(Pedestrian* ped, SubRoom* subroom, Point direction) const;
+    double GetSpacingRoomDirection(Pedestrian* ped, SubRoom* subroom, Point direction, bool checkDoor) const;
     double GetSpacingWallDirection(Pedestrian* ped, const Line& l,Point direction) const;
 
     //make changes here, speed for pushing

@@ -507,10 +507,16 @@ void TrajectoriesFLAT::WriteHeader(long nPeds, double fps, Building* building, i
      Write("#A, B: semi-axes of the ellipse");
      Write("#ANGLE: orientation of the ellipse");
      Write("#COLOR: color of the ellipse");
+     Write("#ed: desiredDirection");
+     Write("#v0: freeSpeed");
+     Write("#p0: menaPlevel");
+     Write("#pL: currentPlevel");
+     Write("#de: density");
+
 
      Write("\n");
      //Write("#ID\tFR\tX\tY\tZ");// @todo: maybe use two different formats
-     Write("#ID\tFR\tX\tY\tZ\tA\tB\tANGLE\tCOLOR");// a b angle color
+     Write("#ID\tFR\tX\tY\tZ\tA\tB\tANGLE\tCOLOR\ted\tv0\tpo\tpL\tde");// a b angle color
 }
 
 void TrajectoriesFLAT::WriteGeometry(Building* building)
@@ -531,10 +537,13 @@ void TrajectoriesFLAT::WriteFrame(int frameNr, Building* building)
           double a = ped->GetLargerAxis();
           double b = ped->GetSmallerAxis();
           double phi = atan2(ped->GetEllipse().GetSinPhi(), ped->GetEllipse().GetCosPhi());
+          double ephi = atan2(ped->GetLastE0()._y, ped->GetLastE0()._x);
           double RAD2DEG = 180.0 / M_PI;
+
           // @todo: maybe two different formats
           //sprintf(tmp, "%d\t%d\t%0.2f\t%0.2f\t%0.2f", ped->GetID(), frameNr, x, y, z);
-          sprintf(tmp, "%d\t%d\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%d", ped->GetID(), frameNr, x, y, z, a, b, phi * RAD2DEG, color);
+          sprintf(tmp, "%d\t%d\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%d\t%.2f\t%.3f\t%.3f\t%.2f\t%.2f", 
+              ped->GetID(), frameNr, x, y, z, a, b, phi * RAD2DEG, color, ephi* RAD2DEG, ped->GetV0Norm(), ped->GetP0(), ped->GetPlevel(), ped->GetDensity());
           Write(tmp);
      }
 }
