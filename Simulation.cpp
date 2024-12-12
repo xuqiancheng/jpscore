@@ -61,7 +61,7 @@ Simulation::Simulation(Configuration* args)
     :_config(args)
 {
     _countTraj = 0;
-    _maxFileSize = 10; // MB
+    _maxFileSize = 50; // MB
     _nPeds = 0;
     _seed = 8091983;
     _deltaT = 0;

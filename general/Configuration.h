@@ -117,6 +117,8 @@ public:
         // --------  PVM model ------
         _aPedPush = 1;
         _DPedPush = 0.1;
+        _aForce = 1;
+        _DForce = 0.1;
         _TPush = 0.2;
         _SPush = 0.2;
         _SNorm = 0.05;
@@ -483,6 +485,14 @@ public:
 
     void SetSNorm(double SNorm) { _SNorm = SNorm; };
 
+    double GetaForce() const { return _aForce; };
+
+    void SetaForce(double aForce) { _aForce = aForce; };
+
+    double GetDForce() const { return _DForce; };
+
+    void SetDForce(double DForce) { _DForce = DForce; };
+
 #ifdef _JPS_AS_A_SERVICE
 
     const bool GetRunAsService() const { return _runAsService; };
@@ -569,6 +579,8 @@ private:
     //PVMmodel
     double _aPedPush;
     double _DPedPush;
+    double _aForce;
+    double _DForce;
     double _TPush;
     double _SPush;
     double _SNorm; 

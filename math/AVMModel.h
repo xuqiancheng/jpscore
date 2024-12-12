@@ -80,6 +80,8 @@ private:
     //Model Parameters (PVM)
     double _aPush;
     double _DPush;
+    double _aForce;
+    double _DForce;
     double _TPush;
     double _Spush;
     double _Snorm;
@@ -114,7 +116,7 @@ private:
     Point GetPosPeriodic(Pedestrian* ped1, Pedestrian* ped2) const;//Get the periodic position of ped2 for ped1
     Point GetInfDirection(Point e0, Point ep12) const;
     void UpdatePed(Pedestrian* ped, Point speed, Point direction, double deltaT, int periodic);
-
+    void UpdatePlevel(Pedestrian* ped, vector<Pedestrian*> neighbours, Room* room);
     // Functions for predicting the pushing level
     void add_vectors(double* v1, double* v2, int size, double* result) const;
     void mul_vector_number(double* v1, double num, int size, double* result) const;
@@ -130,7 +132,7 @@ public:
         double Ts, double Td,
         double AntiT, bool calpha,
         double lb, double rb, double ub, double db, double co,
-        double apush, double Dpush, double Tpush, double Spush, double Snorm);
+        double apush, double Dpush, double aforce, double Dforce,double Tpush, double Spush, double Snorm);
     ~AVMModel(void);
 
     std::string GetDescription() override;
@@ -156,6 +158,8 @@ public:
 
     double GetaPush() const { return _aPush; };
     double GetDPush() const { return _DPush; };
+    double GetaForce() const { return _aForce; };
+    double GetDForce() const { return _DForce; };
     double GetTPush() const {
         return _TPush;
     };

@@ -2056,6 +2056,18 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
             string Dpush = xModelPara->FirstChildElement("PVM")->Attribute("Dpush");
             _config->SetDPedPush(atof(Dpush.c_str()));
         }
+        if (!xModelPara->FirstChildElement("PVM")->Attribute("aForce"))
+            _config->SetaForce(1);
+        else {
+            string aforce = xModelPara->FirstChildElement("PVM")->Attribute("aForce");
+            _config->SetaForce(atof(aforce.c_str()));
+        }
+        if (!xModelPara->FirstChildElement("PVM")->Attribute("DForce"))
+            _config->SetDForce(0.1);
+        else {
+            string Dforce = xModelPara->FirstChildElement("PVM")->Attribute("DForce");
+            _config->SetDForce(atof(Dforce.c_str()));
+        }
         if (!xModelPara->FirstChildElement("PVM")->Attribute("Tpush"))
             _config->SetTPush(0.2);
         else {
@@ -2074,8 +2086,8 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
             string Snorm = xModelPara->FirstChildElement("PVM")->Attribute("Snorm");
             _config->SetSNorm(atof(Snorm.c_str()));
         }
-        Log->Write("INFO: \tPVM apush=%0.2f, Dpush=%0.2f, Tpush=%0.2f, Spush=%0.2f, Snorm=%0.2f", 
-            _config->GetaPedPush(), _config->GetDPedPush(), _config->GetTPush(), _config->GetSPush(), _config->GetSNorm());
+        Log->Write("INFO: \tPVM apush=%0.2f, Dpush=%0.2f, aForce=%0.2f, DForce=%.02f, Tpush=%0.2f, Spush=%0.2f, Snorm=%0.2f", 
+            _config->GetaPedPush(), _config->GetDPedPush(), _config->GetaForce(), _config->GetDForce(),_config->GetTPush(), _config->GetSPush(), _config->GetSNorm());
     }
 
     // Periodic boundary parameter 
@@ -2122,6 +2134,6 @@ bool IniFileParser::ParseAVMModel(TiXmlElement* xAVM, TiXmlElement* xMainNode)
         _config->GetTs(), _config->GetTd(),
         _config->GetAntiT(), _config->GetConstantAlpha(),
         _config->GetLeftBoundary(), _config->GetRightBoundary(), _config->GetUpBoundary(), _config->GetDownBoundary(), _config->GetCutoff(),
-        _config->GetaPedPush(), _config->GetDPedPush(), _config->GetTPush(), _config->GetSPush(), _config->GetSNorm())));
+        _config->GetaPedPush(), _config->GetDPedPush(), _config->GetaForce(), _config->GetDForce(), _config->GetTPush(), _config->GetSPush(), _config->GetSNorm())));
     return true;
 }

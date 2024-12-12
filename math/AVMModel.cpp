@@ -49,7 +49,7 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     double Ts, double Td,
     double AntiT, bool calpha,
     double lb, double rb, double ub, double db, double co,
-    double apush, double Dpush, double Tpush, double Spush, double Snorm)
+    double apush, double Dpush, double aforce, double Dforce, double Tpush, double Spush, double Snorm)
 {
     _direction = dir;
     _Model = model;
@@ -79,6 +79,8 @@ AVMModel::AVMModel(std::shared_ptr<DirectionStrategy> dir, int model,
     // PVM Parameter
     _aPush = apush;
     _DPush = Dpush;
+    _aForce = aforce;
+    _DForce = Dforce;
     _TPush = Tpush;
     _Spush = Spush;
     _Snorm = Snorm;
@@ -193,7 +195,7 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
     int start = 0;
     int end = nSize - 1;
 
-    // Step 1: update the density of agents based on the number of pedestrians in the surrounding square area （2*2） 
+    // Step 1: update the density of agents based on the number of pedestrians in the surrounding square area （2*2)
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped1 = allPeds[p];
@@ -261,7 +263,34 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         // printf("density=%f\n\n", ped1->GetDensity());
     }
     
-    // Step 2: calculate the direction of movement for each agent
+    //Step 2: update the plevel for each agent
+    for (int p = start; p <= end; ++p)
+    {
+        Pedestrian* ped = allPeds[p];
+        vector<Pedestrian*> neighbours;
+        building->GetGrid()->GetNeighbourhood(ped, neighbours);
+        Room* room= building->GetRoom(ped->GetRoomID());
+        // the plevel of agents are determined by the random forest classifier
+         UpdatePlevel(ped, neighbours, room);
+        // all push situation
+        // ped->SetPlevel(1);
+        // all non push situation
+        //ped->SetPlevel(0);
+        /*
+        // random 
+        int random = rand() % 1000;
+        if (random <=148)
+        {
+            ped->SetPlevel(1);
+        }
+        else
+        {
+            ped->SetPlevel(0);
+        }
+        */
+    }
+
+    // Step 3: calculate the direction of movement for each agent
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped1 = allPeds[p];
@@ -273,7 +302,6 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         vector<Pedestrian*> neighbours;
         building->GetGrid()->GetNeighbourhood(ped1, neighbours);
         int size = (int)neighbours.size();
-
         Point repPed = Point(0, 0); //CSM effect
         // Calculate the influence from neighbours
         for (int i = 0; i < size; i++)
@@ -308,7 +336,6 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
 
         // Calculate the influence from walls
         Point repWall = ForceRepRoom(ped1, subroom1);
-
         // Turning process
         Point direction = Point(0, 0);
         Point dDirection = IniDirection + repPed + repWall;
@@ -334,7 +361,7 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         resultDir.push_back(direction);
     }
 
-    // Step 3: update the direction of movement for each agent
+    // Step 4: update the direction of movement for each agent
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped = allPeds[p];
@@ -342,7 +369,7 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         ped->SetMoveDirection(direction);
     }
 
-    // Step 4: calculate the speed for each agent
+    // Step 5: calculate the speed for each agent
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped1 = allPeds[p];
@@ -388,7 +415,7 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
         resultAcc.push_back(speed);
     }
 
-    // Step 5: calculate the pushing efforts from neighbors and walls
+    // Step 6: calculate the pushing efforts from neighbors and walls
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped1 = allPeds[p];
@@ -423,7 +450,7 @@ void AVMModel::ComputeNextTimeStep(double current, double deltaT, Building* buil
     }
 
 
-    //Step 6: update everything, position, speed
+    //Step 7: update everything, position, speed
     for (int p = start; p <= end; ++p)
     {
         Pedestrian* ped = allPeds[p];
@@ -588,7 +615,13 @@ Point AVMModel::ForceRepPedAVM(Pedestrian* ped1, Pedestrian* ped2, Building* bui
         double multi_d = d1.ScalarProduct(e2);
         double alpha = GetConstantAlpha() ? 1 : (1 + 0.5*(1 - multi_d));
         double R_ij = _aPed * exp((-R_dist) / _DPed) * alpha;
-
+        //printf("Test: plevel %f, aForce is %0.2f, DForce is %0.2f.\n", ped1->GetPlevel(), _aPed, _DPed);
+        // the value of peda and pedD should be different between push and nonpush
+        if (ped1->GetPlevel() == 1)
+        {
+            //printf("Test: plevel %f, aForce is %0.2f, DForce is %0.2f.\n", ped1->GetPlevel(), _aPush, _DPush);
+            R_ij = _aPush * exp((-R_dist) /_DPush ) * alpha;
+        }
         Point newep12 = distp12 + ped2->GetV() * GetAntiT();
         Point infd = GetInfDirection(d1, newep12);
         FRep = infd * R_ij;
@@ -613,9 +646,10 @@ Point AVMModel::ForceConPed(Pedestrian* ped1, Pedestrian* ped2, Building* buildi
         return FCon;
     }
     // the value of aForce and DForce should be set from inifile
-    double aForce = GetaPush();
-    double DForce = GetDPush();
-    // printf("Test: aForce is %0.2f, DForce is %0.2f.\n", aForce, DForce);
+    double aForce = GetaForce();
+    double DForce = GetDForce();
+    // not inportant
+   //  printf("Test: aForce is %0.2f, DForce is %0.2f.\n", aForce, DForce);
     double R_ij = aForce * exp((-dist) / DForce);
     FCon = ep12 * (-R_ij);
     return FCon;
@@ -760,8 +794,8 @@ Point AVMModel::ForceConWall(Pedestrian* ped, const Line& w, const Point& centro
         return F_wrep;
     }
     // the value of aForce and DForce should be set from inifile
-    double aForce = GetaPush()/10;
-    double DForce = GetDPush()*10;
+    double aForce = GetaPush();
+    double DForce = GetDPush();
    //  printf("Test: aForce is %0.2f, DForce is %0.2f.\n", aForce, DForce);
     double R_iw = aForce * exp((-effdis) / DForce);
     F_wrep = e_iw * (-R_iw);
@@ -975,48 +1009,12 @@ double AVMModel::GetSpacingWallDirection(Pedestrian* ped, const Line& l, Point d
 
 double AVMModel::PushSpeed(Pedestrian* ped, double spacing, vector<Pedestrian*> neighbours, Room* room) const
 {
-    double meanPlevel = ped->GetP0();
-    double plevel = ped->GetPlevel();
-    // The plevel of pedestrians is predicted by the RF classifier
-    // The RF classifier code is generated by m2cgen from python
-    // Calculate the features for prediction-----------------------------------------------------------------------
-    vector<double> features = vector<double >();
-    int N =2; // the value of N will be determined by the result of mechine learning part
-    int featureNum = 1 + N * 4;
-    features.reserve(2*featureNum);
-    NeighborInfoMLFeatures(features, N, ped, neighbours, room);
-    /*
-    printf("\nsize is %d\n", features.size());
-    for (int i = 0; i < features.size(); i++)
-    {
-        printf("index %d is %f\n", i, features[i]);
-    }
-    */
-    // Predict the pushing level based on the extracted features------------------------------------------------
-    double* input = new double[features.size()];
-    memcpy(input, &features[0], features.size() * sizeof(double));
-    /* check if input is correct
-    for (int i = 0; i < features.size(); i++)
-    {
-        printf("i=%d,feature=%f,input=%f.\n", i, features[i], input[i]);
-    }
-    */
-    double output=-1;
-    double *po=&output;
-    score(input, po);
-    //the prediction result is pushing: score<0.5, nonpushing: score>0.5
-    if (output < 0.5)
-    {
-        plevel = 1;
-        ped->SetPlevel(plevel);
-    }
-    //----------------------------------------------------------------------------------------------------------------------
     double v0 = ped->GetV0Norm();
     v0 = v0 < 0.1 ? 0.1 : v0; //To avoid pedestrians who's desired speed is zero
     // the value of d and T are set from the inifile
     double extraSpace = GetSNorm();
     double T = GetTs();
-    if (plevel == 1)
+    if (ped->GetPlevel() == 1)
     {
         extraSpace = GetSPush();
         T = GetTPush();
@@ -1027,7 +1025,7 @@ double AVMModel::PushSpeed(Pedestrian* ped, double spacing, vector<Pedestrian*> 
     std::normal_distribution<double> TDist = std::normal_distribution<double>(0, 0.1);
     extraSpace = extraSpace + spaceDist(gen);
     extraSpace = extraSpace >2* ped->GetEllipse().GetBmax() ? 2 * ped->GetEllipse().GetBmax() : extraSpace;
-    T = T + TDist(gen);
+    //T = T + TDist(gen);
     T = T < 0.01 ? 0.01 : T;
     //printf("id=%d, p0=%f, plevel=%f, extraSpace=%f, T=%f\n", ped->GetID(), meanPlevel, plevel, extraSpace, T);
     double speed = (spacing+extraSpace) / T;
@@ -1131,6 +1129,47 @@ void AVMModel::UpdatePed(Pedestrian* ped, Point speed, Point direction, double d
     else
     {
         ped->SetPos(pos_neu);
+    }
+}
+
+void AVMModel::UpdatePlevel(Pedestrian* ped, vector<Pedestrian*> neighbours, Room* room)
+{
+    double meanPlevel = ped->GetP0();
+    // The plevel of pedestrians is predicted by the RF classifier
+    // The RF classifier code is generated by m2cgen from python
+    // Calculate the features for prediction-----------------------------------------------------------------------
+    vector<double> features = vector<double >();
+    int N = 2; // the value of N will be determined by the result of mechine learning part
+    int featureNum = 1 + N * 4;
+    features.reserve(2 * featureNum);
+    NeighborInfoMLFeatures(features, N, ped, neighbours, room);
+    /*
+    printf("\nsize is %d\n", features.size());
+    for (int i = 0; i < features.size(); i++)
+    {
+        printf("index %d is %f\n", i, features[i]);
+    }
+    */
+    // Predict the pushing level based on the extracted features------------------------------------------------
+    double* input = new double[features.size()];
+    memcpy(input, &features[0], features.size() * sizeof(double));
+    /* check if input is correct
+    for (int i = 0; i < features.size(); i++)
+    {
+        printf("i=%d,feature=%f,input=%f.\n", i, features[i], input[i]);
+    }
+    */
+    double output = -1;
+    double* po = &output;
+    score(input, po);
+    //the prediction result is pushing: score<0.5, nonpushing: score>0.5
+    if (output < 0.5)
+    {
+        ped->SetPlevel(1);
+    }
+    else
+    {
+        ped->SetPlevel(0);
     }
 }
 
