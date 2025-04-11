@@ -4,6 +4,9 @@ import jupedsim.native as py_jps
 from jupedsim.models.anticipation_velocity_model import (
     AnticipationVelocityModelState,
 )
+from jupedsim.models.push_propagation_model import (
+    PushPropagationModelState,
+)
 from jupedsim.models.collision_free_speed import CollisionFreeSpeedModelState
 from jupedsim.models.collision_free_speed_v2 import (
     CollisionFreeSpeedModelV2State,
@@ -109,6 +112,7 @@ class Agent:
         | CollisionFreeSpeedModelState
         | CollisionFreeSpeedModelV2State
         | AnticipationVelocityModelState
+        | PushPropagationModelState
         | SocialForceModelState
     ):
         """Access model specific state of this agent."""
@@ -121,6 +125,8 @@ class Agent:
             return CollisionFreeSpeedModelV2State(model)
         elif isinstance(model, py_jps.AnticipationVelocityModelState):
             return AnticipationVelocityModelState(model)
+        elif isinstance(model, py_jps.PushPropagationModelState):
+            return PushPropagationModelState(model)
         elif isinstance(model, py_jps.SocialForceModelState):
             return SocialForceModelState(model)
         else:

@@ -14,6 +14,10 @@ from jupedsim.models.anticipation_velocity_model import (
     AnticipationVelocityModel,
     AnticipationVelocityModelAgentParameters,
 )
+from jupedsim.models.push_propagation_model import (
+    PushPropagationModel,
+    PushPropagationModelAgentParameters,
+)
 from jupedsim.models.collision_free_speed import (
     CollisionFreeSpeedModel,
     CollisionFreeSpeedModelAgentParameters,
@@ -57,6 +61,7 @@ class Simulation:
             | GeneralizedCentrifugalForceModel
             | CollisionFreeSpeedModelV2
             | AnticipationVelocityModel
+            | PushPropagationModel
             | SocialForceModel
         ),
         geometry: (
@@ -116,6 +121,11 @@ class Simulation:
             py_jps_model = model_builder.build()
         elif isinstance(model, AnticipationVelocityModel):
             model_builder = py_jps.AnticipationVelocityModelBuilder(
+                pushout_strength=model.pushout_strength, rng_seed=model.rng_seed
+            )
+            py_jps_model = model_builder.build()
+        elif isinstance(model, PushPropagationModel):
+            model_builder = py_jps.PushPropagationModelBuilder(
                 pushout_strength=model.pushout_strength, rng_seed=model.rng_seed
             )
             py_jps_model = model_builder.build()
@@ -258,6 +268,7 @@ class Simulation:
             | CollisionFreeSpeedModelAgentParameters
             | CollisionFreeSpeedModelV2AgentParameters
             | AnticipationVelocityModelAgentParameters
+            | PushPropagationModelAgentParameters
             | SocialForceModelAgentParameters
         ),
     ) -> int:

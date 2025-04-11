@@ -4,6 +4,7 @@
 #include "anticipation_velocity_model.h"
 #include "collision_free_speed_model.h"
 #include "collision_free_speed_model_v2.h"
+#include "push_propagation_model.h"
 #include "error.h"
 #include "export.h"
 #include "generalized_centrifugal_force_model.h"
@@ -125,6 +126,16 @@ JPS_Agent_GetCollisionFreeSpeedModelV2State(JPS_Agent handle, JPS_ErrorMessage* 
  */
 JUPEDSIM_API JPS_AnticipationVelocityModelState
 JPS_Agent_GetAnticipationVelocityModelState(JPS_Agent handle, JPS_ErrorMessage* errorMessage);
+
+/**
+ * Access Push Propagation Model state.
+ * Precondition: Agent needs to use Push Propagation Model
+ * @param handle of the agent to access.
+ * @param[out] errorMessage if not NULL: will be set to a JPS_ErrorMessage in case of an error.
+ * @return state or NULL on error
+ */
+JUPEDSIM_API JPS_PushPropagationModelState
+JPS_Agent_GetPushPropagationModelState(JPS_Agent handle, JPS_ErrorMessage* errorMessage);
 
 /**
  * Opaque type of an iterator over agents

@@ -29,6 +29,11 @@ from jupedsim.models.anticipation_velocity_model import (
     AnticipationVelocityModelAgentParameters,
     AnticipationVelocityModelState,
 )
+from jupedsim.models.push_propagation_model import (
+    PushPropagationModel,
+    PushPropagationModelAgentParameters,
+    PushPropagationModelState,
+)
 from jupedsim.models.collision_free_speed import (
     CollisionFreeSpeedModel,
     CollisionFreeSpeedModelAgentParameters,
@@ -112,6 +117,9 @@ __all__ = [
     "AnticipationVelocityModelAgentParameters",
     "AnticipationVelocityModel",
     "AnticipationVelocityModelState",
+    "PushPropagationModelAgentParameters",
+    "PushPropagationModel",
+    "PushPropagationModelState",
     "SocialForceModelAgentParameters",
     "SocialForceModel",
     "SocialForceModelState",

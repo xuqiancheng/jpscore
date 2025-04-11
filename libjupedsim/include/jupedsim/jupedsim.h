@@ -13,6 +13,7 @@
 #include "journey.h"
 #include "logging.h"
 #include "operational_model.h"
+#include "push_propagation_model.h"
 #include "routing.h"
 #include "simulation.h"
 #include "social_force_model.h"

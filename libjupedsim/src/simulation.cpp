@@ -325,6 +325,49 @@ JPS_AgentId JPS_Simulation_AddAnticipationVelocityModelAgent(
     return result.getID();
 }
 
+JPS_AgentId JPS_Simulation_AddPushPropagationModelAgent(
+    JPS_Simulation handle,
+    JPS_PushPropagationModelAgentParameters parameters,
+    JPS_ErrorMessage* errorMessage)
+{
+    assert(handle);
+    auto result = GenericAgent::ID::Invalid;
+    auto simulation = reinterpret_cast<Simulation*>(handle);
+    try {
+        if(simulation->ModelType() != OperationalModelType::PUSH_PROPAGATION_MODEL) {
+            throw std::runtime_error(
+                "Simulation is not configured to use Push Propagation Model.");
+        }
+        GenericAgent agent(
+            GenericAgent::ID::Invalid,
+            Journey::ID(parameters.journeyId),
+            BaseStage::ID(parameters.stageId),
+            intoPoint(parameters.position),
+            {},
+           PushPropagationModelData{
+                .strengthNeighborRepulsion = parameters.strengthNeighborRepulsion,
+                .rangeNeighborRepulsion = parameters.rangeNeighborRepulsion,
+                .wallBufferDistance = parameters.wallBufferDistance,
+                .anticipationTime = parameters.anticipationTime,
+                .reactionTime = parameters.reactionTime,
+                .velocity = {},
+                .timeGap = parameters.time_gap,
+                .v0 = parameters.v0,
+                .radius = parameters.radius});
+        result = simulation->AddAgent(std::move(agent));
+    } catch(const std::exception& ex) {
+        if(errorMessage) {
+            *errorMessage = reinterpret_cast<JPS_ErrorMessage>(new JPS_ErrorMessage_t{ex.what()});
+        }
+    } catch(...) {
+        if(errorMessage) {
+            *errorMessage = reinterpret_cast<JPS_ErrorMessage>(
+                new JPS_ErrorMessage_t{"Unknown internal error."});
+        }
+    }
+    return result.getID();
+}
+
 JPS_AgentId JPS_Simulation_AddSocialForceModelAgent(
     JPS_Simulation handle,
     JPS_SocialForceModelAgentParameters parameters,
@@ -521,6 +564,8 @@ JPS_ModelType JPS_Simulation_ModelType(JPS_Simulation handle)
             return JPS_CollisionFreeSpeedModelV2;
         case OperationalModelType::ANTICIPATION_VELOCITY_MODEL:
             return JPS_AnticipationVelocityModel;
+        case OperationalModelType::PUSH_PROPAGATION_MODEL:
+            return JPS_PushPropagationModel;
         case OperationalModelType::SOCIAL_FORCE:
             return JPS_SocialForceModel;
     }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 #include "AnticipationVelocityModelData.hpp"
+#include "PushPropagationModelData.hpp"
 #include "CollisionFreeSpeedModelData.hpp"
 #include "CollisionFreeSpeedModelV2Data.hpp"
 #include "GeneralizedCentrifugalForceModelData.hpp"
@@ -34,6 +35,7 @@ struct GenericAgent {
         CollisionFreeSpeedModelData,
         CollisionFreeSpeedModelV2Data,
         AnticipationVelocityModelData,
+        PushPropagationModelData,
         SocialForceModelData>;
     Model model{};
 
