@@ -55,40 +55,46 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
                 return false;
             }),
         std::end(neighborhood));
-
-    const auto neighborRepulsion = std::accumulate(
+ 
+    // calculate the push force from neighbors
+    const auto pushForceHuman = std::accumulate(
         std::begin(neighborhood),
         std::end(neighborhood),
         Point{},
         [&ped, this](const auto& res, const auto& neighbor) {
-            return res + NeighborRepulsion(ped, neighbor);
+            return res + PushForceHuman(ped, neighbor);
         });
 
-    const auto desiredDirection = (ped.destination - ped.pos).Normalized();
-    auto direction = (desiredDirection + neighborRepulsion).Normalized();
+    // calculate the push force from walls
+    const auto boundaryForce= std::accumulate(
+        boundary.cbegin(),
+        boundary.cend(),
+        Point(0, 0),
+        [this, &ped](const auto& acc, const auto& element) {
+            return acc + PushForceWall(ped, element);
+        });
+    printf("boundary force is (%f,%f).\n", boundaryForce.x, boundaryForce.y);
+
+    const auto pushForce = PushForceExternal(ped) + pushForceHuman + boundaryForce;
+    const auto desiredSpeed = DesiredSpeed(ped, dT);
+
+    const auto& model = std::get<PushPropagationModelData>(ped.model);
+    const auto v0 = model.velocity;
+    // Get the weight of pedestrians from experiments
+    double weight = 80;
+    const auto velocity = desiredSpeed + (pushForce / weight) * dT;
+    if (ped.id == 1)
+    {
+        //printf("The velocity of agent 1 at time %f is %f.\n",model.simTime, model.velocity.Norm());
+    }
+     auto direction = velocity.Normalized();
     if(direction == Point{}) {
         direction = ped.orientation;
     }
 
-    const auto& model = std::get<PushPropagationModelData>(ped.model);
-    const double wallBufferDistance = model.wallBufferDistance;
-    // Wall sliding behavior
-
-    // update direction towards the newly calculated direction
-    direction = UpdateDirection(ped, direction, dT);
-    direction = HandleWallAvoidance(direction, ped.pos, model.radius, boundary, wallBufferDistance);
-    const auto spacing = std::accumulate(
-        std::begin(neighborhood),
-        std::end(neighborhood),
-        std::numeric_limits<double>::max(),
-        [&ped, &direction, this](const auto& res, const auto& neighbor) {
-            return std::min(res, GetSpacing(ped, neighbor, direction));
-        });
-
-    const auto optimal_speed = OptimalSpeed(ped, spacing, model.timeGap);
-    const auto velocity = direction * optimal_speed;
+    // update the position, speed, and direction
     return PushPropagationModelUpdate{
-        .position = ped.pos + velocity * dT, .velocity = velocity, .orientation = direction};
+        .position = ped.pos + velocity * dT, .velocity = velocity, .orientation = direction,.simTime=model.simTime+dT};
 };
 
 void PushPropagationModel::ApplyUpdate(const OperationalModelUpdate& upd, GenericAgent& agent)
@@ -99,6 +105,7 @@ void PushPropagationModel::ApplyUpdate(const OperationalModelUpdate& upd, Generi
     agent.pos = update.position;
     agent.orientation = update.orientation;
     model.velocity = update.velocity;
+    model.simTime = update.simTime;
 }
 
 Point PushPropagationModel::UpdateDirection(
@@ -366,4 +373,75 @@ Point PushPropagationModel::HandleWallAvoidance(
         }
     }
     return direction;
+}
+
+Point PushPropagationModel::PushForceExternal(const GenericAgent& ped) const
+{
+    double force = 0;
+    const auto& model = std::get<PushPropagationModelData>(ped.model);
+    // todo: force should be a time series from input
+    double alpha = 5;
+    if (ped.id == 1 && model.simTime<0.2)
+    {
+        force = 250;
+        /*printf(
+            "external force of agent %d at time %f is %f.\n",
+            ped.id,
+            model.simTime,
+            force);*/
+    } 
+    return Point(0, force * alpha);
+}
+
+Point PushPropagationModel::PushForceHuman(const GenericAgent& ped1, const GenericAgent& ped2) const
+{
+    const auto& model1 = std::get<PushPropagationModelData>(ped1.model);
+    const auto& model2 = std::get<PushPropagationModelData>(ped2.model);
+
+    const auto distp12 = ped2.pos - ped1.pos;
+    const auto [distance, ep12] = distp12.NormAndNormalized();
+    const double adjustedDist = distance - (model1.radius + model2.radius);
+    // no contact no force
+    if(adjustedDist >= 0)
+        return Point();
+   // calculate the strength of the pushing force
+    double kPush = 20;
+    double DPush = 0.05;
+    double forceStrength = kPush * std::exp(-adjustedDist / DPush);
+    return -ep12 * forceStrength;
+}
+
+Point PushPropagationModel::PushForceWall(
+    const GenericAgent& ped,
+    const LineSegment& boundary_segment) const
+{
+    const auto pt = boundary_segment.ShortestPoint(ped.pos);
+    const auto dist_vec = pt - ped.pos;
+    const auto [dist, e_iw] = dist_vec.NormAndNormalized();
+    const auto& model = std::get<PushPropagationModelData>(ped.model);
+    const auto l = model.radius;
+    double adjustedDist = dist - l;
+    // no contact no force
+    if(adjustedDist >= 0)
+        return Point();
+    double kPush = 20;
+    double DPush = 0.05;
+    double forceStrength = kPush * std::exp(-adjustedDist / DPush);
+    return -e_iw * forceStrength;
+}
+
+Point PushPropagationModel::DesiredSpeed(const GenericAgent& ped,  double dT) const
+{
+    const auto& model = std::get<PushPropagationModelData>(ped.model);
+    const Point v0 = model.velocity;
+    const Point deceDirection = -v0.Normalized();
+    // constant deceleration
+    double deceStrength= 2;
+    Point Deceleration = deceDirection * deceStrength;
+    Point desiredSpeed = v0 + Deceleration * dT;
+    if (desiredSpeed.ScalarProduct(v0) < 0)
+    {
+        return Point();
+    }
+    return desiredSpeed;
 }

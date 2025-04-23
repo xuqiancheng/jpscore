@@ -52,6 +52,17 @@ private:
         const std::vector<LineSegment>& boundary,
         double wallBufferDistance) const;
 
+    // calculate the push force from the punching bag
+    Point PushForceExternal(const GenericAgent& ped1) const;
+    
+    // calculate the push force from the neighbors
+    Point PushForceHuman(const GenericAgent& ped1, const GenericAgent& ped2) const;
+
+    // calculate the push force from the walls
+    Point PushForceWall(const GenericAgent& ped, const LineSegment& boundary_segment) const;
+
+    Point DesiredSpeed(const GenericAgent& ped1, double dT) const;
+
     Point
     UpdateDirection(const GenericAgent& ped, const Point& calculatedDirection, double dt) const;
 };

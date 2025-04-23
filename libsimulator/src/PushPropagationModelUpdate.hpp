@@ -6,4 +6,5 @@ struct PushPropagationModelUpdate {
     Point position{};
     Point velocity{};
     Point orientation{};
+    double simTime{};
 };
