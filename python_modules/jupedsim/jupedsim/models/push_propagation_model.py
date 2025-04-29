@@ -10,23 +10,6 @@ import jupedsim.native as py_jps
 class PushPropagationModel:
     """Push Propagation Model (PPM).
 
-    The AVM incorporates pedestrian anticipation, divided into three phases:
-    1. Perception of the current situation.
-    2. Prediction of future situations.
-    3. Strategy selection leading to action.
-
-    This model quantitatively reproduces bidirectional pedestrian flow by accounting for:
-    - Anticipation of changes in neighboring pedestrians' positions.
-    - The strategy of following others' movement. The AVM is a model that takes into consideration
-      the anticipation of pedestrians. For this, the process of anticipation is divided into three parts:
-      - perception of the actual situation,
-      - prediction of a future situation and
-      - selection of a strategy leading to action.
-
-
-    A general description of the AVM can be found in the originating publication
-    https://doi.org/10.1016/j.trc.2021.103464
-
     Attributes:
         pushout_strength: The pushout mechanism ensures agents maintain a safe distance
         from walls by adding a small outward component to their movement when within the
@@ -45,9 +28,6 @@ class PushPropagationModel:
 class PushPropagationModelAgentParameters:
     """
     Agent parameters for Push Propagation Model (PPM).
-
-    See publication for more details about this model
-    https://doi.org/10.1016/j.trc.2021.103464
 
     .. note::
 
@@ -76,6 +56,7 @@ class PushPropagationModelAgentParameters:
         wall_buffer_distance: Buffer distance of agents to the walls.
         anticipation_time: Anticipation time of an agent.
         reaction_time: reaction time of an agent to change its direction.
+        external_force: external force from the punching bag.
     """
 
     position: tuple[float, float] = (0.0, 0.0)
@@ -89,6 +70,7 @@ class PushPropagationModelAgentParameters:
     wall_buffer_distance: float = 0.1
     anticipation_time: float = 1.0
     reaction_time: float = 0.3
+    external_force: float=0
 
     def as_native(
         self,
@@ -105,6 +87,7 @@ class PushPropagationModelAgentParameters:
             wall_buffer_distance=self.wall_buffer_distance,
             anticipation_time=self.anticipation_time,
             reaction_time=self.reaction_time,
+            external_force=self.external_force,
         )
 
 
@@ -182,3 +165,12 @@ class PushPropagationModelState:
     @reaction_time.setter
     def reaction_time(self, reaction_time):
         self._obj.reaction_time = reaction_time
+
+    @property
+    def external_force(self) -> float:
+        """external force of this agent."""
+        return self._obj.external_force
+
+    @external_force.setter
+    def external_force(self, external_force):
+        self._obj.external_force = external_force

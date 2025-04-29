@@ -27,7 +27,8 @@ void init_push_propagation_model(py::module_& m)
                         double rangeNeighborRepulsion,
                         double wallBufferDistance,
                         double anticipationTime,
-                        double reactionTime) {
+                        double reactionTime,
+                        double externalForce) {
                 return JPS_PushPropagationModelAgentParameters{
                     intoJPS_Point(position),
                     journey_id,
@@ -39,7 +40,8 @@ void init_push_propagation_model(py::module_& m)
                     rangeNeighborRepulsion,
                     wallBufferDistance,
                     anticipationTime,
-                    reactionTime};
+                    reactionTime,
+                    externalForce};
             }),
             py::kw_only(),
             py::arg("position"),
@@ -52,14 +54,15 @@ void init_push_propagation_model(py::module_& m)
             py::arg("range_neighbor_repulsion"),
             py::arg("wall_buffer_distance"),
             py::arg("anticipation_time"),
-            py::arg("reaction_time"))
+            py::arg("reaction_time"),
+            py::arg("external_force"))
         .def("__repr__", [](const JPS_PushPropagationModelAgentParameters& p) {
             return fmt::format(
                 "position: {}, journey_id: {}, stage_id: {}, "
                 "time_gap: {}, desired_speed: {}, radius: {}",
                 "strength_neighbor_repulsion: {}, range_neighbor_repulsion: {}"
                 "wall_buffer_distance: {}"
-                "anticipation_time: {}, reaction_time: {}",
+                "anticipation_time: {}, reaction_time: {},external_force: {}",
                 intoTuple(p.position),
                 p.journeyId,
                 p.stageId,
@@ -70,7 +73,8 @@ void init_push_propagation_model(py::module_& m)
                 p.rangeNeighborRepulsion,
                 p.wallBufferDistance,
                 p.anticipationTime,
-                p.reactionTime);
+                p.reactionTime,
+                p.externalForce);
         });
     py::class_<JPS_PushPropagationModelBuilder_Wrapper>(m, "PushPropagationModelBuilder")
         .def(
@@ -158,5 +162,13 @@ void init_push_propagation_model(py::module_& m)
             },
             [](JPS_PushPropagationModelState_Wrapper& w, double reactionTime) {
                 JPS_PushPropagationModelState_SetReactionTime(w.handle, reactionTime);
+            })
+        .def_property(
+            "external_force",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetExternalForce(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double externalForce) {
+                JPS_PushPropagationModelState_SetExternalForce(w.handle, externalForce);
             });
 }

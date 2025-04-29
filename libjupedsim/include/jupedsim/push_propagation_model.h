@@ -193,6 +193,24 @@ JPS_PushPropagationModelState_SetRadius(JPS_PushPropagationModelState handle,
     double radius);
 
 /**
+ * Read external forces of this agent.
+ * @param handle of the Agent to access.
+ * @return external forces of this agent
+ */
+JUPEDSIM_API double
+    JPS_PushPropagationModelState_GetExternalForce(JPS_PushPropagationModelState handle);
+
+/**
+ * Write external forces of this agent.
+ * @param handle of the Agent to access.
+ * @param external_force of this agent.
+ */
+JUPEDSIM_API void JPS_PushPropagationModelState_SetExternalForce(
+    JPS_PushPropagationModelState handle,
+    double external_force);
+
+
+/**
  * Describes parameters of an Agent in Push Propagation Model
  */
 typedef struct JPS_PushPropagationModelAgentParameters {
@@ -247,6 +265,12 @@ typedef struct JPS_PushPropagationModelAgentParameters {
      * Reaction time in seconds
      */
     double reactionTime{0.1};
+
+
+   /**
+     * external forces
+     */
+    double externalForce{0};
 
 } JPS_PushPropagationModelAgentParameters;
 

@@ -73,7 +73,7 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
         [this, &ped](const auto& acc, const auto& element) {
             return acc + PushForceWall(ped, element);
         });
-    printf("boundary force is (%f,%f).\n", boundaryForce.x, boundaryForce.y);
+    //printf("boundary force is (%f,%f).\n", boundaryForce.x, boundaryForce.y);
 
     const auto pushForce = PushForceExternal(ped) + pushForceHuman + boundaryForce;
     const auto desiredSpeed = DesiredSpeed(ped, dT);
@@ -377,20 +377,17 @@ Point PushPropagationModel::HandleWallAvoidance(
 
 Point PushPropagationModel::PushForceExternal(const GenericAgent& ped) const
 {
-    double force = 0;
     const auto& model = std::get<PushPropagationModelData>(ped.model);
-    // todo: force should be a time series from input
+    // already calculate the impulse
+    double impulse = model.externalForce;
+    // todo: set alpha from jupyter notebook
     double alpha = 5;
-    if (ped.id == 1 && model.simTime<0.2)
-    {
-        force = 250;
-        /*printf(
-            "external force of agent %d at time %f is %f.\n",
-            ped.id,
-            model.simTime,
-            force);*/
-    } 
-    return Point(0, force * alpha);
+    printf(
+        "external force of agent %d at time %f is %f.\n",
+        ped.id,
+        model.simTime, 
+        impulse);
+    return Point(0, impulse * alpha);
 }
 
 Point PushPropagationModel::PushForceHuman(const GenericAgent& ped1, const GenericAgent& ped2) const

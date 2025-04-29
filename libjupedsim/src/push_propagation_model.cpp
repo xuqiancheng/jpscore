@@ -173,3 +173,20 @@ void JPS_PushPropagationModelState_SetRadius(JPS_PushPropagationModelState handl
     auto state = reinterpret_cast<PushPropagationModelData*>(handle);
     state->radius = radius;
 }
+
+double
+JPS_PushPropagationModelState_GetExternalForce(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->externalForce;
+}
+
+void JPS_PushPropagationModelState_SetExternalForce(
+    JPS_PushPropagationModelState handle,
+    double external_force)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->externalForce = external_force;
+}

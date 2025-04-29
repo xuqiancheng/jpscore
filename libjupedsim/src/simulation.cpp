@@ -353,7 +353,8 @@ JPS_AgentId JPS_Simulation_AddPushPropagationModelAgent(
                 .velocity = {},
                 .timeGap = parameters.time_gap,
                 .v0 = parameters.v0,
-                .radius = parameters.radius});
+                .radius = parameters.radius,
+                .externalForce = parameters.externalForce});
         result = simulation->AddAgent(std::move(agent));
     } catch(const std::exception& ex) {
         if(errorMessage) {
