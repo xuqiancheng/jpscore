@@ -209,6 +209,38 @@ JUPEDSIM_API void JPS_PushPropagationModelState_SetExternalForce(
     JPS_PushPropagationModelState handle,
     double external_force);
 
+/**
+ * Read weight of this agent.
+ * @param handle of the Agent to access.
+ * @return weight of this agent
+ */
+JUPEDSIM_API double
+JPS_PushPropagationModelState_GetWeight(JPS_PushPropagationModelState handle);
+
+/**
+ * Write weight of this agent.
+ * @param handle of the Agent to access.
+ * @param weight of this agent.
+ */
+JUPEDSIM_API void JPS_PushPropagationModelState_SetWeight(
+    JPS_PushPropagationModelState handle,
+    double weight);
+
+/**
+ * Read height of this agent.
+ * @param handle of the Agent to access.
+ * @return height of this agent
+ */
+JUPEDSIM_API double JPS_PushPropagationModelState_GetHeight(JPS_PushPropagationModelState handle);
+
+/**
+ * Write height of this agent.
+ * @param handle of the Agent to access.
+ * @param height of this agent.
+ */
+JUPEDSIM_API void
+JPS_PushPropagationModelState_SetHeight(JPS_PushPropagationModelState handle, double height);
+
 
 /**
  * Describes parameters of an Agent in Push Propagation Model
@@ -271,6 +303,16 @@ typedef struct JPS_PushPropagationModelAgentParameters {
      * external forces
      */
     double externalForce{0};
+
+     /**
+     * weight
+     */
+    double weight{80};
+
+     /**
+     * height
+     */
+    double height{1.8};
 
 } JPS_PushPropagationModelAgentParameters;
 

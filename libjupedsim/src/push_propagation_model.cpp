@@ -190,3 +190,34 @@ void JPS_PushPropagationModelState_SetExternalForce(
     auto state = reinterpret_cast<PushPropagationModelData*>(handle);
     state->externalForce = external_force;
 }
+
+
+double JPS_PushPropagationModelState_GetWeight(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->weight;
+}
+
+void JPS_PushPropagationModelState_SetWeight(
+    JPS_PushPropagationModelState handle,
+    double weight)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->weight = weight;
+}
+
+double JPS_PushPropagationModelState_GetHeight(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->height;
+}
+
+void JPS_PushPropagationModelState_SetHeight(JPS_PushPropagationModelState handle, double height)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->height = height;
+}

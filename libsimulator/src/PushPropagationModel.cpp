@@ -75,17 +75,24 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
         });
     //printf("boundary force is (%f,%f).\n", boundaryForce.x, boundaryForce.y);
 
-    const auto pushForce = PushForceExternal(ped) + pushForceHuman + boundaryForce;
-    const auto desiredSpeed = DesiredSpeed(ped, dT);
-
+    // stage 1: only considering the external force
     const auto& model = std::get<PushPropagationModelData>(ped.model);
-    const auto v0 = model.velocity;
-    // Get the weight of pedestrians from experiments
-    double weight = 80;
+    double weight = model.weight;
+    double height = model.height;
+    const auto desiredSpeed =model.velocity;
+    const auto velocity = desiredSpeed+(PushForceExternal(ped) / weight);
+
+    /*const auto pushForce = PushForceExternal(ped) + pushForceHuman + boundaryForce;
+    const auto desiredSpeed = DesiredSpeed(ped, dT);
+    const auto& model = std::get<PushPropagationModelData>(ped.model);
     const auto velocity = desiredSpeed + (pushForce / weight) * dT;
-    if (ped.id == 1)
+    */
+
+    //
+    if (model.simTime==0)
     {
-        //printf("The velocity of agent 1 at time %f is %f.\n",model.simTime, model.velocity.Norm());
+        //printf("The weight of agent %d is %f.\n", ped.id, model.weight);
+        //printf("The height of agent %d is %f.\n", ped.id, model.height);
     }
      auto direction = velocity.Normalized();
     if(direction == Point{}) {
@@ -381,12 +388,11 @@ Point PushPropagationModel::PushForceExternal(const GenericAgent& ped) const
     // already calculate the impulse
     double impulse = model.externalForce;
     // todo: set alpha from jupyter notebook
-    double alpha = 5;
-    printf(
-        "external force of agent %d at time %f is %f.\n",
-        ped.id,
-        model.simTime, 
-        impulse);
+    double alpha = 1;
+    if (ped.id == 1 && impulse>0)
+    {
+        printf("external force of agent %d at time %f is %f.\n", ped.id, model.simTime, impulse);
+    }
     return Point(0, impulse * alpha);
 }
 

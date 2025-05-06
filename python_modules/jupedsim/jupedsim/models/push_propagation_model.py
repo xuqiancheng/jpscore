@@ -71,6 +71,8 @@ class PushPropagationModelAgentParameters:
     anticipation_time: float = 1.0
     reaction_time: float = 0.3
     external_force: float=0
+    weight: float=80
+    height: float=1.8
 
     def as_native(
         self,
@@ -88,6 +90,8 @@ class PushPropagationModelAgentParameters:
             anticipation_time=self.anticipation_time,
             reaction_time=self.reaction_time,
             external_force=self.external_force,
+            weight=self.weight,
+            height=self.height,
         )
 
 
@@ -174,3 +178,22 @@ class PushPropagationModelState:
     @external_force.setter
     def external_force(self, external_force):
         self._obj.external_force = external_force
+
+        
+    @property
+    def weight(self) -> float:
+        """weight of this agent."""
+        return self._obj.weight
+
+    @weight.setter
+    def weight(self, weight):
+        self._obj.weight = weight
+
+    @property
+    def height(self) -> float:
+        """height of this agent."""
+        return self._obj.height
+
+    @height.setter
+    def height(self, height):
+        self._obj.height = height

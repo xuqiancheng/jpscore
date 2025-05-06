@@ -15,6 +15,8 @@ struct PushPropagationModelData {
     double radius{0.15};
     double simTime{0}; // total simulation time
     double externalForce{0}; // punching bag force
+    double weight{80}; 
+    double height{1.8};
 };
 
 template <>
@@ -29,7 +31,8 @@ struct fmt::formatter<PushPropagationModelData> {
             ctx.out(),
             "PushPropagationModel[strengthNeighborRepulsion={}, "
             "rangeNeighborRepulsion={}, wallBufferDistance={}, "
-            "timeGap={}, v0={}, radius={}, reactionTime={}, anticipationTime={}, velocity={}, simTime={},externalForce={}])",
+            "timeGap={}, v0={}, radius={}, reactionTime={}, anticipationTime={}, velocity={}, "
+            "simTime={},externalForce={},weight={},height={}])",
             m.strengthNeighborRepulsion,
             m.rangeNeighborRepulsion,
             m.wallBufferDistance,
@@ -40,6 +43,8 @@ struct fmt::formatter<PushPropagationModelData> {
             m.anticipationTime,
             m.velocity,
             m.simTime,
-            m.externalForce);
+            m.externalForce,
+            m.weight,
+            m.height);
     }
 };
