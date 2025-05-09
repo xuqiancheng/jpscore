@@ -241,6 +241,20 @@ JUPEDSIM_API double JPS_PushPropagationModelState_GetHeight(JPS_PushPropagationM
 JUPEDSIM_API void
 JPS_PushPropagationModelState_SetHeight(JPS_PushPropagationModelState handle, double height);
 
+/**
+ * Read forceAmplify of this agent.
+ * @param handle of the Agent to access.
+ * @return forceAmplify of this agent
+ */
+JUPEDSIM_API double JPS_PushPropagationModelState_GetForceAmplify(JPS_PushPropagationModelState handle);
+
+/**
+ * Write forceAmplify of this agent.
+ * @param handle of the Agent to access.
+ * @param forceAmplify of this agent.
+ */
+JUPEDSIM_API void
+JPS_PushPropagationModelState_SetForceAmplify(JPS_PushPropagationModelState handle, double forceAmplify);
 
 /**
  * Describes parameters of an Agent in Push Propagation Model
@@ -313,6 +327,11 @@ typedef struct JPS_PushPropagationModelAgentParameters {
      * height
      */
     double height{1.8};
+
+     /**
+     * forceAmplify
+     */
+    double forceAmplify{1};
 
 } JPS_PushPropagationModelAgentParameters;
 

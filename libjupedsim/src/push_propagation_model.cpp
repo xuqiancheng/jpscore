@@ -221,3 +221,20 @@ void JPS_PushPropagationModelState_SetHeight(JPS_PushPropagationModelState handl
     auto state = reinterpret_cast<PushPropagationModelData*>(handle);
     state->height = height;
 }
+
+JUPEDSIM_API double
+JPS_PushPropagationModelState_GetForceAmplify(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->forceAmplify;
+}
+
+JUPEDSIM_API void JPS_PushPropagationModelState_SetForceAmplify(
+    JPS_PushPropagationModelState handle,
+    double forceAmplify)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->forceAmplify = forceAmplify;
+}

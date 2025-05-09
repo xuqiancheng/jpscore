@@ -92,7 +92,7 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
     if (model.simTime==0)
     {
         //printf("The weight of agent %d is %f.\n", ped.id, model.weight);
-        //printf("The height of agent %d is %f.\n", ped.id, model.height);
+        //printf("The height of agent %d is %f.\n\n", ped.id, model.height);
     }
      auto direction = velocity.Normalized();
     if(direction == Point{}) {
@@ -388,12 +388,16 @@ Point PushPropagationModel::PushForceExternal(const GenericAgent& ped) const
     // already calculate the impulse
     double impulse = model.externalForce;
     // todo: set alpha from jupyter notebook
-    double alpha = 1;
-    if (ped.id == 1 && impulse>0)
+    double amplify = model.forceAmplify;
+    // Validation 
+    if (ped.id == 1)
     {
-        printf("external force of agent %d at time %f is %f.\n", ped.id, model.simTime, impulse);
+        //printf("forceAmplify of agent %d at time %f is %f.\n", ped.id, model.simTime, amplify);
+        /*printf("external force of agent %d at time %f is %f.\n", ped.id, model.simTime, impulse);
+        printf("position is (%f,%f).\n",ped.pos.x,ped.pos.y);
+        printf("the speed is (%f)\n", model.velocity.Norm());*/
     }
-    return Point(0, impulse * alpha);
+    return Point(0, impulse * amplify);
 }
 
 Point PushPropagationModel::PushForceHuman(const GenericAgent& ped1, const GenericAgent& ped2) const

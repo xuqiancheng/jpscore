@@ -73,6 +73,7 @@ class PushPropagationModelAgentParameters:
     external_force: float=0
     weight: float=80
     height: float=1.8
+    forceAmplify: float=1
 
     def as_native(
         self,
@@ -92,6 +93,7 @@ class PushPropagationModelAgentParameters:
             external_force=self.external_force,
             weight=self.weight,
             height=self.height,
+            forceAmplify=self.forceAmplify,
         )
 
 
@@ -197,3 +199,12 @@ class PushPropagationModelState:
     @height.setter
     def height(self, height):
         self._obj.height = height
+
+    @property
+    def forceAmplify(self) -> float:
+        """forceAmplify of this agent."""
+        return self._obj.forceAmplify
+
+    @forceAmplify.setter
+    def forceAmplify(self, forceAmplify):
+        self._obj.forceAmplify = forceAmplify

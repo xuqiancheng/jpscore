@@ -30,7 +30,8 @@ void init_push_propagation_model(py::module_& m)
                         double reactionTime,
                         double externalForce,
                         double weight,
-                        double height) {
+                        double height,
+                        double forceAmplify) {
                 return JPS_PushPropagationModelAgentParameters{
                     intoJPS_Point(position),
                     journey_id,
@@ -45,7 +46,8 @@ void init_push_propagation_model(py::module_& m)
                     reactionTime,
                     externalForce,
                     weight,
-                    height};
+                    height,
+                    forceAmplify};
             }),
             py::kw_only(),
             py::arg("position"),
@@ -61,14 +63,16 @@ void init_push_propagation_model(py::module_& m)
             py::arg("reaction_time"),
             py::arg("external_force"),
             py::arg("weight"),
-            py::arg("height"))
+            py::arg("height"),
+            py::arg("forceAmplify"))
         .def("__repr__", [](const JPS_PushPropagationModelAgentParameters& p) {
             return fmt::format(
                 "position: {}, journey_id: {}, stage_id: {}, "
                 "time_gap: {}, desired_speed: {}, radius: {}",
                 "strength_neighbor_repulsion: {}, range_neighbor_repulsion: {}"
                 "wall_buffer_distance: {}"
-                "anticipation_time: {}, reaction_time: {},external_force: {},weight={},height={}",
+                "anticipation_time: {}, reaction_time: {},external_force: "
+                "{},weight={},height={},forceAmplify={}",
                 intoTuple(p.position),
                 p.journeyId,
                 p.stageId,
@@ -82,7 +86,8 @@ void init_push_propagation_model(py::module_& m)
                 p.reactionTime,
                 p.externalForce,
                 p.weight,
-                p.height);
+                p.height,
+                p.forceAmplify);
         });
     py::class_<JPS_PushPropagationModelBuilder_Wrapper>(m, "PushPropagationModelBuilder")
         .def(
@@ -178,5 +183,29 @@ void init_push_propagation_model(py::module_& m)
             },
             [](JPS_PushPropagationModelState_Wrapper& w, double externalForce) {
                 JPS_PushPropagationModelState_SetExternalForce(w.handle, externalForce);
+            })
+        .def_property(
+            "weight",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetWeight(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double weight) {
+                JPS_PushPropagationModelState_SetWeight(w.handle, weight);
+            })
+        .def_property(
+            "height",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetHeight(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double height) {
+                JPS_PushPropagationModelState_SetHeight(w.handle, height);
+            })
+        .def_property(
+            "forceAmplify",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetForceAmplify(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double forceAmplify) {
+                JPS_PushPropagationModelState_SetForceAmplify(w.handle, forceAmplify);
             });
 }
