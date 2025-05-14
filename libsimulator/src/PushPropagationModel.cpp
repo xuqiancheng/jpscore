@@ -79,8 +79,17 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
     const auto& model = std::get<PushPropagationModelData>(ped.model);
     double weight = model.weight;
     double height = model.height;
-    const auto desiredSpeed =model.velocity;
-    const auto velocity = desiredSpeed+(PushForceExternal(ped) / weight);
+    Point desiredSpeed = model.velocity;
+    Point velocity = desiredSpeed + (PushForceExternal(ped) / weight);
+
+    // stage 2: considering the self driving
+    //todo: set reaction time as a parameter
+    double reactionTime =model.pushReactionTime; 
+    if (model.simTime >= reactionTime)
+    {
+        desiredSpeed = DesiredSpeed(ped, dT);
+        velocity = desiredSpeed + (PushForceExternal(ped) / weight);
+    }
 
     /*const auto pushForce = PushForceExternal(ped) + pushForceHuman + boundaryForce;
     const auto desiredSpeed = DesiredSpeed(ped, dT);
@@ -93,6 +102,9 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
     {
         //printf("The weight of agent %d is %f.\n", ped.id, model.weight);
         //printf("The height of agent %d is %f.\n\n", ped.id, model.height);
+        //printf("The pushReactionTime of agent %d is %f.\n\n", ped.id, model.pushReactionTime);
+        //printf("The deceConst of agent %d is %f.\n\n", ped.id, model.deceConst);
+        //printf("The deceVelo of agent %d is %f.\n\n", ped.id, model.deceVelo);
     }
      auto direction = velocity.Normalized();
     if(direction == Point{}) {
@@ -440,13 +452,16 @@ Point PushPropagationModel::PushForceWall(
 Point PushPropagationModel::DesiredSpeed(const GenericAgent& ped,  double dT) const
 {
     const auto& model = std::get<PushPropagationModelData>(ped.model);
-    const Point v0 = model.velocity;
-    const Point deceDirection = -v0.Normalized();
+    const Point velocity = model.velocity;
+    const Point deceDirection = -velocity.Normalized();
+    const double speed = velocity.Norm();
     // constant deceleration
-    double deceStrength= 2;
+    double constDece=model.deceConst;
+    double veloDece = model.deceVelo;
+    double deceStrength = constDece + veloDece * speed;
     Point Deceleration = deceDirection * deceStrength;
-    Point desiredSpeed = v0 + Deceleration * dT;
-    if (desiredSpeed.ScalarProduct(v0) < 0)
+    Point desiredSpeed = velocity + Deceleration * dT;
+    if(desiredSpeed.ScalarProduct(velocity) < 0)
     {
         return Point();
     }

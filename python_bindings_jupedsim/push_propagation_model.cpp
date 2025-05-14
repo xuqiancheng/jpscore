@@ -14,8 +14,7 @@ namespace py = pybind11;
 
 void init_push_propagation_model(py::module_& m)
 {
-    py::class_<JPS_PushPropagationModelAgentParameters>(
-        m, "PushPropagationModelAgentParameters")
+    py::class_<JPS_PushPropagationModelAgentParameters>(m, "PushPropagationModelAgentParameters")
         .def(
             py::init([](std::tuple<double, double> position,
                         double time_gap,
@@ -31,7 +30,10 @@ void init_push_propagation_model(py::module_& m)
                         double externalForce,
                         double weight,
                         double height,
-                        double forceAmplify) {
+                        double forceAmplify,
+                        double pushReactionTime,
+                        double deceConst,
+                        double deceVelo) {
                 return JPS_PushPropagationModelAgentParameters{
                     intoJPS_Point(position),
                     journey_id,
@@ -47,7 +49,10 @@ void init_push_propagation_model(py::module_& m)
                     externalForce,
                     weight,
                     height,
-                    forceAmplify};
+                    forceAmplify,
+                    pushReactionTime,
+                    deceConst,
+                    deceVelo};
             }),
             py::kw_only(),
             py::arg("position"),
@@ -64,7 +69,10 @@ void init_push_propagation_model(py::module_& m)
             py::arg("external_force"),
             py::arg("weight"),
             py::arg("height"),
-            py::arg("forceAmplify"))
+            py::arg("forceAmplify"),
+            py::arg("pushReactionTime"),
+            py::arg("deceConst"),
+            py::arg("deceVelo"))
         .def("__repr__", [](const JPS_PushPropagationModelAgentParameters& p) {
             return fmt::format(
                 "position: {}, journey_id: {}, stage_id: {}, "
@@ -72,7 +80,8 @@ void init_push_propagation_model(py::module_& m)
                 "strength_neighbor_repulsion: {}, range_neighbor_repulsion: {}"
                 "wall_buffer_distance: {}"
                 "anticipation_time: {}, reaction_time: {},external_force: "
-                "{},weight={},height={},forceAmplify={}",
+                "{},weight={},height={},forceAmplify={},pushReactionTime={},deceConst={},deceVelo={"
+                "}",
                 intoTuple(p.position),
                 p.journeyId,
                 p.stageId,
@@ -87,7 +96,10 @@ void init_push_propagation_model(py::module_& m)
                 p.externalForce,
                 p.weight,
                 p.height,
-                p.forceAmplify);
+                p.forceAmplify,
+                p.pushReactionTime,
+                p.deceConst,
+                p.deceVelo);
         });
     py::class_<JPS_PushPropagationModelBuilder_Wrapper>(m, "PushPropagationModelBuilder")
         .def(
@@ -207,5 +219,29 @@ void init_push_propagation_model(py::module_& m)
             },
             [](JPS_PushPropagationModelState_Wrapper& w, double forceAmplify) {
                 JPS_PushPropagationModelState_SetForceAmplify(w.handle, forceAmplify);
+            })
+        .def_property(
+            "pushReactionTime",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetPushReactionTime(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double pushReactionTime) {
+                JPS_PushPropagationModelState_SetPushReactionTime(w.handle, pushReactionTime);
+            })
+        .def_property(
+            "deceConst",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetDeceConst(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double deceConst) {
+                JPS_PushPropagationModelState_SetDeceConst(w.handle, deceConst);
+            })
+        .def_property(
+            "deceVelo",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetDeceVelo(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double deceVelo) {
+                JPS_PushPropagationModelState_SetDeceVelo(w.handle, deceVelo);
             });
 }

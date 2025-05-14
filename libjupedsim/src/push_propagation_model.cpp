@@ -238,3 +238,50 @@ JUPEDSIM_API void JPS_PushPropagationModelState_SetForceAmplify(
     auto state = reinterpret_cast<PushPropagationModelData*>(handle);
     state->forceAmplify = forceAmplify;
 }
+
+JUPEDSIM_API double
+JPS_PushPropagationModelState_GetPushReactionTime(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->pushReactionTime;
+}
+
+JUPEDSIM_API void JPS_PushPropagationModelState_SetPushReactionTime(
+    JPS_PushPropagationModelState handle,
+    double pushReactionTime)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->pushReactionTime = pushReactionTime;
+}
+
+JUPEDSIM_API double JPS_PushPropagationModelState_GetDeceConst(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->deceConst;
+}
+
+JUPEDSIM_API void
+JPS_PushPropagationModelState_SetDeceConst(JPS_PushPropagationModelState handle, double deceConst)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->deceConst = deceConst;
+}
+
+JUPEDSIM_API double JPS_PushPropagationModelState_GetDeceVelo(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->deceVelo;
+}
+
+JUPEDSIM_API void
+JPS_PushPropagationModelState_SetDeceVelo(JPS_PushPropagationModelState handle, double deceVelo)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->deceVelo = deceVelo;
+}

@@ -257,6 +257,56 @@ JUPEDSIM_API void
 JPS_PushPropagationModelState_SetForceAmplify(JPS_PushPropagationModelState handle, double forceAmplify);
 
 /**
+ * Read pushReactionTime of this agent.
+ * @param handle of the Agent to access.
+ * @return pushReactionTime of this agent
+ */
+JUPEDSIM_API double
+JPS_PushPropagationModelState_GetPushReactionTime(JPS_PushPropagationModelState handle);
+
+/**
+ * Write pushReactionTime of this agent.
+ * @param handle of the Agent to access.
+ * @param pushReactionTime of this agent.
+ */
+JUPEDSIM_API void JPS_PushPropagationModelState_SetPushReactionTime(
+    JPS_PushPropagationModelState handle,
+    double pushReactionTime);
+
+/**
+ * Read deceConst of this agent.
+ * @param handle of the Agent to access.
+ * @return deceConst of this agent
+ */
+JUPEDSIM_API double
+JPS_PushPropagationModelState_GetDeceConst(JPS_PushPropagationModelState handle);
+
+/**
+ * Write deceConst of this agent.
+ * @param handle of the Agent to access.
+ * @param deceConst of this agent.
+ */
+JUPEDSIM_API void
+JPS_PushPropagationModelState_SetDeceConst(
+    JPS_PushPropagationModelState handle,
+    double deceConst);
+
+/**
+ * Read deceVelo of this agent.
+ * @param handle of the Agent to access.
+ * @return deceVelo of this agent
+ */
+JUPEDSIM_API double JPS_PushPropagationModelState_GetDeceVelo(JPS_PushPropagationModelState handle);
+
+/**
+ * Write deceVelo of this agent.
+ * @param handle of the Agent to access.
+ * @param deceVelo of this agent.
+ */
+JUPEDSIM_API void
+JPS_PushPropagationModelState_SetDeceVelo(JPS_PushPropagationModelState handle, double deceVelo);
+
+/**
  * Describes parameters of an Agent in Push Propagation Model
  */
 typedef struct JPS_PushPropagationModelAgentParameters {
@@ -332,6 +382,21 @@ typedef struct JPS_PushPropagationModelAgentParameters {
      * forceAmplify
      */
     double forceAmplify{1};
+
+    /**
+     * pushReactionTime
+     */
+    double pushReactionTime{0.2};
+
+    /**
+     * deceConst
+     */
+    double deceConst{2};
+
+    /**
+     * deceVelo
+     */
+    double deceVelo{1};
 
 } JPS_PushPropagationModelAgentParameters;
 

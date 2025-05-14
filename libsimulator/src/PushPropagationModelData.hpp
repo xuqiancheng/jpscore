@@ -18,6 +18,9 @@ struct PushPropagationModelData {
     double weight{80}; 
     double height{1.8};
     double forceAmplify{1};
+    double pushReactionTime{0.2};
+    double deceConst{2};
+    double deceVelo{1};
 };
 
 template <>
@@ -33,7 +36,8 @@ struct fmt::formatter<PushPropagationModelData> {
             "PushPropagationModel[strengthNeighborRepulsion={}, "
             "rangeNeighborRepulsion={}, wallBufferDistance={}, "
             "timeGap={}, v0={}, radius={}, reactionTime={}, anticipationTime={}, velocity={}, "
-            "simTime={},externalForce={},weight={},height={},forceAmplify={}])",
+            "simTime={},externalForce={},weight={},height={},forceAmplify={},pushReactionTime={},"
+            "deceConst={},deceVelo={}])",
             m.strengthNeighborRepulsion,
             m.rangeNeighborRepulsion,
             m.wallBufferDistance,
@@ -47,6 +51,9 @@ struct fmt::formatter<PushPropagationModelData> {
             m.externalForce,
             m.weight,
             m.height,
-            m.forceAmplify);
+            m.forceAmplify,
+            m.pushReactionTime,
+            m.deceConst,
+            m.deceVelo);
     }
 };
