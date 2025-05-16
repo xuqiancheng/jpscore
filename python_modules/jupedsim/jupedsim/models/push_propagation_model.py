@@ -75,8 +75,10 @@ class PushPropagationModelAgentParameters:
     height: float=1.8
     forceAmplify: float=1
     pushReactionTime: float=0.2
-    deceConst: float=2;
-    deceVelo: float=1;
+    deceConst: float=2
+    deceVelo: float=1
+    Kpush: float=10000
+    Dpush: float=0.05
 
     def as_native(
         self,
@@ -100,6 +102,8 @@ class PushPropagationModelAgentParameters:
             pushReactionTime=self.pushReactionTime,
             deceConst=self.deceConst,
             deceVelo=self.deceVelo,
+            Kpush=self.Kpush,
+            Dpush=self.Dpush,
         )
 
 
@@ -241,3 +245,21 @@ class PushPropagationModelState:
     @deceVelo.setter
     def deceVelo(self, deceVelo):
         self._obj.deceVelo = deceVelo
+
+    @property
+    def Kpush(self) -> float:
+        """Kpush of this agent."""
+        return self._obj.Kpush
+
+    @Kpush.setter
+    def Kpush(self, kpush):
+        self._obj.Kpush = kpush
+
+    @property
+    def Dpush(self) -> float:
+        """Dpush of this agent."""
+        return self._obj.Dpush
+
+    @Dpush.setter
+    def Dpush(self, dpush):
+        self._obj.Dpush = dpush

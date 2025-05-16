@@ -360,7 +360,9 @@ JPS_AgentId JPS_Simulation_AddPushPropagationModelAgent(
                 .forceAmplify=parameters.forceAmplify,
                 .pushReactionTime=parameters.pushReactionTime,
                 .deceConst=parameters.deceConst,
-                .deceVelo=parameters.deceVelo});
+                .deceVelo=parameters.deceVelo,
+                .Kpush=parameters.Kpush,
+                .Dpush=parameters.Dpush});
         result = simulation->AddAgent(std::move(agent));
     } catch(const std::exception& ex) {
         if(errorMessage) {

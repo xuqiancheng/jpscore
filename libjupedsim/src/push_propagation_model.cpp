@@ -285,3 +285,33 @@ JPS_PushPropagationModelState_SetDeceVelo(JPS_PushPropagationModelState handle, 
     auto state = reinterpret_cast<PushPropagationModelData*>(handle);
     state->deceVelo = deceVelo;
 }
+
+JUPEDSIM_API double JPS_PushPropagationModelState_GetKpush(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->Kpush;
+}
+
+JUPEDSIM_API void
+JPS_PushPropagationModelState_SetKpush(JPS_PushPropagationModelState handle, double kpush)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->Kpush = kpush;
+}
+
+JUPEDSIM_API double JPS_PushPropagationModelState_GetDpush(JPS_PushPropagationModelState handle)
+{
+    assert(handle);
+    const auto state = reinterpret_cast<const PushPropagationModelData*>(handle);
+    return state->Dpush;
+}
+
+JUPEDSIM_API void
+JPS_PushPropagationModelState_SetDpush(JPS_PushPropagationModelState handle, double dpush)
+{
+    assert(handle);
+    auto state = reinterpret_cast<PushPropagationModelData*>(handle);
+    state->Dpush = dpush;
+}

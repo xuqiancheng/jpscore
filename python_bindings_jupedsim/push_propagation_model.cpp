@@ -33,7 +33,9 @@ void init_push_propagation_model(py::module_& m)
                         double forceAmplify,
                         double pushReactionTime,
                         double deceConst,
-                        double deceVelo) {
+                        double deceVelo,
+                        double Kpush,
+                        double Dpush) {
                 return JPS_PushPropagationModelAgentParameters{
                     intoJPS_Point(position),
                     journey_id,
@@ -52,7 +54,9 @@ void init_push_propagation_model(py::module_& m)
                     forceAmplify,
                     pushReactionTime,
                     deceConst,
-                    deceVelo};
+                    deceVelo,
+                    Kpush,
+                    Dpush};
             }),
             py::kw_only(),
             py::arg("position"),
@@ -72,7 +76,9 @@ void init_push_propagation_model(py::module_& m)
             py::arg("forceAmplify"),
             py::arg("pushReactionTime"),
             py::arg("deceConst"),
-            py::arg("deceVelo"))
+            py::arg("deceVelo"),
+            py::arg("Kpush"),
+            py::arg("Dpush"))
         .def("__repr__", [](const JPS_PushPropagationModelAgentParameters& p) {
             return fmt::format(
                 "position: {}, journey_id: {}, stage_id: {}, "
@@ -81,7 +87,7 @@ void init_push_propagation_model(py::module_& m)
                 "wall_buffer_distance: {}"
                 "anticipation_time: {}, reaction_time: {},external_force: "
                 "{},weight={},height={},forceAmplify={},pushReactionTime={},deceConst={},deceVelo={"
-                "}",
+                "},Kpush={},Dpush={}",
                 intoTuple(p.position),
                 p.journeyId,
                 p.stageId,
@@ -99,7 +105,9 @@ void init_push_propagation_model(py::module_& m)
                 p.forceAmplify,
                 p.pushReactionTime,
                 p.deceConst,
-                p.deceVelo);
+                p.deceVelo,
+                p.Kpush,
+                p.Dpush);
         });
     py::class_<JPS_PushPropagationModelBuilder_Wrapper>(m, "PushPropagationModelBuilder")
         .def(
@@ -243,5 +251,21 @@ void init_push_propagation_model(py::module_& m)
             },
             [](JPS_PushPropagationModelState_Wrapper& w, double deceVelo) {
                 JPS_PushPropagationModelState_SetDeceVelo(w.handle, deceVelo);
+            })
+        .def_property(
+            "Kpush",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetKpush(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double kpush) {
+                JPS_PushPropagationModelState_SetKpush(w.handle, kpush);
+            })
+        .def_property(
+            "Dpush",
+            [](const JPS_PushPropagationModelState_Wrapper& w) {
+                return JPS_PushPropagationModelState_GetDpush(w.handle);
+            },
+            [](JPS_PushPropagationModelState_Wrapper& w, double dpush) {
+                JPS_PushPropagationModelState_SetDpush(w.handle, dpush);
             });
 }

@@ -56,15 +56,6 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
             }),
         std::end(neighborhood));
  
-    // calculate the push force from neighbors
-    const auto pushForceHuman = std::accumulate(
-        std::begin(neighborhood),
-        std::end(neighborhood),
-        Point{},
-        [&ped, this](const auto& res, const auto& neighbor) {
-            return res + PushForceHuman(ped, neighbor);
-        });
-
     // calculate the push force from walls
     const auto boundaryForce= std::accumulate(
         boundary.cbegin(),
@@ -83,14 +74,52 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
     Point velocity = desiredSpeed + (PushForceExternal(ped) / weight);
 
     // stage 2: considering the self driving
-    //todo: set reaction time as a parameter
-    double reactionTime =model.pushReactionTime; 
-    if (model.simTime >= reactionTime)
+    // Check the punching time
+    double punchTime = model.punchTime;
+    if (model.velocity.Norm() < 0.05 && model.externalForce>0)
     {
-        desiredSpeed = DesiredSpeed(ped, dT);
-        velocity = desiredSpeed + (PushForceExternal(ped) / weight);
+        punchTime = model.simTime;
+    }
+    else
+    {
+        //printf("punch time is %f\n",model.punchTime);
+        double reactionTime = model.pushReactionTime+model.punchTime;
+        if(model.simTime >= reactionTime) {
+            desiredSpeed = DesiredSpeed(ped, dT);
+            velocity = desiredSpeed + (PushForceExternal(ped) / weight);
+        }
     }
 
+    // stage3: considering the contact force
+    // calculate the push force from neighbors
+    const auto pushForceHuman = std::accumulate(
+        std::begin(neighborhood),
+        std::end(neighborhood),
+        Point{},
+        [&ped, this](const auto& res, const auto& neighbor) {
+            return res + PushForceHuman(ped, neighbor);
+        });
+    punchTime = model.punchTime;
+    if (model.velocity.Norm() < 0.05 && (model.externalForce > 0 || pushForceHuman.Norm()>0) )
+    {
+        punchTime = model.simTime;
+        velocity = (PushForceExternal(ped) + pushForceHuman * dT) / weight;
+    } else {
+        //printf("punch time of ped %d is %f\n",ped.id, model.punchTime);
+        double reactionTime = model.pushReactionTime + model.punchTime;
+        if(model.simTime >= reactionTime) {
+            desiredSpeed = DesiredSpeed(ped, dT);
+            velocity = desiredSpeed + (PushForceExternal(ped) + pushForceHuman * dT) / weight;
+        }
+    }
+    if (PushForceExternal(ped) > 0)
+    {
+        //printf("PushForceExternal of ped %d is %f\n", ped.id, PushForceExternal(ped).Norm());
+    }
+    if (pushForceHuman.Norm() > 0)
+    {
+       // printf("pushForceHuman of ped %d is %f\n", ped.id, pushForceHuman.Norm());
+    }
     /*const auto pushForce = PushForceExternal(ped) + pushForceHuman + boundaryForce;
     const auto desiredSpeed = DesiredSpeed(ped, dT);
     const auto& model = std::get<PushPropagationModelData>(ped.model);
@@ -113,7 +142,7 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
 
     // update the position, speed, and direction
     return PushPropagationModelUpdate{
-        .position = ped.pos + velocity * dT, .velocity = velocity, .orientation = direction,.simTime=model.simTime+dT};
+        .position = ped.pos + velocity * dT, .velocity = velocity, .orientation = direction,.simTime=model.simTime+dT,.punchTime=punchTime};
 };
 
 void PushPropagationModel::ApplyUpdate(const OperationalModelUpdate& upd, GenericAgent& agent)
@@ -125,6 +154,7 @@ void PushPropagationModel::ApplyUpdate(const OperationalModelUpdate& upd, Generi
     agent.orientation = update.orientation;
     model.velocity = update.velocity;
     model.simTime = update.simTime;
+    model.punchTime = update.punchTime;
 }
 
 Point PushPropagationModel::UpdateDirection(
@@ -424,8 +454,9 @@ Point PushPropagationModel::PushForceHuman(const GenericAgent& ped1, const Gener
     if(adjustedDist >= 0)
         return Point();
    // calculate the strength of the pushing force
-    double kPush = 20;
-    double DPush = 0.05;
+    double kPush = model1.Kpush;
+    double DPush = model1.Dpush;
+    //printf("Kpush=%f, Dpush=%f.", kPush, DPush);
     double forceStrength = kPush * std::exp(-adjustedDist / DPush);
     return -ep12 * forceStrength;
 }
