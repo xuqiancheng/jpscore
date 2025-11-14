@@ -55,43 +55,14 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
                 return false;
             }),
         std::end(neighborhood));
- 
-    // calculate the push force from walls
-    const auto boundaryForce= std::accumulate(
-        boundary.cbegin(),
-        boundary.cend(),
-        Point(0, 0),
-        [this, &ped](const auto& acc, const auto& element) {
-            return acc + PushForceWall(ped, element);
-        });
-    //printf("boundary force is (%f,%f).\n", boundaryForce.x, boundaryForce.y);
 
-    // stage 1: only considering the external force
+    // 1. Conservation of Momentum
     const auto& model = std::get<PushPropagationModelData>(ped.model);
     double weight = model.weight;
     double height = model.height;
-    Point desiredSpeed = model.velocity;
-    Point velocity = desiredSpeed + (PushForceExternal(ped) / weight);
-
-    // stage 2: considering the self driving
-    // Check the punching time
-    double punchTime = model.punchTime;
-    if (model.velocity.Norm() < 0.05 && model.externalForce>0)
-    {
-        punchTime = model.simTime;
-    }
-    else
-    {
-        //printf("punch time is %f\n",model.punchTime);
-        double reactionTime = model.pushReactionTime+model.punchTime;
-        if(model.simTime >= reactionTime) {
-            desiredSpeed = DesiredSpeed(ped, dT);
-            velocity = desiredSpeed + (PushForceExternal(ped) / weight);
-        }
-    }
-
-    // stage3: considering the contact force
-    // calculate the push force from neighbors
+    // impulse from punching bag
+    Point bagImpulse = PushForceExternal(ped);
+    // impulse from human
     const auto pushForceHuman = std::accumulate(
         std::begin(neighborhood),
         std::end(neighborhood),
@@ -99,51 +70,89 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
         [&ped, this](const auto& res, const auto& neighbor) {
             return res + PushForceHuman(ped, neighbor);
         });
-    punchTime = model.punchTime;
-    if (model.velocity.Norm() < 0.05 && (model.externalForce > 0 || pushForceHuman.Norm()>0) )
+    Point humanImpulse = pushForceHuman * dT;
+    // impulse from wall
+    const auto boundaryForce = std::accumulate(
+        boundary.cbegin(),
+        boundary.cend(),
+        Point(0, 0),
+        [this, &ped](const auto& acc, const auto& element) {
+            return acc + PushForceWall(ped, element);
+        });
+    Point wallImpulse = boundaryForce * dT;
+    Point externlImpulse = bagImpulse + humanImpulse + wallImpulse;
+
+    // 2. Self driving (based on PID)
+    Point interError = model.interError;
+    if (model.velocity == 0)
     {
-        punchTime = model.simTime;
-        velocity = (PushForceExternal(ped) + pushForceHuman * dT) / weight;
-    } else {
-        //printf("punch time of ped %d is %f\n",ped.id, model.punchTime);
-        double reactionTime = model.pushReactionTime + model.punchTime;
-        if(model.simTime >= reactionTime) {
-            desiredSpeed = DesiredSpeed(ped, dT);
-            velocity = desiredSpeed + (PushForceExternal(ped) + pushForceHuman * dT) / weight;
+        interError = Point(0, 0);
+    }
+    Point desireSpeed = model.velocity;
+    // check punch time
+    double pushTime = model.pushTime;
+    bool bePuhsed = model.bePushed;
+    if(bePuhsed == false) {
+        pushTime = model.simTime;
+        if(model.velocity.Norm() > 0.05 && externlImpulse.Norm() > 0) {
+            bePuhsed = true;
+            printf("push time is %f, reaction time is %f\n", pushTime, model.pushReactionTime);
         }
     }
-    if (PushForceExternal(ped) > 0)
-    {
-        //printf("PushForceExternal of ped %d is %f\n", ped.id, PushForceExternal(ped).Norm());
+    // reaction time
+    if(model.simTime > pushTime + model.pushReactionTime) {
+        interError += model.velocity * dT;
+        desireSpeed = DesiredSpeed(ped, dT);
     }
-    if (pushForceHuman.Norm() > 0)
-    {
-       // printf("pushForceHuman of ped %d is %f\n", ped.id, pushForceHuman.Norm());
+    // 3. integration speed
+    Point velocity = desireSpeed + externlImpulse / weight;
+    auto direction = velocity.Normalized();
+    if(direction == Point{}) {
+        direction = ped.orientation;
     }
+    // for
+    // testing------------------------------------------------------------------------------------------------------
+    if(PushForceExternal(ped) > 0) {
+        // printf("PushForceExternal of ped %d is %f\n", ped.id, PushForceExternal(ped).Norm());
+    }
+    if(pushForceHuman.Norm() > 0) {
+        // printf("pushForceHuman of ped %d is %f\n", ped.id, pushForceHuman.Norm());
+    }
+
     /*const auto pushForce = PushForceExternal(ped) + pushForceHuman + boundaryForce;
     const auto desiredSpeed = DesiredSpeed(ped, dT);
     const auto& model = std::get<PushPropagationModelData>(ped.model);
     const auto velocity = desiredSpeed + (pushForce / weight) * dT;
     */
-
     //
-    if (model.simTime==0)
+    /*
+    if (ped.id == 2)
     {
-        //printf("The weight of agent %d is %f.\n", ped.id, model.weight);
-        //printf("The height of agent %d is %f.\n\n", ped.id, model.height);
-        //printf("The pushReactionTime of agent %d is %f.\n\n", ped.id, model.pushReactionTime);
-        //printf("The deceConst of agent %d is %f.\n\n", ped.id, model.deceConst);
-        //printf("The deceVelo of agent %d is %f.\n\n", ped.id, model.deceVelo);
+        printf("the simulaiton time is %f.\n",model.simTime);
+        printf("the speed of ped 2 is %f.\n",model.velocity.Norm());
+        printf("the contact force is %f.\n", pushForceHuman.Norm());
+        printf("the external force is %f.\n\n", PushForceExternal(ped).Norm());
     }
-     auto direction = velocity.Normalized();
-    if(direction == Point{}) {
-        direction = ped.orientation;
+    */
+    //
+    if(model.simTime == 0) {
+        // printf("The weight of agent %d is %f.\n", ped.id, model.weight);
+        // printf("The height of agent %d is %f.\n\n", ped.id, model.height);
+        // printf("The pushReactionTime of agent %d is %f.\n\n", ped.id, model.pushReactionTime);
+        // printf("The deceConst of agent %d is %f.\n\n", ped.id, model.deceConst);
+        // printf("The deceVelo of agent %d is %f.\n\n", ped.id, model.deceVelo);
     }
 
     // update the position, speed, and direction
     return PushPropagationModelUpdate{
-        .position = ped.pos + velocity * dT, .velocity = velocity, .orientation = direction,.simTime=model.simTime+dT,.punchTime=punchTime};
-};
+        .position = ped.pos + velocity * dT,
+        .velocity = velocity,
+        .orientation = direction,
+        .simTime = model.simTime + dT,
+        .pushTime = pushTime,
+        .bePushed = bePuhsed,
+        .interError = interError};
+}
 
 void PushPropagationModel::ApplyUpdate(const OperationalModelUpdate& upd, GenericAgent& agent)
     const
@@ -154,7 +163,9 @@ void PushPropagationModel::ApplyUpdate(const OperationalModelUpdate& upd, Generi
     agent.orientation = update.orientation;
     model.velocity = update.velocity;
     model.simTime = update.simTime;
-    model.punchTime = update.punchTime;
+    model.pushTime = update.pushTime;
+    model.bePushed = update.bePushed;
+    model.interError = update.interError;
 }
 
 Point PushPropagationModel::UpdateDirection(
@@ -449,10 +460,17 @@ Point PushPropagationModel::PushForceHuman(const GenericAgent& ped1, const Gener
 
     const auto distp12 = ped2.pos - ped1.pos;
     const auto [distance, ep12] = distp12.NormAndNormalized();
-    const double adjustedDist = distance - (model1.radius + model2.radius);
+    //todo: check whether two agents contact
+    const double adjustedDist = distance - 0.4;
     // no contact no force
     if(adjustedDist >= 0)
         return Point();
+    //
+    if (ped1.id == 2 and ped2.id == 1)
+    {
+        //printf("adjustedDist is %.3f.\n", adjustedDist);
+       //printf("model1 radius is %f and mode2 radius is %f.\n", model1.radius, model2.radius);
+    }
    // calculate the strength of the pushing force
     double kPush = model1.Kpush;
     double DPush = model1.Dpush;
@@ -474,7 +492,7 @@ Point PushPropagationModel::PushForceWall(
     // no contact no force
     if(adjustedDist >= 0)
         return Point();
-    double kPush = 20;
+    double kPush = 0;
     double DPush = 0.05;
     double forceStrength = kPush * std::exp(-adjustedDist / DPush);
     return -e_iw * forceStrength;
@@ -484,14 +502,37 @@ Point PushPropagationModel::DesiredSpeed(const GenericAgent& ped,  double dT) co
 {
     const auto& model = std::get<PushPropagationModelData>(ped.model);
     const Point velocity = model.velocity;
-    const Point deceDirection = -velocity.Normalized();
+    const Point deceDirection = velocity.Normalized();
     const double speed = velocity.Norm();
     // constant deceleration
-    double constDece=model.deceConst;
-    double veloDece = model.deceVelo;
-    double deceStrength = constDece + veloDece * speed;
+    double kDece=model.deceConst;
+    double deceStrength = kDece;
     Point Deceleration = deceDirection * deceStrength;
-    Point desiredSpeed = velocity + Deceleration * dT;
+   
+    double IDece = model.deceVelo;
+    deceStrength = kDece + IDece * speed;
+    double deceMax=model.Dpush;
+    if (deceStrength > deceMax)
+    {
+        deceStrength = deceMax;
+    }
+    Deceleration = deceDirection * deceStrength;
+    // Deceleration
+    double k = kDece / (IDece * IDece);
+    deceStrength = kDece - k*(model.simTime - model.pushTime - IDece-model.pushReactionTime) *
+                               (model.simTime - model.pushTime - IDece - model.pushReactionTime);
+    double deceMin = 0;
+    if(deceStrength < deceMin) {
+        deceStrength = deceMin;
+    }
+   /* printf("model.simTime=%f\n", model.simTime);
+    printf("model.pushTime=%f\n", model.pushTime);
+    printf("deceStrength=%f\n", deceStrength);*/
+    Deceleration = deceDirection * deceStrength;
+    //printf("model.simTime=%f\tdeceStrength=%f\n", model.simTime,deceStrength);
+    //Deceleration = velocity*kDece+model.interError*IDece;
+  
+    Point desiredSpeed = velocity - Deceleration * dT;
     if(desiredSpeed.ScalarProduct(velocity) < 0)
     {
         return Point();

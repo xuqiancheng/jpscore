@@ -21,10 +21,11 @@ struct PushPropagationModelData {
     double pushReactionTime{0.2};
     double deceConst{2};
     double deceVelo{1};
-    double punchTime{0};
+    double pushTime{0};
+    bool bePushed{false};
     double Kpush{10000};
     double Dpush{0.05};
-
+    Point interError{0};
 };
 
 template <>
@@ -41,7 +42,7 @@ struct fmt::formatter<PushPropagationModelData> {
             "rangeNeighborRepulsion={}, wallBufferDistance={}, "
             "timeGap={}, v0={}, radius={}, reactionTime={}, anticipationTime={}, velocity={}, "
             "simTime={},externalForce={},weight={},height={},forceAmplify={},pushReactionTime={},"
-            "deceConst={},deceVelo={},punchTime={},Kpush={},Dpush={}])",
+            "deceConst={},deceVelo={},pushTime={},bePushed={},Kpush={},Dpush={},interError={}])",
             m.strengthNeighborRepulsion,
             m.rangeNeighborRepulsion,
             m.wallBufferDistance,
@@ -59,8 +60,10 @@ struct fmt::formatter<PushPropagationModelData> {
             m.pushReactionTime,
             m.deceConst,
             m.deceVelo,
-            m.punchTime,
+            m.pushTime,
+            m.bePushed,
             m.Kpush,
-            m.Dpush);
+            m.Dpush,
+            m.interError);
     }
 };
