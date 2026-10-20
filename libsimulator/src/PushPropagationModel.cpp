@@ -100,7 +100,7 @@ OperationalModelUpdate PushPropagationModel::ComputeNewPosition(
         }
     }
     // reaction time
-    if(model.simTime > pushTime + model.pushReactionTime) {
+    if(model.simTime > model.Dpush) {
         interError += model.velocity * dT;
         desireSpeed = DesiredSpeed(ped, dT);
     }
@@ -506,21 +506,14 @@ Point PushPropagationModel::DesiredSpeed(const GenericAgent& ped,  double dT) co
     const double speed = velocity.Norm();
     // constant deceleration
     double kDece=model.deceConst;
-    double deceStrength = kDece;
-    Point Deceleration = deceDirection * deceStrength;
-   
     double IDece = model.deceVelo;
-    deceStrength = kDece + IDece * speed;
-    double deceMax=model.Dpush;
-    if (deceStrength > deceMax)
+    if (kDece == 0)
     {
-        deceStrength = deceMax;
+        return velocity;
     }
-    Deceleration = deceDirection * deceStrength;
-    // Deceleration
     double k = kDece / (IDece * IDece);
-    deceStrength = kDece - k*(model.simTime - model.pushTime - IDece-model.pushReactionTime) *
-                               (model.simTime - model.pushTime - IDece - model.pushReactionTime);
+    double deceStrength = kDece - k*(model.simTime  - IDece-model.pushReactionTime) *
+                               (model.simTime - IDece - model.pushReactionTime);
     double deceMin = 0;
     if(deceStrength < deceMin) {
         deceStrength = deceMin;
@@ -528,7 +521,7 @@ Point PushPropagationModel::DesiredSpeed(const GenericAgent& ped,  double dT) co
    /* printf("model.simTime=%f\n", model.simTime);
     printf("model.pushTime=%f\n", model.pushTime);
     printf("deceStrength=%f\n", deceStrength);*/
-    Deceleration = deceDirection * deceStrength;
+    Point Deceleration = deceDirection * deceStrength;
     //printf("model.simTime=%f\tdeceStrength=%f\n", model.simTime,deceStrength);
     //Deceleration = velocity*kDece+model.interError*IDece;
   
